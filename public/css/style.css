@@ -1162,3 +1162,22 @@ body:has(.catpage, .favpage, .carpage) .geo__line { stroke: rgba(255,90,90,.28);
 /* ловушка для спам-ботов в форме заявки */
 .hp { position: absolute !important; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .review__ava--letter { font-family: var(--font-display); font-weight: 800; font-size: 19px; color: #fff; background: linear-gradient(180deg, #e3121f, #8f0a13); border-color: rgba(255,80,80,.5); }
+
+/* ==========================================================
+   Главная на телефоне: плотнее разделы, без «островков»
+   ========================================================== */
+@media (max-width: 767px) {
+  .page.section { padding-top: 8px; padding-bottom: 20px; }
+  .page.section .page-head { padding-top: 16px; padding-bottom: 16px; }
+  #catalog.section { padding-top: 0; }
+  /* картинка-баннер у «О компании» на узком экране выглядела торчащим обрезком — убираем */
+  .page-head__banner { display: none; }
+}
+
+/* Карта — тёмный спокойный фон на всём сайте, текст поверх читается */
+.site-map .geo-bg__map { opacity: .34; filter: saturate(.3) brightness(.85); }
+.site-map .geo__line { stroke: rgba(255,90,90,.22); }
+.site-map::before { content: ""; position: absolute; inset: 0; z-index: 1; background: rgba(8,9,12,.35); }
+.site-map::after { z-index: 2; }
+/* карточки на главной плотнее, чтобы карта под ними не просвечивала */
+.card { background: linear-gradient(180deg, #15171c, #111317); }
