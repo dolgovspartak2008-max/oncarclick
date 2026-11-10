@@ -15,12 +15,15 @@
 
   // «Назад» возвращает в каталог с теми же фильтрами, если пришли оттуда
   const back = $('carBack');
-  let cameFromCatalog = false;
-  try { cameFromCatalog = Boolean(document.referrer) && new URL(document.referrer).pathname.endsWith('/catalog.html'); if (cameFromCatalog) back.href = document.referrer; } catch (e) {}
-  // «В каталог» — шаг назад по истории: каталог откроется на той же машине, а не сверху
-  back.addEventListener('click', function (event) {
-    if (cameFromCatalog && history.length > 1) { event.preventDefault(); history.back(); }
-  });
+  // Страница машины всегда открывается с самого верха — с фотографий
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  window.scrollTo(0, 0);
+  window.addEventListener('pageshow', function (event) { if (!event.persisted) window.scrollTo(0, 0); });
+
+  // «В каталог» ведёт ровно на ту выдачу, из которой открыли машину; каталог сам вернёт прокрутку
+  let returnUrl = null;
+  try { returnUrl = sessionStorage.getItem('oncarclick-catalog-return'); } catch (e) {}
+  if (returnUrl && /^\/catalog(\.html)?(\?|$)/.test(returnUrl)) back.href = returnUrl;
   if (/favorites\.html/.test(document.referrer)) { back.href = 'favorites.html'; back.lastChild.textContent = 'В избранное'; }
 
   /* ---------- Галерея ---------- */
@@ -43,7 +46,8 @@
     thumbs.querySelectorAll('.gal__thumb').forEach(function (thumb, i) {
       const on = i === index;
       thumb.classList.toggle('is-on', on);
-      if (on) thumb.scrollIntoView({ block: 'nearest', inline: 'center' });
+      // прокручиваем только ленту миниатюр по горизонтали — страница не двигается
+      if (on) thumbs.scrollTo({ left: thumb.offsetLeft - (thumbs.clientWidth - thumb.clientWidth) / 2, behavior: 'smooth' });
     });
   }
 

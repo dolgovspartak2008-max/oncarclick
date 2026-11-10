@@ -1186,3 +1186,4 @@ body:has(.catpage) .header { position: relative; }
 /* Карта чуть светлее — едва проступает */
 .site-map .geo-bg__map { opacity: .42; }
 .site-map::before { background: rgba(8,9,12,.25); }
+.gal__thumbs { position: relative; }

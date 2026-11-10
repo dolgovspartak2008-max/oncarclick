@@ -452,6 +452,7 @@
       const raw = rawItems.get(String(link.dataset.open));
       try { if (raw) sessionStorage.setItem('oncarclick-car-preview', JSON.stringify(raw)); } catch (e) {}
       saveRestore();
+      try { sessionStorage.setItem('oncarclick-catalog-return', location.pathname + location.search); } catch (e) {}
     }
   });
 
@@ -467,20 +468,41 @@
   }
   window.addEventListener('pagehide', saveRestore);
 
-  function tryRestore() {
+  function readRestore() {
     let saved = null;
     try { saved = JSON.parse(sessionStorage.getItem(RESTORE_KEY) || 'null'); } catch (e) {}
-    if (!saved || saved.url !== location.pathname + location.search || Date.now() - saved.savedAt > 30 * 60 * 1000) return false;
+    const same = function (a, b) { return String(a || '').replace(/\.html(?=$|\?)/, '') === String(b || '').replace(/\.html(?=$|\?)/, ''); };
+    if (!saved || !same(saved.url, location.pathname + location.search) || Date.now() - saved.savedAt > 60 * 60 * 1000) return null;
+    return saved;
+  }
+
+  // Возвращаемся на сохранённое место несколько раз, пока страница достраивается; любое касание отменяет
+  function scrollBack(y) {
+    let cancelled = false;
+    const stop = function () { cancelled = true; };
+    window.addEventListener('touchstart', stop, { once: true, passive: true });
+    window.addEventListener('wheel', stop, { once: true, passive: true });
+    [0, 60, 200, 450, 900].forEach(function (delay) {
+      setTimeout(function () { if (!cancelled && Math.abs(window.scrollY - y) > 4) window.scrollTo(0, y); }, delay);
+    });
+  }
+
+  function tryRestore() {
+    const saved = readRestore();
+    if (!saved || !saved.items || !saved.items.length) return false;
     sortSel.value = saved.sort || sortSel.value;
     page = saved.page || 1;
     accept({ items: saved.items, total: saved.total, hasMore: saved.hasMore, approximate: saved.approximate, makes: saved.makes }, false);
     status.textContent = 'Каталог обновляется автоматически один раз в сутки. Цены — с утильсбором.';
-    const y = saved.scrollY || 0;
-    // ждём раскладки карточек, затем возвращаемся на то же место
-    requestAnimationFrame(function () { requestAnimationFrame(function () { window.scrollTo(0, y); }); });
-    setTimeout(function () { if (Math.abs(window.scrollY - y) > 40) window.scrollTo(0, y); }, 350);
+    scrollBack(saved.scrollY || 0);
     return true;
   }
+  // Возврат жестом «назад» из кеша браузера: страница уже на месте, но подстрахуемся
+  window.addEventListener('pageshow', function (event) {
+    if (!event.persisted) return;
+    const saved = readRestore();
+    if (saved) scrollBack(saved.scrollY || 0);
+  });
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
   sortSel.addEventListener('change', function () { load(false); });
