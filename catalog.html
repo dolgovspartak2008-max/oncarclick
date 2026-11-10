@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Каталог автомобилей — OnCarClick</title>
+<meta name="description" content="Актуальные предложения автомобилей из Кореи, Японии и Китая.">
+<meta name="theme-color" content="#08090c">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,700;0,800;1,800;1,900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/main.js" defer></script>
+<script src="js/catalog.js" defer></script>
+</head>
+<body>
+<header class="header">
+  <div class="container header__inner">
+    <a class="logo" href="index.html" aria-label="OnCarClick — на главную">
+      <svg class="logo__mark" viewBox="0 0 46 34" aria-hidden="true">
+  <defs><linearGradient id="lgB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4d7dff"/><stop offset="1" stop-color="#1f45d6"/></linearGradient>
+  <linearGradient id="lgR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff3a3a"/><stop offset="1" stop-color="#c90d18"/></linearGradient></defs>
+  <path d="M14 2.5 L23 11 L32 2.5 L29 2.5 L23 7.6 L17 2.5 Z" fill="url(#lgR)"/>
+  <path d="M11.5 4 L23 14.2 L34.5 4" fill="none" stroke="url(#lgR)" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M6 22 L9 15.5 C9.6 14.3 10.6 13.6 12 13.6 L34 13.6 C35.4 13.6 36.4 14.3 37 15.5 L40 22 L42.5 23 C43.4 23.4 44 24.2 44 25.2 L44 29.5 C44 30.3 43.4 31 42.5 31 L3.5 31 C2.6 31 2 30.3 2 29.5 L2 25.2 C2 24.2 2.6 23.4 3.5 23 Z" fill="none" stroke="url(#lgB)" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M9 22 L37 22" stroke="url(#lgB)" stroke-width="2"/>
+  <circle cx="9.5" cy="26.5" r="2" fill="#3b6bff"/><circle cx="36.5" cy="26.5" r="2" fill="#3b6bff"/>
+  <path d="M17 27 L29 27" stroke="#3b6bff" stroke-width="2" stroke-linecap="round"/>
+  <path d="M6 31 L6 33.5 M40 31 L40 33.5" stroke="url(#lgB)" stroke-width="3" stroke-linecap="round"/>
+</svg>
+      <span class="logo__divider"></span>
+      <span class="logo__name">OnCarClick<span class="logo__sub">Export &amp; Import Corp</span></span>
+    </a>
+    <nav class="nav" aria-label="Основное меню">
+<a href="index.html">Главная</a>
+<a href="about.html">О нас</a>
+<a href="catalog.html" class="is-active" aria-current="page">Каталог</a>
+<a href="calculator.html">Калькулятор</a>
+<a href="contacts.html">Контакты</a>
+    </nav>
+    <a class="btn btn--red btn--sm header__cta" href="contacts.html#form"><svg class="icon " aria-hidden="true"><use href="#i-chat"/></svg>Связаться</a>
+    <button class="burger" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="mnav"><svg class="icon " aria-hidden="true"><use href="#i-menu"/></svg></button>
+  </div>
+</header>
+<div class="mnav" id="mnav" role="dialog" aria-label="Меню">
+  <div class="mnav__top">
+    <a class="logo" href="index.html" aria-label="OnCarClick — на главную">
+      <svg class="logo__mark" viewBox="0 0 46 34" aria-hidden="true">
+  <defs><linearGradient id="lgB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4d7dff"/><stop offset="1" stop-color="#1f45d6"/></linearGradient>
+  <linearGradient id="lgR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff3a3a"/><stop offset="1" stop-color="#c90d18"/></linearGradient></defs>
+  <path d="M14 2.5 L23 11 L32 2.5 L29 2.5 L23 7.6 L17 2.5 Z" fill="url(#lgR)"/>
+  <path d="M11.5 4 L23 14.2 L34.5 4" fill="none" stroke="url(#lgR)" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M6 22 L9 15.5 C9.6 14.3 10.6 13.6 12 13.6 L34 13.6 C35.4 13.6 36.4 14.3 37 15.5 L40 22 L42.5 23 C43.4 23.4 44 24.2 44 25.2 L44 29.5 C44 30.3 43.4 31 42.5 31 L3.5 31 C2.6 31 2 30.3 2 29.5 L2 25.2 C2 24.2 2.6 23.4 3.5 23 Z" fill="none" stroke="url(#lgB)" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M9 22 L37 22" stroke="url(#lgB)" stroke-width="2"/>
+  <circle cx="9.5" cy="26.5" r="2" fill="#3b6bff"/><circle cx="36.5" cy="26.5" r="2" fill="#3b6bff"/>
+  <path d="M17 27 L29 27" stroke="#3b6bff" stroke-width="2" stroke-linecap="round"/>
+  <path d="M6 31 L6 33.5 M40 31 L40 33.5" stroke="url(#lgB)" stroke-width="3" stroke-linecap="round"/>
+</svg>
+      <span class="logo__divider"></span>
+      <span class="logo__name">OnCarClick<span class="logo__sub">Export &amp; Import Corp</span></span>
+    </a>
+    <button class="icon-btn mnav__close" type="button" aria-label="Закрыть меню"><svg class="icon " aria-hidden="true"><use href="#i-x"/></svg></button>
+  </div>
+  <ul class="mnav__links">
+<li><a href="index.html">Главная<svg class="icon " aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
+<li><a href="about.html">О нас<svg class="icon " aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
+<li><a href="catalog.html" class="is-active">Каталог<svg class="icon " aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
+<li><a href="calculator.html">Калькулятор<svg class="icon " aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
+<li><a href="contacts.html">Контакты<svg class="icon " aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
+  </ul>
+  <div class="mnav__bottom">
+    <a class="btn btn--red btn--block" href="contacts.html#form"><svg class="icon " aria-hidden="true"><use href="#i-chat"/></svg>Связаться</a>
+    <div class="mnav__socials">
+      <a class="soc" href="https://t.me/oncarclick" target="_blank" rel="noopener" aria-label="Telegram"><svg class="icon " aria-hidden="true"><use href="#i-telegram"/></svg></a>
+      <a class="soc" href="https://wa.me/79171234567" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="icon " aria-hidden="true"><use href="#i-whatsapp"/></svg></a>
+      <a class="soc" href="tel:+79171234567" aria-label="Позвонить"><svg class="icon " aria-hidden="true"><use href="#i-phone"/></svg></a>
+    </div>
+  </div>
+</div>
+<main class="page glow-br">
+  <section class="container page-head">
+    <div class="catalog-head">
+      <div>
+        <h1 class="page-title">Каталог автомобилей</h1>
+        <p class="page-lead">Актуальные предложения из Кореи, Японии и Китая с проверенной историей и выгодными ценами.</p>
+      </div>
+      <label class="search">
+        <span class="sr-only">Поиск</span>
+        <input type="search" id="q" placeholder="Поиск по марке, модели..." autocomplete="off">
+        <svg class="icon " aria-hidden="true"><use href="#i-search"/></svg>
+      </label>
+    </div>
+  </section>
+  <section class="container catalog">
+    <div class="overlay" id="fOverlay"></div>
+    <form class="filters" id="filters" aria-label="Фильтры">
+      <div class="filters__grab"></div>
+      <div class="filters__head"><h2>Фильтры</h2><button class="icon-btn" type="button" id="fClose" aria-label="Закрыть"><svg class="icon " aria-hidden="true"><use href="#i-x"/></svg></button></div>
+      <div class="fgroup is-open">
+        <button class="fgroup__btn" type="button" aria-expanded="true">Страна<svg class="icon " aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        <div class="fgroup__body"><label class="check"><input type="checkbox" name="country" value="Корея"><span class="check__box"><svg class="icon " aria-hidden="true"><use href="#i-check"/></svg></span>Корея</label><label class="check"><input type="checkbox" name="country" value="Япония"><span class="check__box"><svg class="icon " aria-hidden="true"><use href="#i-check"/></svg></span>Япония</label><label class="check"><input type="checkbox" name="country" value="Китай"><span class="check__box"><svg class="icon " aria-hidden="true"><use href="#i-check"/></svg></span>Китай</label></div>
+      </div>
+      <div class="fgroup">
+        <button class="fgroup__btn" type="button" aria-expanded="false">Марка<svg class="icon " aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        <div class="fgroup__body"><select class="select" name="brand" id="fBrand"><option value="">Все марки</option></select></div>
+      </div>
+      <div class="fgroup">
+        <button class="fgroup__btn" type="button" aria-expanded="false">Модель<svg class="icon " aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        <div class="fgroup__body"><select class="select" name="model" id="fModel"><option value="">Все модели</option></select></div>
+      </div>
+      <div class="fgroup">
+        <button class="fgroup__btn" type="button" aria-expanded="false">Год выпуска<svg class="icon " aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        <div class="fgroup__body"><div class="range2"><input class="input" type="number" inputmode="numeric" name="yearFrom" placeholder="от 2015"><input class="input" type="number" inputmode="numeric" name="yearTo" placeholder="до 2024"></div></div>
+      </div>
+      <div class="fgroup">
+        <button class="fgroup__btn" type="button" aria-expanded="false">Цена, ₽<svg class="icon " aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        <div class="fgroup__body"><div class="range2"><input class="input" type="number" inputmode="numeric" name="priceFrom" placeholder="от"><input class="input" type="number" inputmode="numeric" name="priceTo" placeholder="до"></div></div>
+      </div>
+      <div class="fgroup">
+        <button class="fgroup__btn" type="button" aria-expanded="false">Пробег, км<svg class="icon " aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        <div class="fgroup__body"><div class="range2"><input class="input" type="number" inputmode="numeric" name="kmFrom" placeholder="от"><input class="input" type="number" inputmode="numeric" name="kmTo" placeholder="до"></div></div>
+      </div>
+      <button class="btn btn--red btn--block filters__submit" type="submit" id="fShow">Показать авто</button>
+      <button class="filters__reset" type="reset">Сбросить фильтры</button>
+    </form>
+    <div>
+      <div class="catalog__toolbar">
+        <div class="toolbar-row">
+          <button class="btn btn--ghost btn--sm filters-open" type="button" id="fOpen"><svg class="icon " aria-hidden="true"><use href="#i-filter"/></svg>Фильтры</button>
+          <span class="results-count" id="count"></span>
+        </div>
+        <div class="sort" role="tablist" aria-label="Сортировка">
+          <span class="sort__label">Сортировка:</span>
+          <button class="pill is-active" type="button" data-sort="pop">По популярности</button>
+          <button class="pill" type="button" data-sort="cheap">Сначала дешёвые</button>
+          <button class="pill" type="button" data-sort="exp">Сначала дорогие</button>
+          <button class="pill" type="button" data-sort="new">Сначала новые</button>
+        </div>
+      </div>
+      <div class="cars" id="cars" style="margin-top:14px"></div>
+    </div>
+  </section>
+  <div class="stripes stripes--br" aria-hidden="true"><span></span><span></span></div>
+</main>
+</body>
+</html>
