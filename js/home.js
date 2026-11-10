@@ -19,6 +19,15 @@
   }
 
   // FAQ: открыт только один ответ за раз — меньше текста на экране
+  // FAQ свёрнут: по кнопке раскрывается весь список вопросов
+  const faqBtn = $('.faq-toggle'), faqWrap = $('#faqList');
+  if (faqBtn && faqWrap) faqBtn.addEventListener('click', () => {
+    const open = faqBtn.getAttribute('aria-expanded') !== 'true';
+    faqBtn.setAttribute('aria-expanded', String(open));
+    faqWrap.classList.toggle('is-open', open);
+    faqBtn.querySelector('b').textContent = open ? 'Скрыть вопросы' : 'Показать все вопросы';
+    if (!open) $$('.faq__item').forEach(d => { d.open = false; });
+  });
   const faqItems = $$('.faq__item');
   faqItems.forEach(d => d.addEventListener('toggle', () => {
     if (d.open) faqItems.forEach(o => { if (o !== d) o.open = false; });

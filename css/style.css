@@ -747,6 +747,24 @@ html, body { overscroll-behavior-x: none; }
 /* ==========================================================
    Частые вопросы
    ========================================================== */
+.faq-toggle {
+  width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 18px; text-align: left; cursor: pointer;
+  border-radius: var(--radius); border: 1px solid var(--line-2); color: #fff; font: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); transition: border-color .2s, background .2s;
+}
+.faq-toggle:hover, .faq-toggle[aria-expanded="true"] { border-color: rgba(255,60,60,.45); background: linear-gradient(180deg, rgba(227,18,31,.16), rgba(227,18,31,.05)); }
+.faq-toggle__ico { flex: none; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: rgba(227,18,31,.16); border: 1px solid rgba(255,80,80,.3); }
+.faq-toggle__ico .icon { width: 22px; height: 22px; color: #ff4a4a; }
+.faq-toggle__txt { flex: 1; min-width: 0; }
+.faq-toggle__txt b { display: block; font-size: 16.5px; font-weight: 700; }
+.faq-toggle__txt small { display: block; margin-top: 2px; color: var(--muted); font-size: 13.5px; }
+.faq-toggle__arr { flex: none; width: 22px; height: 22px; color: var(--muted); transition: transform .3s var(--ease), color .2s; }
+.faq-toggle[aria-expanded="true"] .faq-toggle__arr { transform: rotate(180deg); color: var(--red-2); }
+/* плавное раскрытие списка */
+.faq-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .45s var(--ease-soft); }
+.faq-wrap > .faq { min-height: 0; overflow: hidden; visibility: hidden; transition: visibility 0s .45s; }
+.faq-wrap.is-open { grid-template-rows: 1fr; }
+.faq-wrap.is-open > .faq { visibility: visible; transition: none; padding-top: 10px; }
 .faq { display: grid; gap: 8px; }
 .faq__item { border-radius: var(--radius); border: 1px solid var(--line); background: rgba(255,255,255,.03); transition: border-color .2s, background .2s; }
 .faq__item[open] { border-color: rgba(255,255,255,.16); background: rgba(255,255,255,.05); }
