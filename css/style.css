@@ -472,7 +472,30 @@ main { flex: 1; }
 .form.is-sent > :not(.form__ok) { display: none; }
 .form.is-sent .form__ok { display: block; }
 .input.is-error { border-color: #ff4040; }
-.socials { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 28px; color: var(--muted); font-size: 14px; }
+.socials { margin-top: 30px; }
+.socials__title { margin: 0 0 14px; text-align: center; color: var(--muted); font-size: 14px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.socials__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.sbtn {
+  display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 14px; border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); border: 1px solid var(--line-2);
+  color: #fff; font-weight: 600; font-size: 14.5px; white-space: nowrap; transition: background .2s, border-color .2s, transform .2s;
+}
+.sbtn .icon { width: 21px; height: 21px; }
+@media (max-width: 380px) { .sbtn { gap: 8px; padding: 0 10px; font-size: 13.5px; } }
+.sbtn:hover { transform: translateY(-2px); border-color: rgba(255,60,60,.5); background: linear-gradient(180deg, rgba(227,18,31,.22), rgba(227,18,31,.08)); }
+.sbtn--instagram .icon { color: #ff4f8b; }
+.sbtn--telegram .icon { color: #3aa9e8; }
+.sbtn--youtube .icon { color: #ff2b2b; }
+.sbtn--dzen .icon { color: #fff; }
+.sbtn--facebook .icon { color: #4a8af4; }
+@media (min-width: 700px) { .socials__grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1024px) { .socials__grid { grid-template-columns: repeat(6, 1fr); } }
+.clist a > span { flex: 1; min-width: 0; }
+.clist .icon.clist__arr { width: 18px; height: 18px; color: var(--muted-2); transition: transform .2s, color .2s; }
+.clist a:hover .clist__arr { color: #fff; transform: translateX(3px); }
+.footer__soc { display: flex; flex-wrap: wrap; gap: 10px; }
+.footer__soc .soc { width: 40px; height: 40px; }
+.footer__soc .soc .icon { width: 18px; height: 18px; }
 .soc { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--panel-2); border: 1px solid var(--line-2); color: #fff; transition: background .2s, transform .2s; }
 .soc:hover { background: var(--red); transform: translateY(-2px); }
 /* ---------- Toast ---------- */
@@ -570,6 +593,7 @@ main { flex: 1; }
   .footer__inner { grid-template-columns: auto 1fr; align-items: center; }
   .footer__nav { justify-content: flex-end; }
   .footer__copy { grid-column: 1 / -1; }
+  .footer__soc { grid-column: 1 / -1; }
   .page.section { padding-top: 64px; padding-bottom: 110px; }
   .page.section::before { top: -220px; height: 440px; }
 }
