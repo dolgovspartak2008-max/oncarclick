@@ -1187,3 +1187,36 @@ body:has(.catpage) .header { position: relative; }
 .site-map .geo-bg__map { opacity: .42; }
 .site-map::before { background: rgba(8,9,12,.25); }
 .gal__thumbs { position: relative; }
+
+/* Своё меню сортировки */
+.dd { position: relative; }
+.dd__btn {
+  display: inline-flex; align-items: center; gap: 10px; height: 42px; padding: 0 14px 0 16px; border-radius: 12px;
+  background: #15171d; border: 1px solid var(--line-2); font-size: 14px; font-weight: 600; transition: border-color .2s;
+}
+.dd__btn:hover, .dd.is-open .dd__btn { border-color: rgba(255,43,43,.55); }
+.dd__chev { width: 16px; height: 16px; color: var(--muted); transition: transform .2s; }
+.dd.is-open .dd__chev { transform: rotate(180deg); }
+.dd__menu {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 30; min-width: 230px; margin: 0; padding: 6px; list-style: none;
+  border-radius: 16px; background: #15171d; border: 1px solid var(--line-2); box-shadow: 0 18px 40px -12px rgba(0,0,0,.85);
+  animation: ddIn .16s var(--ease-soft);
+}
+.dd__menu[hidden] { display: none; }
+@keyframes ddIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.dd__menu button {
+  width: 100%; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 0 12px; border-radius: 10px; font-size: 14.5px; font-weight: 600; color: #d9dbe1; text-align: left; outline: none;
+}
+.dd__menu button:hover, .dd__menu button:focus-visible { background: rgba(255,255,255,.06); color: #fff; }
+.dd__menu button .icon { width: 18px; height: 18px; color: var(--red-2); opacity: 0; }
+.dd__menu button.is-on { color: #fff; }
+.dd__menu button.is-on .icon { opacity: 1; }
+
+/* Отзывы: целые карточки без обрезанного края */
+.slider__track { grid-auto-columns: 100%; margin: 0; padding: 4px 0 8px; scroll-padding: 0; }
+@media (min-width: 560px) { .slider__track { grid-auto-columns: calc((100% - 14px) / 2); } }
+@media (min-width: 1024px) { .slider__track { grid-auto-columns: calc((100% - 28px) / 3); } }
+.review { background: #15171c; }
+.review__photo { aspect-ratio: 16 / 10; border: 1px solid var(--line); background: radial-gradient(60% 55% at 50% 65%, rgba(227,18,31,.14), transparent 70%), #101116; }
+.dd__menu { min-width: 250px; } .dd__menu button { white-space: nowrap; }

@@ -491,6 +491,7 @@
     const saved = readRestore();
     if (!saved || !saved.items || !saved.items.length) return false;
     sortSel.value = saved.sort || sortSel.value;
+    paintSort();
     page = saved.page || 1;
     accept({ items: saved.items, total: saved.total, hasMore: saved.hasMore, approximate: saved.approximate, makes: saved.makes }, false);
     status.textContent = 'Каталог обновляется автоматически один раз в сутки. Цены — с утильсбором.';
@@ -505,9 +506,43 @@
   });
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
-  sortSel.addEventListener('change', function () { load(false); });
+  sortSel.addEventListener('change', function () { paintSort(); load(false); });
+
+  /* ---------- Своё меню сортировки вместо системного списка ---------- */
+  const dd = $('#sortDd'), ddBtn = $('.dd__btn', dd), ddMenu = $('.dd__menu', dd), ddLabel = $('.dd__label', dd);
+  function paintSort() {
+    const current = sortSel.value;
+    $$('[data-value]', ddMenu).forEach(function (opt) {
+      const on = opt.dataset.value === current;
+      opt.classList.toggle('is-on', on);
+      opt.setAttribute('aria-selected', String(on));
+      if (on) ddLabel.textContent = opt.textContent.trim();
+    });
+  }
+  function toggleSort(open) {
+    ddMenu.hidden = !open;
+    dd.classList.toggle('is-open', open);
+    ddBtn.setAttribute('aria-expanded', String(open));
+    if (open) { const on = $('.is-on', ddMenu) || $('[data-value]', ddMenu); on.focus({ preventScroll: true }); }
+  }
+  ddBtn.addEventListener('click', function () { toggleSort(ddMenu.hidden); });
+  ddMenu.addEventListener('click', function (event) {
+    const opt = event.target.closest('[data-value]');
+    if (!opt) return;
+    toggleSort(false);
+    ddBtn.focus({ preventScroll: true });
+    if (sortSel.value !== opt.dataset.value) { sortSel.value = opt.dataset.value; sortSel.dispatchEvent(new Event('change')); }
+  });
+  ddMenu.addEventListener('keydown', function (event) {
+    const opts = $$('[data-value]', ddMenu), i = opts.indexOf(document.activeElement);
+    if (event.key === 'ArrowDown') { event.preventDefault(); opts[Math.min(opts.length - 1, i + 1)].focus(); }
+    if (event.key === 'ArrowUp') { event.preventDefault(); opts[Math.max(0, i - 1)].focus(); }
+  });
+  document.addEventListener('click', function (event) { if (!ddMenu.hidden && !dd.contains(event.target)) toggleSort(false); });
+  document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && !ddMenu.hidden) { toggleSort(false); ddBtn.focus(); } });
   loadMore.addEventListener('click', function () { load(true); });
 
   paintTiles();
+  paintSort();
   if (!tryRestore()) load(false);
 })();

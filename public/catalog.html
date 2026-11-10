@@ -93,7 +93,7 @@
   <div class="container page-head">
     <a class="back" href="index.html#catalog"><svg class="icon " aria-hidden="true"><use href="#i-chevronL"/></svg>На главную</a>
     <h1 class="page-title">Каталог автомобилей</h1>
-    <p class="page-lead">Актуальные автомобили из Южной Кореи. Цены рассчитаны <b>до Владивостока</b> — с таможенными платежами, утильсбором и оформлением.</p>
+    <p class="page-lead">Актуальные автомобили из Южной Кореи.</p>
   </div>
   <section class="container catalog">
     <form class="fpanel" id="filters" aria-label="Подбор автомобиля" novalidate>
@@ -112,14 +112,21 @@
     </form>
     <div class="catalog__toolbar">
       <span class="results-count" id="count" aria-live="polite"></span>
-      <label class="sortsel"><span class="sr-only">Сортировка</span>
-        <select class="select select--sm" id="sort">
+      <div class="dd" id="sortDd">
+        <button class="dd__btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Сортировка"><span class="dd__label">Сначала добавленные</span><svg class="icon dd__chev" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        <ul class="dd__menu" role="listbox" hidden>
+          <li><button type="button" role="option" data-value="pop">Сначала добавленные<svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></button></li>
+          <li><button type="button" role="option" data-value="cheap">Сначала дешёвые<svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></button></li>
+          <li><button type="button" role="option" data-value="exp">Сначала дорогие<svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></button></li>
+          <li><button type="button" role="option" data-value="new">Сначала новые<svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></button></li>
+        </ul>
+        <select id="sort" hidden aria-hidden="true" tabindex="-1">
           <option value="pop">Сначала добавленные</option>
           <option value="cheap">Сначала дешёвые</option>
           <option value="exp">Сначала дорогие</option>
           <option value="new">Сначала новые</option>
         </select>
-      </label>
+      </div>
     </div>
     <p class="catalog__status" id="catalogStatus" role="status" aria-live="polite"></p>
     <div class="cars" id="cars"></div>
