@@ -142,19 +142,23 @@
       ['Комплектация', data.trim], ['Дата регистрации', data.details && data.details.registration],
       ['ДТП по страховой', data.details && data.details.accidentCount != null ? (data.details.accidentCount ? data.details.accidentCount + ' случ.' : 'нет') : '']
     ].filter(function (row) { return row[1]; });
-    const known = new Set(main.map(function (row) { return row[0].toLowerCase(); }));
-    const synonyms = { 'кпп': 'коробка', 'объём двигателя': 'двигатель', 'объем двигателя': 'двигатель', 'год': 'год выпуска', 'дата регистрации в корее': 'дата регистрации' };
+    // Значения со страницы источника — на русском, ими заменяем английские из каталога
+    const synonyms = { 'кпп': 'коробка', 'тип топлива': 'топливо', 'объём двигателя': 'двигатель', 'объем двигателя': 'двигатель',
+      'год': 'год выпуска', 'дата регистрации в корее': 'дата регистрации' };
+    const keep = { 'двигатель': true, 'пробег': true, 'год выпуска': true, 'мощность': true };
+    const index = new Map(main.map(function (row, i) { return [row[0].toLowerCase(), i]; }));
     (data.specs || []).forEach(function (row) {
-      const key = row.label.toLowerCase();
-      if (known.has(key) || known.has(synonyms[key])) return;
-      known.add(key);
+      const key = synonyms[row.label.toLowerCase()] || row.label.toLowerCase();
+      if (index.has(key)) { if (!keep[key]) main[index.get(key)][1] = row.value; return; }
+      index.set(key, main.length);
       main.push([row.label, row.value]);
     });
     $('specsCard').hidden = !main.length;
     $('specs').innerHTML = main.map(function (row) { return '<div><dt>' + esc(row[0]) + '</dt><dd>' + esc(row[1]) + '</dd></div>'; }).join('');
 
-    $('insuranceCard').hidden = !data.insurance;
-    $('insurance').textContent = data.insurance || '';
+    const insurance = /^0\s*\/\s*0\b/.test(data.insurance || '') ? 'Страховых случаев и выплат не зафиксировано.' : data.insurance;
+    $('insuranceCard').hidden = !insurance;
+    $('insurance').textContent = insurance || '';
 
     const groups = data.optionGroups || [];
     $('optionsCard').hidden = !groups.length;
