@@ -879,8 +879,9 @@ main { flex: 1; }
   mask-image: radial-gradient(130% 95% at 55% 45%, #000 50%, transparent 92%);
 }
 .geo-bg__map {
-  /* размер карты и точка фокуса (между Москвой и Японией) */
-  --w: 240vw; --fx: .71; --fy: .2; --ax: 50vw; --ay: 30vh;
+  /* размер карты и точка фокуса */
+  /* на телефоне — весь мир маршрутов целиком: от Нью-Йорка до Сиднея */
+  --w: 136vw; --fx: .622; --fy: .45; --ax: 50vw; --ay: 44vh;
   position: absolute; width: var(--w); aspect-ratio: 300 / 115;
   left: calc(var(--ax) - var(--w) * var(--fx));
   top: calc(var(--ay) - var(--w) / 300 * 115 * var(--fy));
@@ -900,8 +901,16 @@ main { flex: 1; }
 .is-dst .geo__ring { fill: rgba(255,255,255,.22); }
 @keyframes geoPulse { 0% { transform: scale(.2); opacity: .9; } 100% { transform: scale(1); opacity: 0; } }
 @media (min-width: 768px) {
-  .geo-bg__map { --w: 150vw; --fx: .6; --ax: 50vw; --ay: 36vh; }
+  .geo-bg__map { --w: 125vw; --fx: .628; --fy: .42; --ax: 50vw; --ay: 42vh; }
 }
 @media (min-width: 1024px) {
   .geo-bg__map { --w: 106vw; --fx: .53; --fy: .33; --ax: 50vw; --ay: 42vh; }
+}
+
+@media (max-width: 767px) {
+  .geo-bg { -webkit-mask-image: linear-gradient(180deg, transparent 8%, #000 25%, #000 75%, transparent 95%); mask-image: linear-gradient(180deg, transparent 8%, #000 25%, #000 75%, transparent 95%); }
+  .geo__comet { stroke-width: .95; }
+  .geo__line { stroke-width: 1.2; }
+  .geo__core { r: 1.1px; }
+  .geo__ring { r: 3.4px; }
 }

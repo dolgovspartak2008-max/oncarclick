@@ -66,7 +66,7 @@
   }).join('');
   const dot = (k, cls, delay) => `<g class="geo__pt ${cls}" style="--d:${delay}s"><circle class="geo__ring" cx="${P[k][0]}" cy="${P[k][1]}" r="2.6"/><circle class="geo__core" cx="${P[k][0]}" cy="${P[k][1]}" r=".75"/></g>`;
   const geoBg = `<div class="geo-bg" aria-hidden="true"><div class="geo-bg__map">
-    <img src="assets/img/worldmap-dots.svg" alt="" decoding="async">
+    <picture><source media="(max-width: 767px)" srcset="assets/img/worldmap-dots-m.svg"><img src="assets/img/worldmap-dots.svg" alt="" decoding="async"></picture>
     <svg viewBox="0 0 300 115" preserveAspectRatio="none">
       <defs><filter id="geoGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation=".6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
       <g filter="url(#geoGlow)">${routes}</g>
