@@ -21,6 +21,7 @@
   let draft = Object.assign({}, applied);
   let makes = [];
   const optionsCache = new Map();
+  const rawItems = new Map();
 
   function emptyFilters() { const out = {}; FIELDS.forEach(function (key) { out[key] = ''; }); return out; }
   function safeGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
@@ -363,7 +364,7 @@
           <p class="car__price">${car.price ? fmt(car.price) + ' ₽<small>до Владивостока</small>' : 'Цена по запросу'}</p>
           ${fee ? `<p class="car__fee">${fee}</p>` : ''}
         </div>
-        <a class="car__link" href="index.html#contacts" aria-label="Узнать про ${name}" data-car="${name}, ${car.year || ''}"></a>
+        <a class="car__link" href="car.html?id=${encodeURIComponent(car.id)}" aria-label="Подробнее: ${name}" data-open="${Model.escapeHtml(car.id)}"></a>
       </article>`;
   }
 
@@ -381,6 +382,7 @@
   }
 
   function accept(data, append) {
+    (data.items || []).forEach(function (item) { rawItems.set(String(item.id), item); });
     const nextCars = (data.items || []).map(Model.normalizeCar).filter(function (car) { return car.id && car.name; });
     cars = append ? cars.concat(nextCars) : nextCars;
     total = Number(data.total) || cars.length;
@@ -441,8 +443,11 @@
       if (window.toast) toast(on ? 'Добавлено в избранное' : 'Удалено из избранного');
       return;
     }
-    const link = event.target.closest('[data-car]');
-    if (link) safeSet('car', link.dataset.car);
+    const link = event.target.closest('[data-open]');
+    if (link) {
+      const raw = rawItems.get(String(link.dataset.open));
+      try { if (raw) sessionStorage.setItem('oncarclick-car-preview', JSON.stringify(raw)); } catch (e) {}
+    }
   });
 
   sortSel.addEventListener('change', function () { load(false); });

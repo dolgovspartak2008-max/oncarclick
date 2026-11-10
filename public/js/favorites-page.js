@@ -26,7 +26,7 @@
           <p class="car__price">${car.price ? fmt(car.price) + ' ₽<small>до Владивостока</small>' : 'Цена по запросу'}</p>
           ${fee ? `<p class="car__fee">${fee}</p>` : ''}
         </div>
-        <a class="car__link" href="index.html#contacts" aria-label="Узнать про ${name}" data-car="${name}, ${car.year || ''}"></a>
+        <a class="car__link" href="car.html?id=${encodeURIComponent(car.id)}" aria-label="Подробнее: ${name}" data-open="${Model.escapeHtml(car.id)}"></a>
       </article>`;
   }
 
@@ -51,8 +51,8 @@
       if (window.toast) toast('Удалено из избранного');
       return;
     }
-    const link = event.target.closest('[data-car]');
-    if (link) { try { localStorage.setItem('car', link.dataset.car); } catch (e) {} }
+    const link = event.target.closest('[data-open]');
+    if (link) { try { sessionStorage.removeItem('oncarclick-car-preview'); } catch (e) {} }
   });
 
   clearBtn.addEventListener('click', function () {

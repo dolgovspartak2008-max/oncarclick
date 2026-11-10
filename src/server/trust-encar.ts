@@ -13,6 +13,8 @@ import {
   type TrustEncarBootstrap,
   type TrustEncarGeneration
 } from "@/domain/trust-encar";
+import { parseTrustEncarVehiclePage, type VehiclePage } from "@/domain/trust-encar-vehicle";
+import { calculateRecyclingFee } from "@/domain/recycling-fee";
 
 export const CATALOG_REVALIDATE_SECONDS = 86_400;
 export const CATALOG_CACHE_TAG = "trust-encar-catalog";
@@ -174,6 +176,49 @@ export async function fetchLiveOptions(filters: CatalogFilters, fetcher: Fetcher
   return { ...result, trims: uniqueSorted(normalizeTrustEncarRecords(records).map((car) => car.trim)) };
 }
 
+export type CarDetails = CatalogCar & Pick<VehiclePage, "specs" | "optionGroups" | "insurance">;
+
+function fromVehiclePage(page: VehiclePage, now: Date): CatalogCar {
+  const fee = calculateRecyclingFee({ engineCc: page.engineCc, powerHp: page.powerHp, year: page.year }, now)?.feeRub ?? null;
+  return {
+    id: page.id, slug: page.id, make: page.make, model: page.model, trim: page.trim, generation: null,
+    year: page.year, month: null, mileageKm: page.mileageKm, engineCc: page.engineCc, powerHp: page.powerHp,
+    fuel: page.fuel, transmission: page.transmission, drive: null, bodyType: null, exteriorColor: page.color,
+    interiorColor: null, vin: null, priceKrw: 0, priceBaseRub: page.priceRub, recyclingFeeRub: fee,
+    priceRub: page.priceRub ? page.priceRub + (fee ?? 0) : null, photos: page.photos, details: {}
+  };
+}
+
+/** Одна машина: запись каталога (цена, мощность, утильсбор) + страница источника (все фото, характеристики, опции). */
+export async function fetchCarDetails(id: string, fetcher: Fetcher = fetch, now = new Date()): Promise<CarDetails | null> {
+  if (!/^\d{4,12}$/.test(id)) return null;
+  const ctx = await openContext({}, fetcher);
+  const lotBody = buildTrustEncarSearchBody("search_db", { page: 1, limit: 24, sort: "newest" }, ctx.bootstrap);
+  lotBody.set("lot", id);
+  const [record, page] = await Promise.all([
+    post(ctx, lotBody).then(async (response) => {
+      if (!response.ok) return null;
+      const records: unknown = await response.json();
+      return Array.isArray(records) ? normalizeTrustEncarRecords(records, now).find((car) => car.id === id) ?? null : null;
+    }).catch(() => null),
+    fetcher(`https://trust-encar.ru/auto/${id}/`, { signal: AbortSignal.timeout(10_000) }).then(async (response) =>
+      response.ok ? parseTrustEncarVehiclePage(await response.text()) : null
+    ).catch(() => null)
+  ]);
+  if (!record && !page) return null;
+  const base = record ?? fromVehiclePage(page!, now);
+  const photos = page && page.photos.length > base.photos.length ? page.photos : base.photos;
+  return {
+    ...base,
+    transmission: base.transmission ?? page?.transmission ?? null,
+    exteriorColor: base.exteriorColor ?? page?.color ?? null,
+    photos: Array.from(new Set(photos)),
+    specs: page?.specs ?? [],
+    optionGroups: page?.optionGroups ?? [],
+    insurance: page?.insurance ?? null
+  };
+}
+
 const cacheOptions = { revalidate: CATALOG_REVALIDATE_SECONDS, tags: [CATALOG_CACHE_TAG] };
 const cachedCatalog = unstable_cache(
   async (serialized: string) => fetchLiveCatalog(JSON.parse(serialized) as CatalogFilters),
@@ -199,4 +244,13 @@ export function getCatalogCount(filters: CatalogFilters) {
 
 export function getCatalogOptions(filters: Pick<CatalogFilters, "make" | "model" | "generation">) {
   return cachedOptions(JSON.stringify({ page: 1, limit: 24, sort: "newest", make: filters.make, model: filters.model, generation: filters.generation }));
+}
+
+const cachedCar = unstable_cache(
+  async (id: string) => fetchCarDetails(id),
+  ["trust-encar-car-v1"], { revalidate: 6 * 3_600, tags: [CATALOG_CACHE_TAG] }
+);
+
+export function getCarDetails(id: string) {
+  return cachedCar(id);
 }

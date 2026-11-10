@@ -32,3 +32,13 @@ describe("favorites", () => {
     }
   });
 });
+
+describe("car page", () => {
+  test("catalog cards open the car page instead of the contact form", async () => {
+    const script = await readFile("public/js/catalog.js", "utf8");
+    expect(script).toContain("car.html?id=");
+    const page = await readFile("public/car.html", "utf8");
+    expect(page).toContain("js/car.js");
+    expect(page).toContain('id="lightbox"');
+  });
+});
