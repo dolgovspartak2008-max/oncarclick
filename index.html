@@ -12,12 +12,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,700;0,800;1,800;1,900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <script src="js/main.js" defer></script>
-
+<script src="js/catalog.js" defer></script>
+<script src="js/calculator.js" defer></script>
+<script src="js/contacts.js" defer></script>
 </head>
 <body>
 <header class="header">
   <div class="container header__inner">
-    <a class="logo" href="index.html" aria-label="OnCarClick — на главную">
+    <a class="logo" href="#home" aria-label="OnCarClick — на главную">
       <svg class="logo__mark" viewBox="0 0 46 34" aria-hidden="true">
   <defs><linearGradient id="lgB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4d7dff"/><stop offset="1" stop-color="#1f45d6"/></linearGradient>
   <linearGradient id="lgR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff3a3a"/><stop offset="1" stop-color="#c90d18"/></linearGradient></defs>
@@ -33,19 +35,19 @@
       <span class="logo__name">OnCarClick<span class="logo__sub">Export &amp; Import Corp</span></span>
     </a>
     <nav class="nav" aria-label="Основное меню">
-<a href="index.html" class="is-active" aria-current="page">Главная</a>
-<a href="about.html">О нас</a>
-<a href="catalog.html">Каталог</a>
-<a href="calculator.html">Калькулятор</a>
-<a href="contacts.html">Контакты</a>
+<a href="#home" class="is-active" aria-current="page">Главная</a>
+<a href="#about">О нас</a>
+<a href="#catalog">Каталог</a>
+<a href="#calculator">Калькулятор</a>
+<a href="#contacts">Контакты</a>
     </nav>
-    <a class="btn btn--red btn--sm header__cta" href="contacts.html#form"><svg class="icon " aria-hidden="true"><use href="#i-chat"/></svg>Связаться</a>
+    <a class="btn btn--red btn--sm header__cta" href="#contacts"><svg class="icon " aria-hidden="true"><use href="#i-chat"/></svg>Связаться</a>
     <button class="burger" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="mnav"><svg class="icon " aria-hidden="true"><use href="#i-menu"/></svg></button>
   </div>
 </header>
 <div class="mnav" id="mnav" role="dialog" aria-label="Меню">
   <div class="mnav__top">
-    <a class="logo" href="index.html" aria-label="OnCarClick — на главную">
+    <a class="logo" href="#home" aria-label="OnCarClick — на главную">
       <svg class="logo__mark" viewBox="0 0 46 34" aria-hidden="true">
   <defs><linearGradient id="lgB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4d7dff"/><stop offset="1" stop-color="#1f45d6"/></linearGradient>
   <linearGradient id="lgR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff3a3a"/><stop offset="1" stop-color="#c90d18"/></linearGradient></defs>
@@ -63,14 +65,14 @@
     <button class="icon-btn mnav__close" type="button" aria-label="Закрыть меню"><svg class="icon " aria-hidden="true"><use href="#i-x"/></svg></button>
   </div>
   <ul class="mnav__links">
-<li><a href="index.html" class="is-active">Главная<svg class="icon " aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
-<li><a href="about.html">О нас<svg class="icon " aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
-<li><a href="catalog.html">Каталог<svg class="icon " aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
-<li><a href="calculator.html">Калькулятор<svg class="icon " aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
-<li><a href="contacts.html">Контакты<svg class="icon " aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
+<li><a href="#home" class="is-active">Главная<svg class="icon " aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
+<li><a href="#about">О нас<svg class="icon " aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
+<li><a href="#catalog">Каталог<svg class="icon " aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
+<li><a href="#calculator">Калькулятор<svg class="icon " aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
+<li><a href="#contacts">Контакты<svg class="icon " aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
   </ul>
   <div class="mnav__bottom">
-    <a class="btn btn--red btn--block" href="contacts.html#form"><svg class="icon " aria-hidden="true"><use href="#i-chat"/></svg>Связаться</a>
+    <a class="btn btn--red btn--block" href="#contacts"><svg class="icon " aria-hidden="true"><use href="#i-chat"/></svg>Связаться</a>
     <div class="mnav__socials">
       <a class="soc" href="https://t.me/oncarclick" target="_blank" rel="noopener" aria-label="Telegram"><svg class="icon " aria-hidden="true"><use href="#i-telegram"/></svg></a>
       <a class="soc" href="https://wa.me/79171234567" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="icon " aria-hidden="true"><use href="#i-whatsapp"/></svg></a>
@@ -78,14 +80,15 @@
     </div>
   </div>
 </div>
-<main class="hero">
+<main>
+<section class="hero section" id="home">
   <div class="hero__media">
     <picture>
       <source type="image/webp" srcset="assets/img/hero-800.webp 800w, assets/img/hero-1200.webp 1200w, assets/img/hero-1672.webp 1672w" sizes="(min-width:1024px) 100vw, 178vw">
       <img src="assets/img/hero-1200.jpg" srcset="assets/img/hero-800.jpg 800w, assets/img/hero-1200.jpg 1200w, assets/img/hero-1672.jpg 1672w" sizes="(min-width:1024px) 100vw, 178vw" alt="Красный суперкар в ночном порту на фоне флагов Кореи, Японии и Китая" width="1672" height="941" fetchpriority="high">
     </picture>
-    <a class="hero__tag hero__tag--delivery" href="about.html"><svg class="icon " aria-hidden="true"><use href="#i-truck"/></svg><span>Быстрая<br>доставка</span></a>
-    <a class="hero__tag hero__tag--budget" href="catalog.html"><svg class="icon " aria-hidden="true"><use href="#i-layers"/></svg><span>Подбор<br>под бюджет</span></a>
+    <a class="hero__tag hero__tag--delivery" href="#about"><svg class="icon " aria-hidden="true"><use href="#i-truck"/></svg><span>Быстрая<br>доставка</span></a>
+    <a class="hero__tag hero__tag--budget" href="#catalog"><svg class="icon " aria-hidden="true"><use href="#i-layers"/></svg><span>Подбор<br>под бюджет</span></a>
   </div>
   <div class="container">
     <div class="hero__content">
@@ -93,16 +96,220 @@
       <p class="hero__sub"><span class="red">из Кореи,</span> Японии и Китая</p>
       <p class="hero__text">Помогаем выгодно и безопасно купить и доставить проверенные автомобили из Азии под ключ.</p>
       <div class="hero__actions">
-        <a class="btn btn--red" href="catalog.html">Подобрать авто <svg class="icon " aria-hidden="true"><use href="#i-arrow"/></svg></a>
-        <a class="btn btn--ghost" href="calculator.html"><svg class="icon " aria-hidden="true"><use href="#i-calc"/></svg>Рассчитать стоимость</a>
+        <a class="btn btn--red" href="#catalog">Подобрать авто <svg class="icon " aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="btn btn--ghost" href="#calculator"><svg class="icon " aria-hidden="true"><use href="#i-calc"/></svg>Рассчитать стоимость</a>
       </div>
       <div class="features">
-        <a class="feature" href="about.html"><svg class="icon " aria-hidden="true"><use href="#i-shield"/></svg><span>Проверка<br>перед покупкой</span></a>
-        <a class="feature" href="about.html"><svg class="icon " aria-hidden="true"><use href="#i-truck"/></svg><span>Доставка<br>под ключ</span></a>
-        <a class="feature" href="calculator.html"><svg class="icon " aria-hidden="true"><use href="#i-coins"/></svg><span>Выгода<br>до 30%</span></a>
+        <a class="feature" href="#about"><svg class="icon " aria-hidden="true"><use href="#i-shield"/></svg><span>Проверка<br>перед покупкой</span></a>
+        <a class="feature" href="#about"><svg class="icon " aria-hidden="true"><use href="#i-truck"/></svg><span>Доставка<br>под ключ</span></a>
+        <a class="feature" href="#calculator"><svg class="icon " aria-hidden="true"><use href="#i-coins"/></svg><span>Выгода<br>до 30%</span></a>
       </div>
     </div>
   </div>
+</section>
+<section class="page section" id="about" aria-label="О нас">
+  <section class="page-head">
+    <div class="page-head__banner" style="background-image:url(assets/img/port.jpg)"></div>
+    <div class="container">
+      <h1 class="page-title">О компании OnCarClick</h1>
+      <p class="page-lead">Помогаем клиентам из России покупать автомобили из Азии — выгодно, безопасно и под ключ.</p>
+    </div>
+  </section>
+  <section class="container">
+    <div class="stats">
+      <div class="card stat"><svg class="icon " aria-hidden="true"><use href="#i-users"/></svg><span class="stat__num" data-count="5" data-suffix="+">5+</span><span class="stat__txt">лет<br>на рынке</span></div>
+      <div class="card stat"><svg class="icon " aria-hidden="true"><use href="#i-car"/></svg><span class="stat__num" data-count="3000" data-suffix="+">3 000+</span><span class="stat__txt">доставленных авто</span></div>
+      <div class="card stat"><svg class="icon " aria-hidden="true"><use href="#i-shield"/></svg><span class="stat__num" data-count="100" data-suffix="%">100%</span><span class="stat__txt">юридическая чистота</span></div>
+    </div>
+    <h2 class="section-title">Почему нам доверяют</h2>
+    <div class="why">
+      <div class="card why__item"><svg class="icon " aria-hidden="true"><use href="#i-shield"/></svg><div><h3>Проверенные автомобили</h3><p>Проверяем историю, состояние и документы</p></div></div>
+      <div class="card why__item"><svg class="icon " aria-hidden="true"><use href="#i-receipt"/></svg><div><h3>Прозрачная стоимость</h3><p>Без скрытых платежей и комиссий</p></div></div>
+      <div class="card why__item"><svg class="icon " aria-hidden="true"><use href="#i-truck"/></svg><div><h3>Полное сопровождение</h3><p>От подбора до постановки на учёт</p></div></div>
+      <div class="card why__item"><svg class="icon " aria-hidden="true"><use href="#i-headset"/></svg><div><h3>Поддержка на всех этапах</h3><p>Отвечаем на вопросы и держим в курсе сделки</p></div></div>
+    </div>
+    <div class="hero__actions" style="margin-top:28px">
+      <a class="btn btn--red" href="#catalog">Подобрать авто <svg class="icon " aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      <a class="btn btn--ghost" href="#contacts"><svg class="icon " aria-hidden="true"><use href="#i-chat"/></svg>Связаться с нами</a>
+    </div>
+  </section>
+  
+</section>
+<section class="page section" id="catalog" aria-label="Каталог">
+  <section class="container page-head">
+    <div class="catalog-head">
+      <div>
+        <h1 class="page-title">Каталог автомобилей</h1>
+        <p class="page-lead">Актуальные предложения из Кореи, Японии и Китая с проверенной историей и выгодными ценами.</p>
+      </div>
+      <label class="search">
+        <span class="sr-only">Поиск</span>
+        <input type="search" id="q" placeholder="Поиск по марке, модели..." autocomplete="off">
+        <svg class="icon " aria-hidden="true"><use href="#i-search"/></svg>
+      </label>
+    </div>
+  </section>
+  <section class="container catalog">
+    <div class="overlay" id="fOverlay"></div>
+    <form class="filters" id="filters" aria-label="Фильтры">
+      <div class="filters__grab"></div>
+      <div class="filters__head"><h2>Фильтры</h2><button class="icon-btn" type="button" id="fClose" aria-label="Закрыть"><svg class="icon " aria-hidden="true"><use href="#i-x"/></svg></button></div>
+      <div class="fgroup is-open">
+        <button class="fgroup__btn" type="button" aria-expanded="true">Страна<svg class="icon " aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        <div class="fgroup__body"><label class="check"><input type="checkbox" name="country" value="Корея"><span class="check__box"><svg class="icon " aria-hidden="true"><use href="#i-check"/></svg></span>Корея</label><label class="check"><input type="checkbox" name="country" value="Япония"><span class="check__box"><svg class="icon " aria-hidden="true"><use href="#i-check"/></svg></span>Япония</label><label class="check"><input type="checkbox" name="country" value="Китай"><span class="check__box"><svg class="icon " aria-hidden="true"><use href="#i-check"/></svg></span>Китай</label></div>
+      </div>
+      <div class="fgroup">
+        <button class="fgroup__btn" type="button" aria-expanded="false">Марка<svg class="icon " aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        <div class="fgroup__body"><select class="select" name="brand" id="fBrand"><option value="">Все марки</option></select></div>
+      </div>
+      <div class="fgroup">
+        <button class="fgroup__btn" type="button" aria-expanded="false">Модель<svg class="icon " aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        <div class="fgroup__body"><select class="select" name="model" id="fModel"><option value="">Все модели</option></select></div>
+      </div>
+      <div class="fgroup">
+        <button class="fgroup__btn" type="button" aria-expanded="false">Год выпуска<svg class="icon " aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        <div class="fgroup__body"><div class="range2"><input class="input" type="number" inputmode="numeric" name="yearFrom" placeholder="от 2015"><input class="input" type="number" inputmode="numeric" name="yearTo" placeholder="до 2024"></div></div>
+      </div>
+      <div class="fgroup">
+        <button class="fgroup__btn" type="button" aria-expanded="false">Цена, ₽<svg class="icon " aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        <div class="fgroup__body"><div class="range2"><input class="input" type="number" inputmode="numeric" name="priceFrom" placeholder="от"><input class="input" type="number" inputmode="numeric" name="priceTo" placeholder="до"></div></div>
+      </div>
+      <div class="fgroup">
+        <button class="fgroup__btn" type="button" aria-expanded="false">Пробег, км<svg class="icon " aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        <div class="fgroup__body"><div class="range2"><input class="input" type="number" inputmode="numeric" name="kmFrom" placeholder="от"><input class="input" type="number" inputmode="numeric" name="kmTo" placeholder="до"></div></div>
+      </div>
+      <button class="btn btn--red btn--block filters__submit" type="submit" id="fShow">Показать авто</button>
+      <button class="filters__reset" type="reset">Сбросить фильтры</button>
+    </form>
+    <div>
+      <div class="catalog__toolbar">
+        <div class="toolbar-row">
+          <button class="btn btn--ghost btn--sm filters-open" type="button" id="fOpen"><svg class="icon " aria-hidden="true"><use href="#i-filter"/></svg>Фильтры</button>
+          <span class="results-count" id="count"></span>
+        </div>
+        <div class="sort" role="tablist" aria-label="Сортировка">
+          <span class="sort__label">Сортировка:</span>
+          <button class="pill is-active" type="button" data-sort="pop">По популярности</button>
+          <button class="pill" type="button" data-sort="cheap">Сначала дешёвые</button>
+          <button class="pill" type="button" data-sort="exp">Сначала дорогие</button>
+          <button class="pill" type="button" data-sort="new">Сначала новые</button>
+        </div>
+      </div>
+      <div class="cars" id="cars" style="margin-top:14px"></div>
+    </div>
+  </section>
+  
+</section>
+<section class="page section" id="calculator" aria-label="Калькулятор">
+  <section class="page-head">
+    <div class="page-head__banner" style="background-image:url(assets/img/port.jpg)"></div>
+    <div class="container">
+      <h1 class="page-title">Калькулятор стоимости</h1>
+      <p class="page-lead">Рассчитайте ориентировочную стоимость автомобиля с доставкой и таможенным оформлением.</p>
+    </div>
+  </section>
+  <section class="container calc">
+    <form class="card calc__form" id="calcForm" novalidate>
+      <label class="field"><span class="field__label">Страна покупки</span>
+        <select class="select" id="cCountry">
+          <option value="kr">Корея</option><option value="jp">Япония</option><option value="cn">Китай</option>
+        </select>
+      </label>
+      <div class="field">
+        <label class="field__label" for="cPrice">Стоимость авто</label>
+        <div class="money"><input class="input" id="cPrice" inputmode="numeric" value="25 000 000" autocomplete="off"><span class="money__cur" id="cCur">₩</span></div>
+        <div class="calc__rate" id="rateLine">
+          <span>= <b id="cRub">1 395 000 ₽</b> (курс <span id="cRateTxt">1 ₩ = 0,0558 ₽</span>)</span>
+          <button type="button" id="rateEditBtn" aria-label="Изменить курс"><svg class="icon " aria-hidden="true"><use href="#i-pencil"/></svg></button>
+        </div>
+        <div class="rate-edit" id="rateEdit">
+          <span class="calc__rate">Курс, ₽:</span>
+          <input class="input" id="cRate" inputmode="decimal">
+          <button class="btn btn--ghost btn--sm" type="button" id="rateOk">OK</button>
+        </div>
+      </div>
+      <label class="field"><span class="field__label">Объём двигателя</span>
+        <select class="select" id="cVol">
+          <option value="1.0">1.0 л</option><option value="1.5">1.5 л</option><option value="1.6">1.6 л</option>
+          <option value="2.0" selected>2.0 л</option><option value="2.5">2.5 л</option><option value="3.0">3.0 л</option><option value="3.5">3.5 л</option>
+        </select>
+      </label>
+      <label class="field"><span class="field__label">Тип топлива</span>
+        <select class="select" id="cFuel">
+          <option value="petrol">Бензин</option><option value="diesel">Дизель</option><option value="hybrid">Гибрид</option><option value="ev">Электро</option>
+        </select>
+      </label>
+      <button class="btn btn--red btn--block" type="submit">Рассчитать стоимость</button>
+    </form>
+    <div class="calc__side">
+      <div class="card calc__result" id="calcResult" aria-live="polite">
+        <h2>Ориентировочная стоимость</h2>
+        <ul class="rows">
+          <li><span>Стоимость авто (в РФ)</span><b id="rCar">1 395 000 ₽</b></li>
+          <li><span>Таможенная пошлина</span><b id="rDuty">419 200 ₽</b></li>
+          <li><span>Утилизационный сбор</span><b id="rUtil">20 000 ₽</b></li>
+          <li><span>Доставка и логистика</span><b id="rShip">180 000 ₽</b></li>
+          <li><span>Наше сопровождение</span><b id="rFee">50 000 ₽</b></li>
+        </ul>
+        <div class="total"><span>Итого под ключ</span><b id="rTotal">2 064 200 ₽</b></div>
+      </div>
+      <div class="card note"><svg class="icon " aria-hidden="true"><use href="#i-info"/></svg><span>Расчёт носит ознакомительный характер.<br>Точная стоимость зависит от комплектации и курса валют.</span></div>
+      <a class="btn btn--ghost btn--block" href="#contacts"><svg class="icon " aria-hidden="true"><use href="#i-chat"/></svg>Получить точный расчёт</a>
+    </div>
+  </section>
+  
+</section>
+<section class="page section glow-br" id="contacts" aria-label="Контакты">
+  <section class="container page-head contacts-head">
+    <div class="worldmap" aria-hidden="true"></div>
+    <div class="pin" aria-hidden="true"><svg class="icon " aria-hidden="true"><use href="#i-pin"/></svg></div>
+    <h1 class="page-title">Свяжитесь с нами</h1>
+    <p class="page-lead">Оставьте заявку или напишите нам — подберём автомобиль и рассчитаем стоимость.</p>
+  </section>
+  <section class="container contacts">
+    <div class="card clist">
+      <a href="https://t.me/oncarclick" target="_blank" rel="noopener"><svg class="icon " aria-hidden="true"><use href="#i-telegram"/></svg><span><span class="clist__lbl">Telegram</span><span class="clist__val">@oncarclick</span></span></a>
+      <a href="https://wa.me/79171234567" target="_blank" rel="noopener"><svg class="icon " aria-hidden="true"><use href="#i-whatsapp"/></svg><span><span class="clist__lbl">WhatsApp</span><span class="clist__val">+7 (917) 123-45-67</span></span></a>
+      <a href="tel:+79171234567"><svg class="icon " aria-hidden="true"><use href="#i-phone"/></svg><span><span class="clist__lbl">Телефон</span><span class="clist__val">+7 (917) 123-45-67</span></span></a>
+      <a href="mailto:info@oncarclick.ru"><svg class="icon " aria-hidden="true"><use href="#i-mail"/></svg><span><span class="clist__lbl">Email</span><span class="clist__val">info@oncarclick.ru</span></span></a>
+    </div>
+    <form class="card form" id="form" novalidate>
+      <h2>Оставить заявку</h2>
+      <label class="sr-only" for="fName">Ваше имя</label>
+      <input class="input" id="fName" name="name" placeholder="Ваше имя" autocomplete="name" required>
+      <label class="sr-only" for="fPhone">Телефон</label>
+      <input class="input" id="fPhone" name="phone" type="tel" inputmode="tel" placeholder="+7 (___) ___-__-__" autocomplete="tel" required>
+      <label class="sr-only" for="fComment">Комментарий</label>
+      <textarea class="textarea" id="fComment" name="comment" placeholder="Комментарий (необязательно)"></textarea>
+      <button class="btn btn--red btn--block" type="submit">Отправить заявку</button>
+      <div class="form__ok"><svg class="icon " aria-hidden="true"><use href="#i-check"/></svg><h3>Заявка отправлена!</h3><p>Свяжемся с вами в ближайшее время.</p></div>
+    </form>
+  </section>
+  <div class="container socials">
+    <a class="soc" href="https://t.me/oncarclick" target="_blank" rel="noopener" aria-label="Telegram"><svg class="icon " aria-hidden="true"><use href="#i-telegram"/></svg></a>
+    <a class="soc" href="https://wa.me/79171234567" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="icon " aria-hidden="true"><use href="#i-whatsapp"/></svg></a>
+    <span>Мы в мессенджерах</span>
+  </div>
+  <div class="stripes stripes--br" aria-hidden="true"><span></span><span></span></div>
+</section>
 </main>
+<footer class="footer">
+  <div class="container footer__inner">
+    <a class="logo" href="#home" aria-label="OnCarClick — наверх"><svg class="logo__mark" viewBox="0 0 46 34" aria-hidden="true">
+  <defs><linearGradient id="lgB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4d7dff"/><stop offset="1" stop-color="#1f45d6"/></linearGradient>
+  <linearGradient id="lgR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff3a3a"/><stop offset="1" stop-color="#c90d18"/></linearGradient></defs>
+  <path d="M14 2.5 L23 11 L32 2.5 L29 2.5 L23 7.6 L17 2.5 Z" fill="url(#lgR)"/>
+  <path d="M11.5 4 L23 14.2 L34.5 4" fill="none" stroke="url(#lgR)" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M6 22 L9 15.5 C9.6 14.3 10.6 13.6 12 13.6 L34 13.6 C35.4 13.6 36.4 14.3 37 15.5 L40 22 L42.5 23 C43.4 23.4 44 24.2 44 25.2 L44 29.5 C44 30.3 43.4 31 42.5 31 L3.5 31 C2.6 31 2 30.3 2 29.5 L2 25.2 C2 24.2 2.6 23.4 3.5 23 Z" fill="none" stroke="url(#lgB)" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M9 22 L37 22" stroke="url(#lgB)" stroke-width="2"/>
+  <circle cx="9.5" cy="26.5" r="2" fill="#3b6bff"/><circle cx="36.5" cy="26.5" r="2" fill="#3b6bff"/>
+  <path d="M17 27 L29 27" stroke="#3b6bff" stroke-width="2" stroke-linecap="round"/>
+  <path d="M6 31 L6 33.5 M40 31 L40 33.5" stroke="url(#lgB)" stroke-width="3" stroke-linecap="round"/>
+</svg><span class="logo__divider"></span><span class="logo__name">OnCarClick<span class="logo__sub">Export &amp; Import Corp</span></span></a>
+    <nav class="footer__nav"><a href="#home">Главная</a><a href="#about">О нас</a><a href="#catalog">Каталог</a><a href="#calculator">Калькулятор</a><a href="#contacts">Контакты</a></nav>
+    <p class="footer__copy">© 2026 OnCarClick. Автомобили под заказ из Кореи, Японии и Китая.</p>
+  </div>
+</footer>
+<a class="totop" href="#home" aria-label="Наверх"><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></a>
 </body>
 </html>

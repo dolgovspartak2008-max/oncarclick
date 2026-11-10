@@ -103,7 +103,7 @@
         <h3 class="car__name">${c.brand} ${c.model}</h3>
         <p class="car__meta">${c.year} · ${fmt(c.km)} км</p>
         <p class="car__price">${fmt(c.price)} ₽</p>
-        <a class="car__link" href="contacts.html#form" aria-label="Узнать про ${c.brand} ${c.model}" data-car="${c.brand} ${c.model}"></a>
+        <a class="car__link" href="#contacts" aria-label="Узнать про ${c.brand} ${c.model}" data-car="${c.brand} ${c.model}"></a>
       </article>`).join('');
   }
 
@@ -120,7 +120,11 @@
       return;
     }
     const l = e.target.closest('[data-car]');
-    if (l) safeSet('car', l.dataset.car);
+    if (l) {
+      const cm = document.getElementById('fComment');
+      if (cm) { cm.value = 'Интересует ' + l.dataset.car; window.toast && toast('Оставьте заявку — ' + l.dataset.car); }
+      else safeSet('car', l.dataset.car);
+    }
   });
 
   // Сортировка
@@ -144,7 +148,7 @@
 
   form.addEventListener('input', render);
   form.addEventListener('change', render);
-  form.addEventListener('submit', (e) => { e.preventDefault(); render(); setSheet(false); grid.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  form.addEventListener('submit', (e) => { e.preventDefault(); render(); setSheet(false); const top = grid.getBoundingClientRect().top + scrollY - 140; window.scrollTo({ top, behavior: 'smooth' }); });
   form.addEventListener('reset', () => setTimeout(() => { fillModels(); render(); }));
   q.addEventListener('input', render);
 

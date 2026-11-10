@@ -138,7 +138,7 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
 /* ==========================================================
    HERO (Главная)
    ========================================================== */
-.hero { position: relative; overflow: hidden; flex: 1; isolation: isolate; }
+.hero { position: relative; overflow: hidden; isolation: isolate; }
 .hero__media {
   position: relative; z-index: -1;
   width: 178%; margin-left: -74%;
@@ -207,7 +207,31 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
 /* ==========================================================
    Внутренние страницы
    ========================================================== */
-.page { position: relative; flex: 1; overflow: hidden; padding-bottom: 60px; isolation: isolate; }
+.page { position: relative; overflow: hidden; overflow: clip; padding-bottom: 56px; isolation: isolate; }
+.section { scroll-margin-top: var(--header-h); }
+.section + .section::before {
+  content: ""; position: absolute; top: 0; left: 50%; translate: -50% 0; width: min(1176px, calc(100% - 32px)); height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.12) 20%, rgba(255,40,40,.45) 50%, rgba(255,255,255,.12) 80%, transparent);
+}
+main { flex: 1; }
+
+/* Футер */
+.footer { border-top: 1px solid var(--line); background: #060709; padding: 28px 0 calc(28px + env(safe-area-inset-bottom)); }
+.footer__inner { display: grid; gap: 18px; justify-items: start; }
+.footer__nav { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.footer__nav a { color: var(--muted); font-size: 14px; padding: 4px 0; transition: color .2s; }
+.footer__nav a:hover { color: #fff; }
+.footer__copy { margin: 0; color: var(--muted-2); font-size: 13px; }
+
+/* Кнопка наверх */
+.totop {
+  position: fixed; z-index: 40; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom));
+  width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
+  background: linear-gradient(180deg, #ff2d2d, #d10f1b); box-shadow: 0 8px 24px -6px var(--red-glow);
+  opacity: 0; visibility: hidden; translate: 0 10px; transition: .3s var(--ease);
+}
+.totop .icon { rotate: 180deg; width: 22px; height: 22px; }
+.totop.is-show { opacity: 1; visibility: visible; translate: 0 0; }
 .page-head { position: relative; padding-top: 28px; padding-bottom: 22px; }
 .catalog > * { min-width: 0; }
 .page-head__banner {
@@ -342,6 +366,17 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
 .car__meta { margin: 4px 0 0; color: var(--muted); font-size: 13.5px; }
 .car__price { margin: 10px 0 0; font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--red-2); letter-spacing: -.01em; }
 .car__link { position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
+@media (max-width: 559px) {
+  .cars { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .car { padding: 10px; }
+  .car__img { margin: 0 0 6px; }
+  .car__name { font-size: 14px; line-height: 1.25; }
+  .car__meta { font-size: 12px; }
+  .car__price { font-size: 16.5px; margin-top: 6px; }
+  .badge { height: 22px; padding: 0 8px; font-size: 11px; }
+  .fav { width: 30px; height: 30px; }
+  .fav .icon { width: 18px; height: 18px; }
+}
 .empty { grid-column: 1 / -1; padding: 40px 20px; text-align: center; color: var(--muted); }
 
 /* ---------- Калькулятор ---------- */
@@ -520,6 +555,10 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
   .why { gap: 14px; }
   .form, .clist { padding-left: 24px; padding-right: 24px; }
   .stripes--br { right: 0; bottom: 30px; }
+  .footer__inner { grid-template-columns: auto 1fr; align-items: center; }
+  .footer__nav { justify-content: flex-end; }
+  .footer__copy { grid-column: 1 / -1; }
+  .page { padding-bottom: 72px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

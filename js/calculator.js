@@ -83,7 +83,7 @@
   $('#calcForm').addEventListener('submit', (e) => {
     e.preventDefault();
     paint(true);
-    if (window.matchMedia('(max-width: 767px)').matches) $('#calcResult').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (window.matchMedia('(max-width: 767px)').matches) window.scrollTo({ top: $('#calcResult').getBoundingClientRect().top + scrollY - 80, behavior: 'smooth' });
     window.toast && toast('Расчёт обновлён');
   });
 

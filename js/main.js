@@ -65,6 +65,44 @@
     toastT = setTimeout(() => toastEl.classList.remove('is-show'), 2400);
   };
 
+  // Подсветка пункта меню текущего раздела
+  const sections = [...document.querySelectorAll('.section[id]')];
+  const navLinks = [...document.querySelectorAll('.nav a, .mnav__links a')];
+  const totop = document.querySelector('.totop');
+  let ticking = false;
+  function onScroll() {
+    ticking = false;
+    const y = window.scrollY + window.innerHeight * 0.35;
+    let cur = sections[0] && sections[0].id;
+    sections.forEach(s => { if (s.offsetTop <= y) cur = s.id; });
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4 && sections.length) cur = sections[sections.length - 1].id;
+    navLinks.forEach(a => {
+      const on = a.getAttribute('href') === '#' + cur;
+      a.classList.toggle('is-active', on);
+      on ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current');
+    });
+    totop && totop.classList.toggle('is-show', window.scrollY > window.innerHeight * 0.8);
+  }
+  window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
+  window.addEventListener('resize', onScroll);
+  onScroll();
+
+  // Анимация цифр, когда блок попадает на экран
+  const counters = document.querySelectorAll('[data-count]');
+  if (counters.length && 'IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const run = (el) => {
+      const end = +el.dataset.count, suf = el.dataset.suffix || '', t0 = performance.now(), d = 1200;
+      const step = (t) => {
+        const p = Math.min(1, (t - t0) / d), v = Math.round(end * (1 - Math.pow(1 - p, 3)));
+        el.textContent = v.toLocaleString('ru-RU') + suf;
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+    const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { run(e.target); io.unobserve(e.target); } }), { threshold: 0.6 });
+    counters.forEach(el => io.observe(el));
+  }
+
   // Форматирование
   window.fmtRub = (n) => Math.round(n).toLocaleString('ru-RU').replace(/,/g, ' ') + ' ₽';
 })();
