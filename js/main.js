@@ -7,6 +7,10 @@
     arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
     chevron: '<path d="m6 9 6 6 6-6"/>',
     chevronR: '<path d="m9 6 6 6-6 6"/>',
+    chevronL: '<path d="m15 6-6 6 6 6"/>',
+    home: '<path d="M4 11 12 4l8 7"/><path d="M6 9.5V20h4.5v-5.5h3V20H18V9.5"/>',
+    star: '<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9L12 3.5Z"/>',
+    quote: '<path d="M10 7H6a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3v1a3 3 0 0 1-3 3M20 7h-4a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3v1a3 3 0 0 1-3 3"/>',
     calc: '<rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 7h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 18h.01M12 18h.01M16 18h.01"/>',
     shield: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m8.8 12 2.2 2.2 4.4-4.4"/>',
     truck: '<path d="M2 7h11v9H2zM13 10h4.5l3.5 3.5V16h-8z"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/><path d="M0 9.5h3M0 12h4"/>',
@@ -35,19 +39,36 @@
     '</svg>';
   document.body.insertAdjacentHTML('afterbegin', sprite);
 
-  // Мобильное меню
+  // Мобильное меню — отдельный экран на весь дисплей (сайт под ним скрывается)
   const mnav = document.querySelector('.mnav');
   const openBtn = document.querySelector('.burger');
   const closeBtn = document.querySelector('.mnav__close');
-  const setMenu = (open) => {
-    if (!mnav) return;
+  let savedY = 0;
+  const setMenu = (open, keepPos) => {
+    if (!mnav || mnav.classList.contains('is-open') === open) return;
+    if (open) savedY = window.scrollY;
     mnav.classList.toggle('is-open', open);
-    document.body.classList.toggle('no-scroll', open);
+    document.body.classList.toggle('screen-open', open);
     openBtn && openBtn.setAttribute('aria-expanded', String(open));
+    if (!open && !keepPos) window.scrollTo({ top: savedY, behavior: 'instant' });
   };
   openBtn && openBtn.addEventListener('click', () => setMenu(true));
   closeBtn && closeBtn.addEventListener('click', () => setMenu(false));
-  mnav && mnav.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  mnav && mnav.addEventListener('click', (e) => {
+    const a = e.target.closest('a');
+    if (!a) return;
+    const href = a.getAttribute('href') || '';
+    if (href.startsWith('#')) {
+      // переход внутри страницы: закрываем меню и сразу показываем раздел
+      e.preventDefault();
+      setMenu(false, true);
+      const t = document.querySelector(href);
+      if (t) { t.scrollIntoView({ behavior: 'instant', block: 'start' }); history.replaceState(null, '', href); window.dispatchEvent(new Event('scroll')); }
+      if (href === '#catalog' && window.openChooser) window.openChooser();
+    } else if (!href.includes('://') && !href.startsWith('tel:')) {
+      setMenu(false);
+    }
+  });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
 
   // Тост
@@ -67,6 +88,7 @@
 
   // Подсветка пункта меню текущего раздела
   const sections = [...document.querySelectorAll('.section[id]')];
+  const onePage = sections.length > 1;
   const navLinks = [...document.querySelectorAll('.nav a, .mnav__links a')];
   const totop = document.querySelector('.totop');
   let ticking = false;
@@ -76,7 +98,7 @@
     let cur = sections[0] && sections[0].id;
     sections.forEach(s => { if (s.offsetTop <= y) cur = s.id; });
     if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4 && sections.length) cur = sections[sections.length - 1].id;
-    navLinks.forEach(a => {
+    if (onePage) navLinks.forEach(a => {
       const on = a.getAttribute('href') === '#' + cur;
       a.classList.toggle('is-active', on);
       on ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current');
