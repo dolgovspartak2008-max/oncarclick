@@ -363,7 +363,7 @@
         <div class="car__body">
           <h3 class="car__name">${name}</h3>
           <p class="car__meta">${car.year || 'Год не указан'} · ${fmt(car.km)} км · ${Model.engineLabel(car.engine)}${extra}</p>
-          <p class="car__price">${car.price ? fmt(car.price) + ' ₽<small>до Владивостока</small>' : 'Цена по запросу'}</p>
+          <p class="car__price">${car.price ? fmt(car.price) + ' ₽' : 'Цена по запросу'}</p>
           ${fee ? `<p class="car__fee">${fee}</p>` : ''}
         </div>
         <a class="car__link" href="car.html?id=${encodeURIComponent(car.id)}" aria-label="Подробнее: ${name}" data-open="${Model.escapeHtml(car.id)}"></a>
