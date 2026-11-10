@@ -70,7 +70,7 @@
       return '<figure class="lightbox__slide"><img src="' + esc(src) + '" alt="Фото ' + (i + 1) + '" decoding="async"' + (Math.abs(i - index) > 1 ? ' loading="lazy"' : '') + '></figure>';
     }).join('');
     lightbox.hidden = false;
-    document.body.classList.add('sheet-open');
+    window.lockPage(true);
     requestAnimationFrame(function () {
       lightbox.classList.add('is-open');
       lbTrack.scrollTo({ left: index * lbTrack.clientWidth, behavior: 'auto' });
@@ -82,7 +82,7 @@
     if (lightbox.hidden) return;
     const index = Math.round(lbTrack.scrollLeft / Math.max(1, lbTrack.clientWidth));
     lightbox.classList.remove('is-open');
-    document.body.classList.remove('sheet-open');
+    window.lockPage(false);
     setTimeout(function () { lightbox.hidden = true; lbTrack.innerHTML = ''; }, 200);
     goTo(index, false);
   }
@@ -147,7 +147,7 @@
       'год': 'год выпуска', 'дата регистрации в корее': 'дата регистрации' };
     const keep = { 'двигатель': true, 'пробег': true, 'год выпуска': true, 'мощность': true };
     const index = new Map(main.map(function (row, i) { return [row[0].toLowerCase(), i]; }));
-    (data.specs || []).forEach(function (row) {
+    (data.specs || []).filter(function (row) { return !/номер/i.test(row.label); }).forEach(function (row) {
       const key = synonyms[row.label.toLowerCase()] || row.label.toLowerCase();
       if (index.has(key)) { if (!keep[key]) main[index.get(key)][1] = row.value; return; }
       index.set(key, main.length);

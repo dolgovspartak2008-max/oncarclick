@@ -28,7 +28,7 @@ const numberFrom = (value: unknown) => {
 };
 
 /** Подписи, которые не показываем посетителю: внутренняя кухня источника и цены в чужой разбивке. */
-const HIDDEN_SPECS = /стоимост|цена|комисси|брокер|лот|trust|encar|ссылк|статус/i;
+const HIDDEN_SPECS = /стоимост|цена|комисси|брокер|лот|trust|encar|ссылк|статус|номер/i;
 
 export function safeTrustEncarImage(value: string) {
   try {

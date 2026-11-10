@@ -1145,3 +1145,17 @@ body.sheet-open { overflow: hidden; }
 .header { background: #08090c; }
 .carview__share { border: 1px solid var(--line-2); border-radius: var(--radius-btn); background: #15171d; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; }
 .fpanel__reset { border: 1px solid var(--line-2); border-radius: var(--radius-btn); background: #15171d; font-weight: 700; }
+
+/* Открыто окно выбора / фото: на телефоне сайт под ним полностью скрыт и не двигается */
+@media (max-width: 767px) {
+  body.sheet-open .header, body.sheet-open main, body.sheet-open .footer,
+  body.sheet-open .totop, body.sheet-open .site-map { visibility: hidden; }
+}
+body.sheet-open { overflow: hidden; overscroll-behavior: none; }
+.sheet__body, .lightbox__track, .wheel__track { touch-action: pan-x pan-y; }
+.range__input { touch-action: pan-x; }
+
+/* Карта на страницах каталога, избранного и машины — тихий фон, не отвлекает */
+body:has(.catpage, .favpage, .carpage) .site-map .geo-bg__map { opacity: .42; filter: saturate(.35); }
+body:has(.catpage, .favpage, .carpage) .geo__line { stroke: rgba(255,90,90,.28); }
+.fav-toolbar[hidden] { display: none; }

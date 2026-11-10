@@ -121,6 +121,18 @@
     if (href !== '#top') history.replaceState(null, '', href);
   });
 
+  // Полноэкранные окна (выбор фильтра, фото): страница под ними прячется и не прокручивается,
+  // при закрытии возвращаемся ровно туда, где были
+  let overlayY = 0, overlayDepth = 0;
+  window.lockPage = function (open) {
+    if (open) {
+      if (overlayDepth++ === 0) { overlayY = window.scrollY; document.body.classList.add('sheet-open'); }
+    } else if (overlayDepth > 0 && --overlayDepth === 0) {
+      document.body.classList.remove('sheet-open');
+      window.scrollTo({ top: overlayY, behavior: 'instant' });
+    }
+  };
+
   // Мобильное меню — отдельный экран на весь дисплей (сайт под ним скрывается)
   const mnav = document.querySelector('.mnav');
   const openBtn = document.querySelector('.burger');

@@ -152,7 +152,7 @@
     sheetBody.replaceChildren();
     sheet.dataset.kind = field === 'year' || field === 'mileage' ? field : 'list';
     sheet.hidden = false;
-    document.body.classList.add('sheet-open');
+    window.lockPage(true);
     requestAnimationFrame(function () { sheet.classList.add('is-open'); });
     if (field === 'year') renderYear();
     else if (field === 'mileage') renderMileage();
@@ -163,7 +163,7 @@
     if (!sheetState) return;
     sheetState = null;
     sheet.classList.remove('is-open');
-    document.body.classList.remove('sheet-open');
+    window.lockPage(false);
     setTimeout(function () { if (!sheetState) sheet.hidden = true; }, 260);
     if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
   }
