@@ -727,17 +727,22 @@ html, body { overscroll-behavior-x: none; }
 .deal-cta { display: grid; gap: 10px; margin-top: 22px; }
 .deal-cta .btn { min-height: 54px; font-size: 17px; font-weight: 700; }
 
-/* статичная точечная карта за заголовком раздела — без анимаций */
-.deal-map {
-  position: absolute; z-index: -1; inset: -40px 0 auto; height: 360px; overflow: hidden; pointer-events: none; opacity: .75;
-  -webkit-mask-image: radial-gradient(70% 70% at 70% 45%, #000 35%, transparent 80%);
-  mask-image: radial-gradient(70% 70% at 70% 45%, #000 35%, transparent 80%);
+/* Фон всего сайта: неподвижная точечная карта мира с маршрутами в Россию — без анимаций.
+   Отдельный слой position: fixed — рисуется один раз, контент просто прокручивается поверх. */
+.site-map {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+  transform: translateZ(0); contain: strict;
 }
-.geo-bg__map { position: absolute; width: 640px; aspect-ratio: 300 / 115; right: -150px; top: 30px; }
+.site-map::after { /* края карты растворяются в фоне */
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(85% 70% at 62% 50%, transparent 35%, var(--bg) 92%);
+}
+.site-map .geo-bg__map { position: absolute; top: 50%; left: 50%; width: 270vw; translate: -72% -46%; opacity: .75; }
+.geo-bg__map { aspect-ratio: 300 / 115; }
 .geo-bg__map img, .geo-bg__map svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .geo__line { fill: none; stroke: rgba(255,60,60,.45); stroke-width: 1.2; vector-effect: non-scaling-stroke; }
 .geo__core { fill: #ff2b2b; }
-.geo__core.is-dst { fill: #fff; }
+.geo__core.is-dst { fill: #fff; fill-opacity: .7; }
 
 /* ==========================================================
    Частые вопросы
@@ -794,14 +799,13 @@ html, body { overscroll-behavior-x: none; }
 @media (min-width: 768px) {
   .steps { grid-template-columns: 1fr 1fr; gap: 12px; }
   .step:last-child { grid-column: 1 / -1; }
-  .geo-bg__map { width: 900px; right: -120px; top: 0; }
+  .site-map .geo-bg__map { width: 170vw; translate: -66% -48%; opacity: .9; }
 }
 @media (min-width: 1024px) {
   .steps { gap: 14px; }
   .step { padding: 22px; }
   .step__body h3 { font-size: 18px; }
   .faq { grid-template-columns: 1fr 1fr; align-items: start; gap: 10px; }
-  .deal-map { height: 460px; }
-  .geo-bg__map { width: 1150px; right: -60px; top: -20px; }
+  .site-map .geo-bg__map { width: max(118vw, 230vh); translate: -58% -50%; }
   .cars { grid-template-columns: repeat(4, 1fr); }
 }

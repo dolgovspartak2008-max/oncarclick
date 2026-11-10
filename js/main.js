@@ -72,14 +72,19 @@
     const d = `M${P[a][0]} ${P[a][1]}Q${cx} ${cy} ${P[b][0]} ${P[b][1]}`;
     return `<path class="geo__line" d="${d}"/>`;
   }).join('');
-  const dot = (k, cls) => `<circle class="geo__core ${cls}" cx="${P[k][0]}" cy="${P[k][1]}" r=".9"/>`;
+  const dot = (k, cls) => `<circle class="geo__core ${cls}" cx="${P[k][0]}" cy="${P[k][1]}" r=".6"/>`;
   const geoBg = `<div class="geo-bg__map">
     <picture><source media="(max-width: 767px)" srcset="assets/img/worldmap-dots-m.svg"><img src="assets/img/worldmap-dots.svg" alt="" decoding="async" loading="lazy"></picture>
     <svg viewBox="0 0 300 115" preserveAspectRatio="none">
       <g>${routes}</g>
       ${dot('bsn', 'is-src', 0)}${dot('tyo', 'is-src', .7)}${dot('pek', 'is-src', 1.4)}${dot('sha', 'is-src', 2.1)}${dot('vvo', 'is-dst', .4)}${dot('msk', 'is-dst', 1.1)}${dot('ham', 'is-dst', 1.8)}${dot('dxb', 'is-dst', .2)}${dot('nsk', 'is-dst', 2.4)}${dot('nbo', 'is-dst', 1.5)}
     </svg></div>`;
-  document.querySelectorAll('.deal-map').forEach(el => { el.innerHTML = geoBg; });
+  // карта стоит неподвижно за всем сайтом: рисуется один раз, при прокрутке не перерисовывается
+  const siteMap = document.createElement('div');
+  siteMap.className = 'site-map';
+  siteMap.setAttribute('aria-hidden', 'true');
+  siteMap.innerHTML = geoBg;
+  document.body.prepend(siteMap);
 
   // ---- Медленная плавная прокрутка к разделам ----
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
