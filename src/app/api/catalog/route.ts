@@ -1,25 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parseCatalogParams } from "@/domain/catalog";
-import { getCatalog } from "@/server/trust-encar";
+import { getCatalog, getCatalogCount } from "@/server/trust-encar";
 
 type CatalogLoader = typeof getCatalog;
+type CountLoader = typeof getCatalogCount;
 
-export function createCatalogHandler(loadCatalog: CatalogLoader = getCatalog) {
+const CACHE_HEADERS = { "Cache-Control": "public, max-age=300, stale-while-revalidate=86400" };
+const FAILURE = { message: "Источник временно не ответил. Показываем последнюю сохранённую версию, если она доступна." };
+
+export function createCatalogHandler(loadCatalog: CatalogLoader = getCatalog, loadCount: CountLoader = getCatalogCount) {
   return async function GET(request: NextRequest) {
-    const filters = parseCatalogParams(Object.fromEntries(request.nextUrl.searchParams));
+    const params = Object.fromEntries(request.nextUrl.searchParams);
+    const filters = parseCatalogParams(params);
     try {
+      // ?count=1 — только число машин по фильтрам: для кнопки «Показать N авто».
+      if (params.count === "1") {
+        return NextResponse.json(await loadCount(filters), { headers: CACHE_HEADERS });
+      }
       const result = await loadCatalog(filters);
       return NextResponse.json({
         ...result,
         page: filters.page,
         hasMore: filters.page * filters.limit < result.total && result.items.length > 0
-      }, { headers: { "Cache-Control": "public, max-age=300, stale-while-revalidate=86400" } });
+      }, { headers: CACHE_HEADERS });
     } catch {
-      return NextResponse.json({
-        message: "Источник временно не ответил. Показываем последнюю сохранённую версию, если она доступна."
-      }, { status: 502 });
+      return NextResponse.json(FAILURE, { status: 502 });
     }
   };
 }
 
 export const GET = createCatalogHandler();
+export const maxDuration = 60;

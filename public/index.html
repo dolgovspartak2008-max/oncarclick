@@ -12,6 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,700;0,800;1,800;1,900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <script src="js/main.js" defer></script>
+<script src="js/favorites.js" defer></script>
 <script src="js/cars-data.js" defer></script>
 <script src="js/home.js" defer></script>
 <script src="js/contacts.js" defer></script>
@@ -20,15 +21,7 @@
 <header class="header">
   <div class="container header__inner">
     <a class="logo" href="#home" aria-label="OnCarClick — на главную">
-      <svg class="logo__mark" viewBox="0 0 46 34" aria-hidden="true">
-  <path d="M11.5 4 L23 14.2 L34.5 4" fill="none" stroke="#ff2b2b" stroke-width="2.8" stroke-linejoin="round"/>
-  <path d="M15 2.5 L23 9.6 L31 2.5" fill="none" stroke="#c90d18" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M6 22 L9 15.5 C9.6 14.3 10.6 13.6 12 13.6 L34 13.6 C35.4 13.6 36.4 14.3 37 15.5 L40 22 L42.5 23 C43.4 23.4 44 24.2 44 25.2 L44 29.5 C44 30.3 43.4 31 42.5 31 L3.5 31 C2.6 31 2 30.3 2 29.5 L2 25.2 C2 24.2 2.6 23.4 3.5 23 Z" fill="none" stroke="#3b6bff" stroke-width="2.4" stroke-linejoin="round"/>
-  <path d="M9 22 L37 22" stroke="#3b6bff" stroke-width="2"/>
-  <circle cx="9.5" cy="26.5" r="2" fill="#3b6bff"/><circle cx="36.5" cy="26.5" r="2" fill="#3b6bff"/>
-  <path d="M17 27 L29 27" stroke="#3b6bff" stroke-width="2" stroke-linecap="round"/>
-  <path d="M6 31 L6 33.5 M40 31 L40 33.5" stroke="#3b6bff" stroke-width="3" stroke-linecap="round"/>
-</svg>
+      <img class="logo__mark" src="assets/img/logo-mark.svg" alt="" width="40" height="34">
       <span class="logo__divider"></span>
       <span class="logo__name">OnCarClick<span class="logo__sub">Export &amp; Import Corp</span></span>
     </a>
@@ -41,6 +34,7 @@
 <a href="#faq">Вопросы</a>
 <a href="#contacts">Контакты</a>
     </nav>
+    <a class="hfav" href="favorites.html" aria-label="Избранное"><svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg><span class="hfav__n" data-fav-count hidden>0</span></a>
     <a class="btn btn--red btn--sm header__cta" href="#contacts"><svg class="icon " aria-hidden="true"><use href="#i-chat"/></svg>Связаться</a>
     <button class="burger" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="mnav"><svg class="icon " aria-hidden="true"><use href="#i-menu"/></svg></button>
   </div>
@@ -70,15 +64,7 @@
   <div class="mnav__inner">
     <div class="mnav__top">
       <a class="logo logo--menu" href="#home" aria-label="OnCarClick — на главную">
-      <svg class="logo__mark" viewBox="0 0 46 34" aria-hidden="true">
-  <path d="M11.5 4 L23 14.2 L34.5 4" fill="none" stroke="#ff2b2b" stroke-width="2.8" stroke-linejoin="round"/>
-  <path d="M15 2.5 L23 9.6 L31 2.5" fill="none" stroke="#c90d18" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M6 22 L9 15.5 C9.6 14.3 10.6 13.6 12 13.6 L34 13.6 C35.4 13.6 36.4 14.3 37 15.5 L40 22 L42.5 23 C43.4 23.4 44 24.2 44 25.2 L44 29.5 C44 30.3 43.4 31 42.5 31 L3.5 31 C2.6 31 2 30.3 2 29.5 L2 25.2 C2 24.2 2.6 23.4 3.5 23 Z" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linejoin="round"/>
-  <path d="M9 22 L37 22" stroke="#ffffff" stroke-width="2"/>
-  <circle cx="9.5" cy="26.5" r="2" fill="#ffffff"/><circle cx="36.5" cy="26.5" r="2" fill="#ffffff"/>
-  <path d="M17 27 L29 27" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
-  <path d="M6 31 L6 33.5 M40 31 L40 33.5" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-</svg>
+      <img class="logo__mark" src="assets/img/logo-mark.svg" alt="" width="40" height="34">
       <span class="logo__name">OnCar<span class="red">Click</span><span class="logo__sub">Export &amp; Import Corp</span></span>
     </a>
       <button class="mnav__close" type="button" aria-label="Закрыть меню"><svg class="icon " aria-hidden="true"><use href="#i-x"/></svg></button>
@@ -87,6 +73,7 @@
 <li><a class="mlink is-active" href="#home"><span class="mlink__ico"><svg class="icon " aria-hidden="true"><use href="#i-home"/></svg></span><span class="mlink__txt">Главная</span><svg class="icon mlink__arr" aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
 <li><a class="mlink" href="#about"><span class="mlink__ico"><svg class="icon " aria-hidden="true"><use href="#i-users"/></svg></span><span class="mlink__txt">О нас</span><svg class="icon mlink__arr" aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
 <li><a class="mlink" href="#catalog"><span class="mlink__ico"><svg class="icon " aria-hidden="true"><use href="#i-car"/></svg></span><span class="mlink__txt">Каталог</span><svg class="icon mlink__arr" aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
+<li><a class="mlink" href="favorites.html"><span class="mlink__ico"><svg class="icon " aria-hidden="true"><use href="#i-heart"/></svg></span><span class="mlink__txt">Избранное</span><span class="hfav__n mlink__n" data-fav-count hidden>0</span><svg class="icon mlink__arr" aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
 <li><a class="mlink" href="#deal"><span class="mlink__ico"><svg class="icon " aria-hidden="true"><use href="#i-route"/></svg></span><span class="mlink__txt">Как проходит сделка</span><svg class="icon mlink__arr" aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
 <li><a class="mlink" href="#reviews"><span class="mlink__ico"><svg class="icon " aria-hidden="true"><use href="#i-star"/></svg></span><span class="mlink__txt">Отзывы</span><svg class="icon mlink__arr" aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
 <li><a class="mlink" href="#faq"><span class="mlink__ico"><svg class="icon " aria-hidden="true"><use href="#i-info"/></svg></span><span class="mlink__txt">Частые вопросы</span><svg class="icon mlink__arr" aria-hidden="true"><use href="#i-chevronR"/></svg></a></li>
@@ -352,15 +339,7 @@
 </main>
 <footer class="footer">
   <div class="container footer__inner">
-    <a class="logo" href="#home" aria-label="OnCarClick — наверх"><svg class="logo__mark" viewBox="0 0 46 34" aria-hidden="true">
-  <path d="M11.5 4 L23 14.2 L34.5 4" fill="none" stroke="#ff2b2b" stroke-width="2.8" stroke-linejoin="round"/>
-  <path d="M15 2.5 L23 9.6 L31 2.5" fill="none" stroke="#c90d18" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M6 22 L9 15.5 C9.6 14.3 10.6 13.6 12 13.6 L34 13.6 C35.4 13.6 36.4 14.3 37 15.5 L40 22 L42.5 23 C43.4 23.4 44 24.2 44 25.2 L44 29.5 C44 30.3 43.4 31 42.5 31 L3.5 31 C2.6 31 2 30.3 2 29.5 L2 25.2 C2 24.2 2.6 23.4 3.5 23 Z" fill="none" stroke="#3b6bff" stroke-width="2.4" stroke-linejoin="round"/>
-  <path d="M9 22 L37 22" stroke="#3b6bff" stroke-width="2"/>
-  <circle cx="9.5" cy="26.5" r="2" fill="#3b6bff"/><circle cx="36.5" cy="26.5" r="2" fill="#3b6bff"/>
-  <path d="M17 27 L29 27" stroke="#3b6bff" stroke-width="2" stroke-linecap="round"/>
-  <path d="M6 31 L6 33.5 M40 31 L40 33.5" stroke="#3b6bff" stroke-width="3" stroke-linecap="round"/>
-</svg><span class="logo__divider"></span><span class="logo__name">OnCarClick<span class="logo__sub">Export &amp; Import Corp</span></span></a>
+    <a class="logo" href="#home" aria-label="OnCarClick — наверх"><img class="logo__mark" src="assets/img/logo-mark.svg" alt="" width="40" height="34"><span class="logo__divider"></span><span class="logo__name">OnCarClick<span class="logo__sub">Export &amp; Import Corp</span></span></a>
     <nav class="footer__nav"><a href="#home">Главная</a><a href="#about">О нас</a><a href="#catalog">Каталог</a><a href="#deal">Как купить</a><a href="#reviews">Отзывы</a><a href="#faq">Вопросы</a><a href="#contacts">Контакты</a></nav>
     <div class="footer__soc"><a class="soc" href="https://t.me/oncarclick" target="_blank" rel="noopener" aria-label="Telegram"><svg class="icon " aria-hidden="true"><use href="#i-telegram"/></svg></a><a class="soc" href="https://wa.me/message/SF4LEPWUOMYDJ1" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="icon " aria-hidden="true"><use href="#i-whatsapp"/></svg></a><a class="soc" href="https://t.me/oncarclick_auto" target="_blank" rel="noopener" aria-label="Telegram-канал"><svg class="icon " aria-hidden="true"><use href="#i-megaphone"/></svg></a><a class="soc" href="https://www.instagram.com/oncarclick/" target="_blank" rel="noopener" aria-label="Instagram"><svg class="icon " aria-hidden="true"><use href="#i-instagram"/></svg></a><a class="soc" href="https://youtube.com/@oncarclick" target="_blank" rel="noopener" aria-label="YouTube"><svg class="icon " aria-hidden="true"><use href="#i-youtube"/></svg></a><a class="soc" href="https://www.tiktok.com/@clickonkorea" target="_blank" rel="noopener" aria-label="TikTok"><svg class="icon " aria-hidden="true"><use href="#i-tiktok"/></svg></a><a class="soc" href="https://www.facebook.com/profile.php?id=100080805321022" target="_blank" rel="noopener" aria-label="Facebook"><svg class="icon " aria-hidden="true"><use href="#i-facebook"/></svg></a><a class="soc" href="mailto:oncarclick@naver.com" aria-label="Почта"><svg class="icon " aria-hidden="true"><use href="#i-mail"/></svg></a></div>
     <p class="footer__copy">© 2026 OnCarClick. Автомобили под заказ из Кореи, Японии и Китая.</p>

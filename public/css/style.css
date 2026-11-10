@@ -831,3 +831,181 @@ html, body { overscroll-behavior-x: none; }
   .site-map .geo-bg__map { width: max(118vw, 230vh); translate: -58% -50%; }
   .cars { grid-template-columns: repeat(4, 1fr); }
 }
+
+/* ==========================================================
+   Подбор авто: плитки фильтров, живой счётчик, шторки выбора
+   ========================================================== */
+.fpanel {
+  display: grid; gap: 12px; padding: 12px; border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border: 1px solid var(--line);
+}
+.fpanel__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ftile {
+  position: relative; display: grid; gap: 2px; min-width: 0; min-height: 60px; padding: 10px 30px 10px 14px;
+  text-align: left; border-radius: 14px; background: rgba(255,255,255,.04); border: 1px solid var(--line);
+  transition: border-color .2s, background .2s, opacity .2s;
+}
+.ftile:hover:not(:disabled) { border-color: var(--line-2); background: rgba(255,255,255,.06); }
+.ftile:disabled { opacity: .42; cursor: not-allowed; }
+.ftile__label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .02em; }
+.ftile__value { font-size: 15px; font-weight: 700; color: #e6e8ec; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ftile:not(.is-set) .ftile__value { color: var(--muted-2); font-weight: 600; }
+.ftile.is-set { border-color: rgba(255,43,43,.45); background: rgba(255,43,43,.06); }
+.ftile__chev { position: absolute; right: 10px; top: 50%; translate: 0 -50%; width: 16px; height: 16px; color: var(--muted-2); }
+.fpanel__actions { display: grid; grid-template-columns: auto 1fr; gap: 8px; }
+.fpanel__actions .fpanel__reset[hidden] { display: none; }
+.fpanel__actions:has(.fpanel__reset[hidden]) { grid-template-columns: 1fr; }
+.fpanel__reset { padding: 0 18px; }
+.fpanel__show { min-height: 52px; font-size: 16px; }
+.fpanel__show:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+.is-counting { position: relative; }
+.is-counting::after {
+  content: ""; position: absolute; right: 16px; top: 50%; width: 14px; height: 14px; margin-top: -7px;
+  border-radius: 50%; border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (min-width: 768px) {
+  .fpanel { padding: 16px; grid-template-columns: 1fr; }
+  .fpanel__grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .fpanel__actions { justify-content: end; grid-template-columns: auto minmax(260px, auto); }
+  .fpanel__actions:has(.fpanel__reset[hidden]) { grid-template-columns: minmax(260px, auto); }
+}
+@media (min-width: 1180px) { .fpanel__grid { grid-template-columns: repeat(6, 1fr); } }
+
+/* шторка */
+body.sheet-open { overflow: hidden; }
+.sheet { position: fixed; inset: 0; z-index: 80; display: flex; align-items: flex-end; justify-content: center; }
+.sheet[hidden] { display: none; }
+.sheet__backdrop { position: absolute; inset: 0; background: rgba(3,4,6,.66); opacity: 0; transition: opacity .25s; }
+.sheet__panel {
+  position: relative; width: 100%; max-height: min(86dvh, 680px); display: flex; flex-direction: column;
+  background: #111318; border: 1px solid var(--line-2); border-bottom: 0; border-radius: 24px 24px 0 0;
+  padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -20px 60px -20px rgba(0,0,0,.8);
+  transform: translateY(100%); transition: transform .28s var(--ease-soft);
+}
+.sheet.is-open .sheet__backdrop { opacity: 1; }
+.sheet.is-open .sheet__panel { transform: none; }
+.sheet__grip { width: 40px; height: 4px; border-radius: 4px; background: rgba(255,255,255,.2); margin: 8px auto 0; }
+.sheet__head { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 6px; padding: 6px 12px 8px; }
+.sheet__x { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; color: #d9dbe1; }
+.sheet__x .icon { width: 20px; height: 20px; }
+.sheet__title { margin: 0; text-align: center; font-size: 17px; font-weight: 700; }
+.sheet__clear { padding: 8px 6px; font-size: 14px; font-weight: 600; color: var(--red-2); }
+.sheet__body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 0 16px 12px; -webkit-overflow-scrolling: touch; }
+.sheet__foot { padding: 10px 16px 14px; border-top: 1px solid var(--line); }
+.sheet__foot[hidden] { display: none; }
+.sheet__foot .btn { min-height: 52px; font-size: 16px; }
+.sheet__note { margin: 18px 0; text-align: center; color: var(--muted); font-size: 14px; }
+.sheet__search {
+  position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 14px; margin-bottom: 6px;
+  border-radius: 14px; background: #1a1c22; border: 1px solid var(--line-2);
+}
+.sheet__search .icon { width: 18px; height: 18px; color: var(--muted); flex: none; }
+.sheet__search input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: none; font-size: 16px; }
+.olist { list-style: none; margin: 0; padding: 0; }
+.olist li[hidden] { display: none; }
+.opt {
+  width: 100%; min-height: 50px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 6px; text-align: left; font-size: 15.5px; font-weight: 600; border-bottom: 1px solid var(--line);
+}
+.opt span { display: grid; gap: 2px; }
+.opt small { font-size: 12.5px; font-weight: 500; color: var(--muted); }
+.opt .icon { width: 20px; height: 20px; color: var(--red-2); flex: none; opacity: 0; }
+.opt.is-on { color: #fff; }
+.opt.is-on .icon { opacity: 1; }
+@media (min-width: 768px) {
+  .sheet { align-items: center; padding: 24px; }
+  .sheet__panel { width: 440px; border-radius: 22px; border-bottom: 1px solid var(--line-2); transform: translateY(16px) scale(.98); opacity: 0; transition: transform .22s var(--ease-soft), opacity .22s; }
+  .sheet.is-open .sheet__panel { opacity: 1; }
+  .sheet__grip { display: none; }
+  .sheet__head { padding-top: 12px; }
+}
+
+/* колёсики года */
+.years { padding: 4px 0 6px; }
+.years__head { display: grid; grid-template-columns: 1fr 30px 1fr; text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); }
+.years__head span:last-child { grid-column: 3; }
+.years__wheels { position: relative; display: grid; grid-template-columns: 1fr 30px 1fr; align-items: center; height: 220px; }
+.years__dash { text-align: center; color: var(--muted-2); font-size: 22px; }
+.years__band {
+  position: absolute; left: 0; right: 0; top: 50%; height: 44px; margin-top: -22px; pointer-events: none;
+  border-radius: 12px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,43,43,.35);
+}
+.wheel { position: relative; height: 220px; z-index: 1;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 32%, #000 68%, transparent);
+          mask-image: linear-gradient(180deg, transparent, #000 32%, #000 68%, transparent); }
+.wheel__track {
+  height: 100%; overflow-y: auto; scroll-snap-type: y mandatory; overscroll-behavior: contain;
+  padding: 88px 0; scrollbar-width: none; outline: none;
+}
+.wheel__track::-webkit-scrollbar { display: none; }
+.wheel__item {
+  height: 44px; display: grid; place-items: center; scroll-snap-align: center;
+  font-family: var(--font-display); font-size: 22px; font-weight: 700; color: rgba(255,255,255,.32); cursor: pointer;
+  transition: color .15s, transform .15s;
+}
+.wheel__item.is-on { color: #fff; transform: scale(1.06); }
+
+/* ползунок пробега */
+.range { display: grid; gap: 14px; padding: 12px 4px 6px; }
+.range__value { text-align: center; font-family: var(--font-display); font-size: 28px; font-weight: 800; letter-spacing: -.01em; }
+.range__input {
+  --fill: 100%; width: 100%; height: 32px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: pointer;
+}
+.range__input::-webkit-slider-runnable-track { height: 6px; border-radius: 6px; background: linear-gradient(90deg, var(--red-2) var(--fill), rgba(255,255,255,.14) var(--fill)); }
+.range__input::-moz-range-track { height: 6px; border-radius: 6px; background: rgba(255,255,255,.14); }
+.range__input::-moz-range-progress { height: 6px; border-radius: 6px; background: var(--red-2); }
+.range__input::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 30px; height: 30px; margin-top: -12px; border-radius: 50%;
+  background: #fff; border: 0; box-shadow: 0 4px 14px rgba(0,0,0,.5), 0 0 0 6px rgba(255,43,43,.18);
+}
+.range__input::-moz-range-thumb { width: 30px; height: 30px; border-radius: 50%; background: #fff; border: 0; box-shadow: 0 4px 14px rgba(0,0,0,.5); }
+.range__scale { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted-2); margin-top: -6px; }
+.range__chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { height: 36px; padding: 0 14px; border-radius: 999px; font-size: 13.5px; font-weight: 600; background: rgba(255,255,255,.06); border: 1px solid var(--line); }
+.chip.is-on { background: rgba(255,43,43,.14); border-color: rgba(255,43,43,.6); color: #fff; }
+
+/* цена с утильсбором */
+.car__fee { margin: 2px 0 0; font-size: 12px; color: var(--muted-2); }
+@media (max-width: 559px) { .car__fee { font-size: 11px; } }
+.fav { background: rgba(8,9,12,.45); }
+.fav.is-pop .icon { animation: favPop .38s var(--ease); }
+@keyframes favPop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+
+/* ==========================================================
+   Избранное: кнопка в шапке и страница
+   ========================================================== */
+.hfav {
+  position: relative; margin-left: auto; width: 44px; height: 44px; flex: none; display: grid; place-items: center;
+  border-radius: 14px; border: 1px solid var(--line-2); background: var(--panel); transition: border-color .2s;
+}
+.hfav:hover, .hfav.is-active { border-color: rgba(255,43,43,.6); }
+.hfav .icon { width: 21px; height: 21px; }
+.hfav.is-active .icon { color: var(--red-2); fill: currentColor; }
+.hfav__n {
+  position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px;
+  display: grid; place-items: center; font-size: 11px; font-weight: 800; background: var(--red); color: #fff; box-shadow: 0 0 0 2px var(--bg);
+}
+.hfav__n[hidden] { display: none; }
+.hfav ~ .burger { margin-left: 0; }
+@media (min-width: 1024px) { .hfav { margin-left: 0; } }
+.favpage .page-head { padding-top: 14px; }
+.favpage .back { margin-bottom: 10px; }
+.fav-empty { display: grid; justify-items: center; gap: 14px; padding: 46px 20px; text-align: center; border-radius: var(--radius-lg); border: 1px dashed var(--line-2); }
+.fav-empty .icon { width: 44px; height: 44px; color: var(--red-2); }
+.fav-empty p { margin: 0; color: var(--muted); max-width: 340px; }
+.fav-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.fav-clear { font-size: 14px; font-weight: 600; color: var(--muted); padding: 8px 4px; }
+.fav-clear:hover { color: #fff; }
+
+/* логотип по фирменному файлу */
+.logo__mark { width: 40px; height: 34px; object-fit: contain; }
+.logo--menu .logo__mark { width: 44px; height: 37px; }
+.mlink__n { position: static; margin-left: auto; box-shadow: none; }
+.mlink__n + .mlink__arr { margin-left: 8px; }
+.fpanel { background: linear-gradient(180deg, rgba(20,22,28,.94), rgba(14,16,21,.94)); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.ftile { background: #15171d; }
+.ftile.is-set { background: #1c1517; }
+.catalog__toolbar { scroll-margin-top: calc(var(--header-h) + 14px); }
+.wheel__item--any { font-family: var(--font); font-size: 16px; font-weight: 700; }
+@media (max-height: 740px) { .mnav__links { margin-top: 22px; gap: 8px; } .mlink { min-height: 54px; } }

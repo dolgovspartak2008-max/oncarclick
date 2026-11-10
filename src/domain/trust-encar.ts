@@ -1,4 +1,5 @@
 import type { CatalogFilters, CatalogSort } from "./catalog";
+import { calculateRecyclingFee, parseMonth } from "./recycling-fee";
 
 export type TrustEncarBootstrap = {
   ajaxUrl: string;
@@ -13,7 +14,9 @@ export type CatalogCar = {
   make: string;
   model: string;
   trim: string | null;
+  generation: string | null;
   year: number;
+  month: number | null;
   mileageKm: number;
   engineCc: number | null;
   powerHp: number | null;
@@ -25,6 +28,11 @@ export type CatalogCar = {
   interiorColor: string | null;
   vin: string | null;
   priceKrw: number;
+  /** Цена Trust Encar до Владивостока без утильсбора. */
+  priceBaseRub: number | null;
+  /** Утильсбор по таблице ON Car Click; null — не хватает мощности, считаем вручную. */
+  recyclingFeeRub: number | null;
+  /** Итоговая цена: Trust Encar + утильсбор. */
   priceRub: number | null;
   photos: string[];
   details: Record<string, unknown>;
@@ -83,7 +91,7 @@ function parseImages(value: unknown) {
   });
 }
 
-export function normalizeTrustEncarRecords(records: unknown[]): CatalogCar[] {
+export function normalizeTrustEncarRecords(records: unknown[], now = new Date()): CatalogCar[] {
   return records.flatMap((record) => {
     if (!record || typeof record !== "object") return [];
     const raw = record as Record<string, unknown>;
@@ -92,6 +100,13 @@ export function normalizeTrustEncarRecords(records: unknown[]): CatalogCar[] {
     const model = textFrom(raw.MODEL_NAME);
     if (!id || !make || !model) return [];
     const fuelCode = textFrom(raw.TIME);
+    const year = numberFrom(raw.YEAR);
+    const month = parseMonth(raw.MONTH) ?? parseMonth(raw.REGISTRATION_LABEL);
+    const engineCc = numberFrom(raw.ENG_V) || null;
+    const powerHp = numberFrom(textFrom(raw.POWER_TEXT).match(/\d+/)?.[0]) || null;
+    const priceBaseRub = numberFrom(raw.FINISH_RUB) || null;
+    const fee = calculateRecyclingFee({ engineCc, powerHp, year, month }, now);
+    const recyclingFeeRub = fee?.feeRub ?? null;
     const fuel = (({ G: "Бензин", D: "Дизель", E: "Электро", "G+E": "Гибрид", LPGP: "Газ" } as Record<string, string>)[fuelCode] ?? fuelCode) || null;
 
     return [{
@@ -100,10 +115,12 @@ export function normalizeTrustEncarRecords(records: unknown[]): CatalogCar[] {
       make,
       model,
       trim: textFrom(raw.GRADE) || null,
-      year: numberFrom(raw.YEAR),
+      generation: textFrom(raw.GENERATION_SHOW || raw.GENERATION_EN) || null,
+      year,
+      month,
       mileageKm: numberFrom(raw.MILEAGE),
-      engineCc: numberFrom(raw.ENG_V) || null,
-      powerHp: numberFrom(textFrom(raw.POWER_TEXT).match(/\d+/)?.[0]) || null,
+      engineCc,
+      powerHp,
       fuel,
       transmission: textFrom(raw.KPP) || null,
       drive: textFrom(raw.PRIV) || null,
@@ -112,7 +129,9 @@ export function normalizeTrustEncarRecords(records: unknown[]): CatalogCar[] {
       interiorColor: textFrom(raw.SEAT_COLOR) || null,
       vin: textFrom(raw.VEHICLENO) || null,
       priceKrw: numberFrom(raw.FINISH),
-      priceRub: numberFrom(raw.FINISH_RUB) || null,
+      priceBaseRub,
+      recyclingFeeRub,
+      priceRub: priceBaseRub ? priceBaseRub + (recyclingFeeRub ?? 0) : null,
       photos: parseImages(raw.IMAGES),
       details: {
         sourceStatus: raw.STATUS_LABEL_RU ?? raw.STATUS ?? null,
@@ -135,12 +154,13 @@ export function buildTrustEncarSearchBody(
   action: "search_db" | "ajax_catalog_count_db",
   filters: CatalogFilters,
   bootstrap: Pick<TrustEncarBootstrap, "nonce" | "makes">,
-  modelId?: string
+  modelId?: string,
+  upstreamPage = filters.page - 1
 ) {
   const body = new URLSearchParams({
     action,
     nonce: bootstrap.nonce,
-    page: String(filters.page - 1)
+    page: String(upstreamPage)
   });
   const make = bootstrap.makes.find((item) => item.name.toLowerCase() === filters.make?.toLowerCase());
   if (make) body.set("marka_id", make.id);
@@ -149,8 +169,65 @@ export function buildTrustEncarSearchBody(
     body.set("engine_from", String(Math.max(0, filters.engineCc - 50)));
     body.set("engine_to", String(filters.engineCc + 50));
   }
+  if (filters.yearFrom) body.set("year_from", String(filters.yearFrom));
+  if (filters.yearTo) body.set("year_to", String(filters.yearTo));
+  if (filters.mileageTo) body.set("mileage_to", String(filters.mileageTo));
   const [field, order] = sortFields[filters.sort];
   body.set("field_sort", field);
   body.set("order_by", order);
   return body;
 }
+
+export type TrustEncarGeneration = { name: string; minYear: number; maxYear: number };
+
+const facetsOf = (value: unknown) =>
+  value && typeof value === "object" ? ((value as { facets?: Record<string, unknown> }).facets ?? {}) : {};
+
+/** Поколения модели с годами выпуска из ответа ajax_facets_state_db. */
+export function parseTrustEncarGenerations(value: unknown): TrustEncarGeneration[] {
+  const list = facetsOf(value).generations;
+  if (!Array.isArray(list)) return [];
+  const seen = new Set<string>();
+  return list.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const raw = item as { value?: unknown; name?: unknown; min_year?: unknown; max_year?: unknown };
+    const name = textFrom(raw.name || raw.value);
+    const minYear = numberFrom(raw.min_year);
+    const maxYear = numberFrom(raw.max_year) || new Date().getFullYear();
+    if (!name || minYear < 1900 || maxYear < minYear || seen.has(name)) return [];
+    seen.add(name);
+    return [{ name, minYear, maxYear }];
+  }).sort((a, b) => b.minYear - a.minYear);
+}
+
+/** Комплектации, если источник отдаёт их в фасетах. */
+export function parseTrustEncarTrimsFacet(value: unknown): string[] {
+  const facets = facetsOf(value);
+  const list = [facets.grades, facets.grade, facets.trims, facets.complectations].find(Array.isArray) as unknown[] | undefined;
+  if (!list) return [];
+  return uniqueSorted(list.map((item) => item && typeof item === "object"
+    ? textFrom((item as { name?: unknown; value?: unknown }).name || (item as { value?: unknown }).value)
+    : textFrom(item)));
+}
+
+export function uniqueSorted(values: Array<string | null | undefined>) {
+  return Array.from(new Set(values.map((v) => textFrom(v)).filter(Boolean)))
+    .sort((a, b) => a.localeCompare(b, "ru", { numeric: true }));
+}
+
+/** Пересечение выбранного года и годов поколения. null — пересечения нет. */
+export function resolveYearRange(
+  filters: Pick<CatalogFilters, "yearFrom" | "yearTo">,
+  generation?: TrustEncarGeneration
+): { yearFrom?: number; yearTo?: number } | null {
+  let yearFrom = filters.yearFrom;
+  let yearTo = filters.yearTo;
+  if (generation) {
+    yearFrom = Math.max(yearFrom ?? generation.minYear, generation.minYear);
+    yearTo = Math.min(yearTo ?? generation.maxYear, generation.maxYear);
+  }
+  if (yearFrom && yearTo && yearFrom > yearTo) return null;
+  return { yearFrom, yearTo };
+}
+
+export const sameText = (a: unknown, b: unknown) => textFrom(a).toLowerCase() === textFrom(b).toLowerCase();

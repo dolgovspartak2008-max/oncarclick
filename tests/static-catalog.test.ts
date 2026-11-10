@@ -13,6 +13,22 @@ describe("static catalog page", () => {
     const script = await readFile("public/js/catalog.js", "utf8");
     expect(script).toContain("fetch(");
     expect(script).toContain("car__photo");
-    expect(script).toContain("oncarclick-catalog-cache-v1");
+    expect(script).toContain("oncarclick-catalog-cache-v2");
+  });
+});
+
+describe("favorites", () => {
+  test("has a favorites page and a header link on every page", async () => {
+    const page = await readFile("public/favorites.html", "utf8");
+    expect(page).toContain("favorites-page.js");
+    for (const file of ["public/index.html", "public/catalog.html", "public/favorites.html"]) {
+      expect(await readFile(file, "utf8")).toContain('href="favorites.html"');
+    }
+  });
+
+  test("uses the brand logo file everywhere", async () => {
+    for (const file of ["public/index.html", "public/catalog.html", "public/favorites.html"]) {
+      expect(await readFile(file, "utf8")).toContain("assets/img/logo-mark.svg");
+    }
   });
 });

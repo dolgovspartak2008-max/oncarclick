@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { buildTrustEncarSearchBody, normalizeTrustEncarRecords, parseTrustEncarBootstrap } from "./trust-encar";
+import { buildTrustEncarSearchBody, normalizeTrustEncarRecords, parseTrustEncarBootstrap, parseTrustEncarGenerations, resolveYearRange } from "./trust-encar";
 
 const html = `
   <script>var TE_CATALOG = {"ajaxUrl":"https://trust-encar.ru/wp-admin/admin-ajax.php","nonce":"public-key"};</script>
@@ -74,5 +74,28 @@ describe("Trust Encar parsing", () => {
     expect(body.get("engine_to")).toBe("2048");
     expect(body.get("field_sort")).toBe("FINISH_RUB");
     expect(body.get("order_by")).toBe("DESC");
+  });
+
+  test("adds the recycling fee to the Trust Encar price", () => {
+    const [car] = normalizeTrustEncarRecords([{
+      ID: "1", MARKA_NAME: "Porsche", MODEL_NAME: "911", YEAR: "2023", MONTH: "12", MILEAGE: "8000",
+      ENG_V: "2981", POWER_TEXT: "385 л.с.", FINISH_RUB: "20000000", IMAGES: "[]"
+    }], new Date(2026, 10, 10));
+    expect(car).toMatchObject({ priceBaseRub: 20_000_000, recyclingFeeRub: 2_949_600, priceRub: 22_949_600, month: 12 });
+  });
+
+  test("sends year and mileage filters", () => {
+    const body = buildTrustEncarSearchBody("ajax_catalog_count_db", {
+      page: 1, limit: 24, sort: "newest", yearFrom: 2019, yearTo: 2024, mileageTo: 10_000
+    }, parseTrustEncarBootstrap(html));
+    expect(body.get("year_from")).toBe("2019");
+    expect(body.get("year_to")).toBe("2024");
+    expect(body.get("mileage_to")).toBe("10000");
+  });
+
+  test("turns a generation into a year range", () => {
+    const [gen] = parseTrustEncarGenerations({ facets: { generations: [{ name: "911 (992)", min_year: 2019, max_year: 2026 }] } });
+    expect(resolveYearRange({ yearFrom: 2015 }, gen)).toEqual({ yearFrom: 2019, yearTo: 2026 });
+    expect(resolveYearRange({ yearTo: 2010 }, gen)).toBeNull();
   });
 });

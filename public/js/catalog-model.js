@@ -30,7 +30,10 @@
       engine: Number(raw.engineCc) || null,
       fuel: String(raw.fuel || '').trim(),
       drive: String(raw.drive || '').trim(),
+      generation: String(raw.generation || '').trim(),
       price: Number(raw.priceRub) || null,
+      basePrice: Number(raw.priceBaseRub) || null,
+      fee: raw.recyclingFeeRub == null ? null : Number(raw.recyclingFeeRub),
       photo: safePhoto(Array.isArray(raw.photos) ? raw.photos[0] : '')
     };
   }
@@ -40,13 +43,61 @@
     return value > 0 ? (value / 1000).toFixed(1) + ' л' : 'Объём не указан';
   }
 
+  const FILTER_KEYS = [
+    ['brand', 'make'], ['model', 'model'], ['generation', 'generation'], ['trim', 'trim'],
+    ['yearFrom', 'yearFrom'], ['yearTo', 'yearTo'], ['mileageTo', 'mileageTo'], ['engine', 'engine']
+  ];
+
+  function filterParams(filters) {
+    const params = new URLSearchParams();
+    FILTER_KEYS.forEach(function (pair) {
+      const value = filters[pair[0]];
+      if (value !== undefined && value !== null && value !== '') params.set(pair[1], String(value));
+    });
+    return params;
+  }
+
   function buildCatalogUrl(filters, page) {
     const params = new URLSearchParams({ page: String(page || 1), limit: '24' });
-    if (filters.brand) params.set('make', filters.brand);
-    if (filters.model) params.set('model', filters.model);
-    if (filters.engine) params.set('engine', filters.engine);
+    filterParams(filters).forEach(function (value, key) { params.set(key, value); });
     params.set('sort', sortMap[filters.sort] || 'newest');
     return '/api/catalog?' + params.toString();
+  }
+
+  function buildCountUrl(filters) {
+    const params = filterParams(filters);
+    params.set('count', '1');
+    return '/api/catalog?' + params.toString();
+  }
+
+  function buildOptionsUrl(filters) {
+    const params = new URLSearchParams();
+    if (filters.brand) params.set('make', filters.brand);
+    if (filters.model) params.set('model', filters.model);
+    if (filters.generation) params.set('generation', filters.generation);
+    return '/api/catalog/options?' + params.toString();
+  }
+
+  /** Фильтры из адресной строки (?make=…&yearFrom=…) — чтобы ссылкой можно было поделиться. */
+  function filtersFromQuery(search) {
+    const query = new URLSearchParams(search || '');
+    const out = {};
+    FILTER_KEYS.forEach(function (pair) {
+      const value = query.get(pair[1]) || (pair[0] === 'brand' ? query.get('brand') : null);
+      if (value) out[pair[0]] = value;
+    });
+    return out;
+  }
+
+  function yearLabel(from, to) {
+    if (from && to) return from === to ? String(from) : from + ' – ' + to;
+    if (from) return 'от ' + from;
+    if (to) return 'до ' + to;
+    return '';
+  }
+
+  function mileageLabel(km) {
+    return km ? 'до ' + Number(km).toLocaleString('ru-RU') + ' км' : '';
   }
 
   function plural(number, one, few, many) {
@@ -62,5 +113,5 @@
     }))).sort(function (a, b) { return a - b; });
   }
 
-  return { buildCatalogUrl, engineBuckets, engineLabel, escapeHtml, normalizeCar, plural };
+  return { buildCatalogUrl, buildCountUrl, buildOptionsUrl, filtersFromQuery, filterParams, yearLabel, mileageLabel, engineBuckets, engineLabel, escapeHtml, normalizeCar, plural };
 });
