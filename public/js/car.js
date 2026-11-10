@@ -15,7 +15,12 @@
 
   // «Назад» возвращает в каталог с теми же фильтрами, если пришли оттуда
   const back = $('carBack');
-  try { if (document.referrer && new URL(document.referrer).pathname.endsWith('/catalog.html')) back.href = document.referrer; } catch (e) {}
+  let cameFromCatalog = false;
+  try { cameFromCatalog = Boolean(document.referrer) && new URL(document.referrer).pathname.endsWith('/catalog.html'); if (cameFromCatalog) back.href = document.referrer; } catch (e) {}
+  // «В каталог» — шаг назад по истории: каталог откроется на той же машине, а не сверху
+  back.addEventListener('click', function (event) {
+    if (cameFromCatalog && history.length > 1) { event.preventDefault(); history.back(); }
+  });
   if (/favorites\.html/.test(document.referrer)) { back.href = 'favorites.html'; back.lastChild.textContent = 'В избранное'; }
 
   /* ---------- Галерея ---------- */

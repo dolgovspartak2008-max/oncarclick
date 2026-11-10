@@ -22,6 +22,8 @@
   let makes = [];
   const optionsCache = new Map();
   const rawItems = new Map();
+  const RESTORE_KEY = 'oncarclick-catalog-restore';
+  let rawList = [], lastApprox = false;
 
   function emptyFilters() { const out = {}; FIELDS.forEach(function (key) { out[key] = ''; }); return out; }
   function safeGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
@@ -383,6 +385,8 @@
 
   function accept(data, append) {
     (data.items || []).forEach(function (item) { rawItems.set(String(item.id), item); });
+    rawList = append ? rawList.concat(data.items || []) : (data.items || []).slice();
+    lastApprox = Boolean(data.approximate);
     const nextCars = (data.items || []).map(Model.normalizeCar).filter(function (car) { return car.id && car.name; });
     cars = append ? cars.concat(nextCars) : nextCars;
     total = Number(data.total) || cars.length;
@@ -447,12 +451,41 @@
     if (link) {
       const raw = rawItems.get(String(link.dataset.open));
       try { if (raw) sessionStorage.setItem('oncarclick-car-preview', JSON.stringify(raw)); } catch (e) {}
+      saveRestore();
     }
   });
+
+  /* ---------- Возврат со страницы машины на то же место списка ---------- */
+  function saveRestore() {
+    if (!rawList.length) return;
+    try {
+      sessionStorage.setItem(RESTORE_KEY, JSON.stringify({
+        url: location.pathname + location.search, sort: sortSel.value, page: page, total: total, hasMore: hasMore,
+        approximate: lastApprox, items: rawList, makes: makes, scrollY: window.scrollY, savedAt: Date.now()
+      }));
+    } catch (e) {}
+  }
+  window.addEventListener('pagehide', saveRestore);
+
+  function tryRestore() {
+    let saved = null;
+    try { saved = JSON.parse(sessionStorage.getItem(RESTORE_KEY) || 'null'); } catch (e) {}
+    if (!saved || saved.url !== location.pathname + location.search || Date.now() - saved.savedAt > 30 * 60 * 1000) return false;
+    sortSel.value = saved.sort || sortSel.value;
+    page = saved.page || 1;
+    accept({ items: saved.items, total: saved.total, hasMore: saved.hasMore, approximate: saved.approximate, makes: saved.makes }, false);
+    status.textContent = 'Каталог обновляется автоматически один раз в сутки. Цены — с утильсбором.';
+    const y = saved.scrollY || 0;
+    // ждём раскладки карточек, затем возвращаемся на то же место
+    requestAnimationFrame(function () { requestAnimationFrame(function () { window.scrollTo(0, y); }); });
+    setTimeout(function () { if (Math.abs(window.scrollY - y) > 40) window.scrollTo(0, y); }, 350);
+    return true;
+  }
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
   sortSel.addEventListener('change', function () { load(false); });
   loadMore.addEventListener('click', function () { load(true); });
 
   paintTiles();
-  load(false);
+  if (!tryRestore()) load(false);
 })();
