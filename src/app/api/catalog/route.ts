@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parseCatalogParams } from "@/domain/catalog";
 import { getCatalog, getCatalogCount } from "@/server/trust-encar";
+import { withOurRate } from "@/server/rate";
 
 type CatalogLoader = typeof getCatalog;
 type CountLoader = typeof getCatalogCount;
@@ -18,8 +19,11 @@ export function createCatalogHandler(loadCatalog: CatalogLoader = getCatalog, lo
         return NextResponse.json(await loadCount(filters), { headers: CACHE_HEADERS });
       }
       const result = await loadCatalog(filters);
+      // курс воны из Telegram-бота применяется поверх кеша каталога — меняется сразу
+      const items = await withOurRate(result.items);
       return NextResponse.json({
         ...result,
+        items,
         page: filters.page,
         hasMore: filters.page * filters.limit < result.total && result.items.length > 0
       }, { headers: CACHE_HEADERS });

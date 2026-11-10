@@ -1,4 +1,4 @@
-/* Контакты: маска телефона и отправка заявки (пока без сервера) */
+/* Контакты: маска телефона и отправка заявки — она сразу приходит менеджерам в Telegram */
 (function () {
   const form = document.getElementById('form');
   const phone = document.getElementById('fPhone');
@@ -36,6 +36,26 @@
     if (name.value.trim().length < 2) { name.classList.add('is-error'); ok = false; }
     if (phone.value.replace(/\D/g, '').length !== 11) { phone.classList.add('is-error'); ok = false; }
     if (!ok) { window.toast && toast('Заполните имя и телефон'); return; }
-    form.classList.add('is-sent');
+    const button = form.querySelector('button[type="submit"], .btn');
+    if (form.dataset.sending) return;
+    form.dataset.sending = '1';
+    if (button) button.disabled = true;
+    const website = document.getElementById('fWebsite');
+    fetch('/api/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name.value.trim(), phone: phone.value.trim(), comment: comment.value.trim(),
+        page: location.href, website: website ? website.value : ''
+      })
+    }).then((response) => response.json().then((data) => ({ ok: response.ok, data: data }))).then((result) => {
+      if (!result.ok) throw new Error(result.data && result.data.message || 'Не удалось отправить заявку');
+      form.classList.add('is-sent');
+    }).catch((error) => {
+      window.toast && toast(error.message || 'Не удалось отправить заявку. Попробуйте ещё раз.');
+    }).finally(() => {
+      delete form.dataset.sending;
+      if (button) button.disabled = false;
+    });
   });
 })();
