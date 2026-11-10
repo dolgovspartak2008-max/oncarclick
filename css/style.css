@@ -671,73 +671,7 @@ html, body { overflow-x: hidden; }
   html, body { overflow-x: clip; }
 }
 html, body { overscroll-behavior-x: none; }
-/* ==========================================================
-   Вступительная анимация главного экрана (js/intro.js)
-   Сцена собрана в координатах исходной картинки 1672×941: асфальт, машина по слоям
-   (тень и отражение, шины, вращающиеся диски, кузов), свет фар. Движение, вращение колёс
-   и подвеску считает JS, здесь — только раскладка слоёв и появление флагов и текста.
-   Пока html.intro — всё скрыто в начальном положении; в конце временные слои удаляются.
-   ========================================================== */
-.hero__media::after { z-index: 1; }
-.intro-stage {
-  position: absolute; left: 0; top: 0; z-index: 1; width: 1672px; height: 941px;
-  transform-origin: 0 0; pointer-events: none; overflow: hidden;
-}
-.intro-stage > *, .intro-car > * { position: absolute; display: block; }
-.intro-road, .intro-flags, .intro-car, .intro-black { left: 0; top: 0; width: 1672px; height: 941px; }
-.intro-road img, .intro-flags img { position: absolute; inset: 0; width: 100%; height: 100%; }
-.intro-car { transform-origin: 1780px 573px; opacity: 0; will-change: transform, opacity; }
-.intro-body { will-change: transform; }
-.intro-rim { background-repeat: no-repeat; }
-.intro-stage--glow { overflow: visible; mix-blend-mode: screen; }
-.intro-lights { opacity: 0; }
-.intro-black { background: #040405; }
-/* флаги: сначала их закрывает кусок пустого неба, потом он «сходит» слева направо */
-.intro-flags {
-  -webkit-mask-image: url("../assets/img/intro/flags-mask.png"), linear-gradient(90deg, transparent 0 40%, #000 60% 100%);
-  mask-image: url("../assets/img/intro/flags-mask.png"), linear-gradient(90deg, transparent 0 40%, #000 60% 100%);
-  -webkit-mask-size: 100% 100%, 250% 100%; mask-size: 100% 100%, 250% 100%;
-  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-  -webkit-mask-position: 0 0, 100% 0; mask-position: 0 0, 100% 0;
-  -webkit-mask-composite: source-in; mask-composite: intersect;
-}
-html.intro-flagsgo .intro-flags { animation: introFlags 1.5s cubic-bezier(.45,.05,.25,1) both; }
-@keyframes introFlags {
-  from { -webkit-mask-position: 0 0, 100% 0; mask-position: 0 0, 100% 0; }
-  to   { -webkit-mask-position: 0 0, 0% 0; mask-position: 0 0, 0% 0; }
-}
-/* текст и плашки ждут, пока машина встанет и появятся флаги */
-html.intro .header { animation: introFade 1.2s var(--ease-soft) .1s both paused; }
-html.intro .hero__title span { animation: introLine 1.15s var(--ease-soft) 0s both paused; }
-html.intro .hero__title span + span { animation-delay: .12s; }
-html.intro .hero__sub { animation: introUp 1.1s var(--ease-soft) .26s both paused; }
-html.intro .hero__text { animation: introUp 1.1s var(--ease-soft) .38s both paused; }
-html.intro .hero__text::before { animation: introBar .9s var(--ease-soft) .5s both paused; }
-html.intro .hero__actions .btn { animation: introUp 1s var(--ease-soft) .52s both paused; }
-html.intro .hero__actions .btn + .btn { animation-delay: .62s; }
-html.intro .feature { animation: introUp 1s var(--ease-soft) .7s both paused; }
-html.intro .feature:nth-child(2) { animation-delay: .78s; }
-html.intro .feature:nth-child(3) { animation-delay: .86s; }
-html.intro .hero__tag { animation: introTag .9s var(--ease-soft) .35s both paused; }
-html.intro .hero__tag--budget { animation-delay: .5s; }
-html.intro.intro-go .header { animation-play-state: running; }
-html.intro.intro-text .hero__title span, html.intro.intro-text .hero__sub, html.intro.intro-text .hero__text,
-html.intro.intro-text .hero__text::before, html.intro.intro-text .hero__actions .btn, html.intro.intro-text .feature,
-html.intro.intro-text .hero__tag { animation-play-state: running; }
-@keyframes introFade { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
-@keyframes introLine {
-  from { opacity: 0; transform: translate3d(-48px, 0, 0) skewX(-6deg); }
-  to   { opacity: 1; transform: none; }
-}
-@keyframes introUp {
-  from { opacity: 0; transform: translate3d(0, 26px, 0); }
-  to   { opacity: 1; transform: none; }
-}
-@keyframes introBar { from { transform: skewX(-14deg) scaleY(0); } to { transform: skewX(-14deg) scaleY(1); } }
-@keyframes introTag {
-  from { opacity: 0; transform: translate3d(0, 10px, 0) scale(.86); }
-  to   { opacity: 1; transform: none; }
-}
+
 
 
 /* ==========================================================
