@@ -144,21 +144,12 @@ async function handleMessage(m: Message) {
   const text = (m.text ?? "").trim();
   const admin = await isAdmin(chat);
 
-  if (!admin) {
-    const code = process.env.BOT_ADMIN_CODE;
-    const given = text.replace(/^\/start\s*/i, "").trim();
-    if (code && given === code) {
-      await rpc("bot_add_admin", { p_chat: chat, p_name: m.from?.username ? `@${m.from.username}` : m.from?.first_name ?? "" });
-      await send(chat, "✅ Доступ открыт. Сюда будут приходить заявки с сайта.", MENU);
-      return send(chat, HELP, MENU);
-    }
-    return send(chat, "Это служебный бот сайта OnCarClick.\nЧтобы управлять сайтом, отправьте код доступа.");
-  }
+  // Доступ только у администраторов из базы — список задаётся вручную, самостоятельно войти нельзя
+  if (!admin) return send(chat, "Это служебный бот сайта OnCarClick. Доступ есть только у администраторов.");
 
-  if (text === "/start" || text === "/menu") { await setState(chat, {}); return send(chat, "Главное меню.", MENU); }
+  if (text === "/start" || text === "/menu") { await setState(chat, {}); await send(chat, "Главное меню. Сюда приходят заявки с сайта.", MENU); return text === "/start" ? send(chat, HELP, MENU) : undefined; }
   if (text === "/help" || text === BTN.help) return send(chat, HELP, MENU);
   if (text === "/cancel" || text === BTN.cancel) { await setState(chat, {}); return send(chat, "Отменено.", MENU); }
-  if (text === "/stop") { await rpc("bot_remove_admin", { p_chat: chat }); return send(chat, "Вы больше не получаете заявки. Вернуться — отправьте код доступа.", { remove_keyboard: true }); }
   if (text === BTN.review || text === "/review") {
     await setState(chat, { step: STEPS[0].step, draft: {} });
     return askStep(chat, 0);
