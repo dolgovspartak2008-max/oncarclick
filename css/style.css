@@ -493,8 +493,8 @@ main { flex: 1; }
 .clist a > span { flex: 1; min-width: 0; }
 .clist .icon.clist__arr { width: 18px; height: 18px; color: var(--muted-2); transition: transform .2s, color .2s; }
 .clist a:hover .clist__arr { color: #fff; transform: translateX(3px); }
-.footer__soc { display: flex; flex-wrap: wrap; gap: 10px; }
-.footer__soc .soc { width: 40px; height: 40px; }
+.footer__soc { display: grid; grid-template-columns: repeat(8, minmax(0, 44px)); gap: clamp(5px, 2vw, 10px); width: 100%; }
+.footer__soc .soc { width: 100%; height: auto; aspect-ratio: 1; }
 .footer__soc .soc .icon { width: 18px; height: 18px; }
 .soc { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--panel-2); border: 1px solid var(--line-2); color: #fff; transition: background .2s, transform .2s; }
 .soc:hover { background: var(--red); transform: translateY(-2px); }
