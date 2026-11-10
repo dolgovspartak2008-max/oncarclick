@@ -18,6 +18,7 @@ if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
 if(h&&h!=='#home'&&h!=='#top')return;
 if(r){var u=new URL(r);if(u.host===location.host&&u.pathname!==location.pathname)return;}
 d.classList.add('intro');
+['body','wheels','under','lights','rim-f','rim-r'].forEach(function(n){(new Image).src='assets/img/intro/'+n+'.webp';});
 setTimeout(function(){if(!d.classList.contains('intro-go'))d.classList.remove('intro');},4000);
 }catch(e){}})();
 </script>
