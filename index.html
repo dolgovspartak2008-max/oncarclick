@@ -11,9 +11,20 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,700;0,800;1,800;1,900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<script>
+/* вступительная анимация: включаем до первой отрисовки, чтобы не мигала готовая картинка */
+(function(){try{var d=document.documentElement,r=document.referrer,h=location.hash;
+if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+if(h&&h!=='#home'&&h!=='#top')return;
+if(r){var u=new URL(r);if(u.host===location.host&&u.pathname!==location.pathname)return;}
+d.classList.add('intro');
+setTimeout(function(){if(!d.classList.contains('intro-go'))d.classList.remove('intro');},4000);
+}catch(e){}})();
+</script>
 <script src="js/main.js" defer></script>
 <script src="js/cars-data.js" defer></script>
 <script src="js/home.js" defer></script>
+<script src="js/intro.js" defer></script>
 <script src="js/calculator.js" defer></script>
 <script src="js/contacts.js" defer></script>
 </head>
