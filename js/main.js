@@ -42,6 +42,30 @@
     '</svg>';
   document.body.insertAdjacentHTML('afterbegin', sprite);
 
+  // ---- Фон: точечная карта мира с маршрутами Корея / Япония / Китай → Россия ----
+  // координаты в сетке карты: x = (долгота + 180) / 1.2, y = (80 − широта) / 1.2
+  const P = { msk: [181.3, 20.2], vvo: [259.9, 30.75], bsn: [257.5, 37.4], tyo: [266.4, 36.9], pek: [247, 33.4], sha: [251.3, 40.7] };
+  const ROUTES = [
+    ['bsn', 'vvo', 252, 31, 0],
+    ['tyo', 'vvo', 268, 30, 1.4],
+    ['sha', 'vvo', 262, 38, 2.6],
+    ['pek', 'msk', 214, 22, .8],
+    ['vvo', 'msk', 221, -2, 2],
+  ];
+  const routes = ROUTES.map(([a, b, cx, cy, delay]) => {
+    const d = `M${P[a][0]} ${P[a][1]}Q${cx} ${cy} ${P[b][0]} ${P[b][1]}`;
+    return `<path class="geo__line" d="${d}"/><path class="geo__comet" pathLength="100" style="animation-delay:${delay}s" d="${d}"/>`;
+  }).join('');
+  const dot = (k, cls, delay) => `<g class="geo__pt ${cls}" style="--d:${delay}s"><circle class="geo__ring" cx="${P[k][0]}" cy="${P[k][1]}" r="2.6"/><circle class="geo__core" cx="${P[k][0]}" cy="${P[k][1]}" r=".75"/></g>`;
+  const geoBg = `<div class="geo-bg" aria-hidden="true"><div class="geo-bg__map">
+    <img src="assets/img/worldmap-dots.svg" alt="" decoding="async">
+    <svg viewBox="0 0 300 115" preserveAspectRatio="none">
+      <defs><filter id="geoGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation=".6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+      <g filter="url(#geoGlow)">${routes}</g>
+      ${dot('bsn', 'is-src', 0)}${dot('tyo', 'is-src', .7)}${dot('pek', 'is-src', 1.4)}${dot('sha', 'is-src', 2.1)}${dot('vvo', 'is-dst', .4)}${dot('msk', 'is-dst', 1.1)}
+    </svg></div></div>`;
+  if (!document.querySelector('.geo-bg')) document.body.insertAdjacentHTML('afterbegin', geoBg);
+
   // ---- Медленная плавная прокрутка к разделам ----
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const headerH = () => (document.querySelector('.header') || { offsetHeight: 0 }).offsetHeight;
