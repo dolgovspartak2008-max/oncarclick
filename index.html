@@ -152,16 +152,25 @@
   </div>
 </section>
 <section class="page section" id="catalog">
-  <div class="page-head">
-    <div class="container">
+  <div class="cat-hero">
+    <div class="cat-hero__media" aria-hidden="true">
+      <picture><source srcset="assets/img/catalog-car.webp" type="image/webp"><img src="assets/img/catalog-car.jpg" alt="" width="757" height="452" loading="lazy" decoding="async"></picture>
+    </div>
+    <div class="container cat-hero__inner">
+      <p class="eyebrow">Каталог</p>
       <h2 class="page-title">Каталог автомобилей</h2>
       <p class="page-lead">Актуальные предложения из Кореи, Японии и Китая с проверенной историей и выгодными ценами.</p>
+      <ul class="cat-perks">
+        <li><span class="ibox"><svg class="icon" aria-hidden="true"><use href="#i-car"/></svg></span><span><b>Проверенные авто</b><small>История и состояние</small></span></li>
+        <li><span class="ibox"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg></span><span><b>Выгодные цены</b><small>Без посредников</small></span></li>
+        <li><span class="ibox"><svg class="icon" aria-hidden="true"><use href="#i-bolt"/></svg></span><span><b>Быстрая доставка</b><small>От 2–4 недель</small></span></li>
+      </ul>
     </div>
   </div>
   <div class="container">
     <div class="card cat-teaser">
       <div class="cat-teaser__flags" aria-hidden="true"><span>Корея</span><span>Япония</span><span>Китай</span></div>
-      <p class="cat-teaser__txt"><b data-total-count>…</b> автомобилей в наличии и под заказ. Выберите возраст — от него зависит растаможка и итоговая цена.</p>
+      <p class="cat-teaser__txt"><b>26</b> автомобильных брендов и <b>150&nbsp;000+</b> предложений. Выберите свой автомобиль — от компактных до премиальных.</p>
       <button class="btn btn--red btn--block cat-open" type="button" id="catOpen" aria-expanded="false" aria-controls="ageChooser">Перейти в каталог <svg class="icon cat-open__ico" aria-hidden="true"><use href="#i-chevron"/></svg></button>
     </div>
     <div class="chooser" id="ageChooser">
@@ -187,6 +196,12 @@
         <a class="chooser__all" href="catalog.html">Смотреть все автомобили <svg class="icon " aria-hidden="true"><use href="#i-arrow"/></svg></a>
       </div>
     </div>
+    <ul class="cat-stats">
+      <li><span class="ibox"><svg class="icon" aria-hidden="true"><use href="#i-car"/></svg></span><span><b>150&nbsp;000+</b><small>Автомобилей в базе</small></span></li>
+      <li><span class="ibox"><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg></span><span><b>3 страны</b><small>Импорт и подбор</small></span></li>
+      <li><span class="ibox"><svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg></span><span><b>26 брендов</b><small>Популярные марки</small></span></li>
+      <li><span class="ibox"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg></span><span><b>Каждый день</b><small>Обновление предложений</small></span></li>
+    </ul>
   </div>
 </section>
 <section class="page section" id="calculator">

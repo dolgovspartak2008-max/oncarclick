@@ -759,3 +759,113 @@ main { flex: 1; }
   .nav a { padding: 10px 15px; font-size: 16px; }
   .nav a::after { left: 15px; right: 15px; }
 }
+
+/* ==========================================================
+   Каталог на главной — герой с машиной + цифры
+   ========================================================== */
+#catalog.section { padding-top: 0; }
+.cat-hero { position: relative; isolation: isolate; padding-top: 58vw; padding-bottom: 22px; }
+.cat-hero__media {
+  position: absolute; z-index: -1; top: 0; right: -6%; width: 112%; height: 67vw; pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent), linear-gradient(90deg, transparent, #000 12%);
+  -webkit-mask-composite: source-in; mask-composite: intersect;
+}
+.cat-hero__media::after { /* красное свечение под машиной */
+  content: ""; position: absolute; inset: 30% -10% -10% 10%; z-index: -1;
+  background: radial-gradient(50% 50% at 60% 60%, rgba(227,18,31,.32), transparent 70%);
+}
+.cat-hero__media img { width: 100%; height: 100%; object-fit: contain; object-position: right top; display: block; }
+.eyebrow {
+  margin: 0 0 14px; display: flex; align-items: center; gap: 14px;
+  font-family: var(--font-tech); font-size: 13px; font-weight: 600; letter-spacing: .32em; text-transform: uppercase; color: #e9eaee;
+}
+.eyebrow::before { content: ""; width: 34px; height: 3px; border-radius: 2px; background: var(--red-2); box-shadow: 0 0 12px var(--red-glow); }
+.cat-hero__inner .page-lead { max-width: 560px; }
+
+.ibox {
+  flex: none; width: 46px; height: 46px; display: grid; place-items: center; border-radius: 13px;
+  background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02)); border: 1px solid var(--line);
+}
+.ibox .icon { width: 22px; height: 22px; }
+
+.cat-perks { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 12px; }
+.cat-perks li { display: flex; align-items: center; gap: 12px; }
+.cat-perks .ibox .icon { color: var(--red-2); }
+.cat-perks b, .cat-stats b { display: block; font-weight: 700; color: #fff; }
+.cat-perks b { font-size: 15px; }
+.cat-perks small, .cat-stats small { display: block; color: var(--muted); font-size: 13px; }
+
+.cat-teaser { background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.02)); }
+.cat-teaser__flags span { height: 36px; padding: 0 16px; font-size: 14px; }
+.cat-teaser__txt { font-size: 15.5px; }
+.cat-teaser__txt b { font-size: 1.15em; }
+.cat-open { box-shadow: 0 14px 34px -12px var(--red-glow); }
+
+.cat-stats { list-style: none; margin: 26px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 18px 14px; }
+.cat-stats li { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.cat-stats b { font-family: var(--font-display); font-size: 18px; line-height: 1.2; }
+.cat-stats .ibox .icon { color: #e6e7eb; }
+
+@media (min-width: 560px) {
+  .cat-hero { padding-top: min(54vw, 420px); }
+  .cat-hero__media { height: min(67vw, 500px); width: min(112%, 840px); }
+  .cat-perks { grid-template-columns: repeat(3, auto); justify-content: start; gap: 14px 22px; }
+}
+@media (min-width: 1024px) {
+  #catalog.section { padding-top: 24px; }
+  .cat-hero { padding-top: 70px; padding-bottom: 40px; min-height: 470px; }
+  .cat-hero__media {
+    top: 0; right: max(0px, calc((100vw - var(--container)) / 2 - 80px)); width: min(58vw, 820px); height: 100%;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 22%), linear-gradient(180deg, transparent 0%, #000 12%, #000 82%, transparent);
+  }
+  .cat-hero__media img { object-fit: contain; object-position: right center; }
+  .cat-hero__inner > * { max-width: 600px; }
+  .cat-hero__inner .page-title { font-size: 54px; }
+  .cat-hero__inner .page-lead { font-size: 18px; }
+  .cat-perks { margin-top: 30px; display: flex; gap: 0; }
+  .cat-perks li { padding: 0 24px; border-left: 1px solid var(--line); }
+  .cat-perks li:first-child { padding-left: 0; border-left: 0; }
+  .cat-teaser { grid-template-columns: auto 1fr 330px; gap: 0; padding: 26px 30px; border-radius: var(--radius-lg); }
+  .cat-teaser__flags { padding-right: 28px; margin-right: 28px; border-right: 1px solid var(--line); }
+  .cat-teaser__txt { padding-right: 28px; font-size: 16.5px; }
+  .cat-stats { grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 44px; }
+  .cat-stats li { padding: 4px 24px; border-left: 1px solid var(--line); }
+  .cat-stats li:first-child { border-left: 0; padding-left: 14px; }
+  .cat-stats .ibox { width: 58px; height: 58px; border-radius: 15px; }
+  .cat-stats .ibox .icon { width: 26px; height: 26px; }
+  .cat-stats b { font-size: 21px; }
+  .cat-stats small { font-size: 14.5px; }
+}
+@media (min-width: 1024px) {
+  .cat-hero__inner > .cat-perks { max-width: none; }
+  .cat-perks li, .cat-stats small, .cat-stats b { white-space: nowrap; }
+  .cat-perks li { padding: 0 20px; }
+  .cat-teaser { grid-template-columns: auto 1fr 300px; }
+}
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .cat-stats li { padding: 4px 14px; }
+  .cat-stats .ibox { width: 48px; height: 48px; }
+  .cat-stats b { font-size: 18px; }
+  .cat-stats small { font-size: 13px; white-space: normal; }
+}
+@media (max-width: 559px) {
+  .cat-stats .ibox { width: 40px; height: 40px; border-radius: 11px; }
+  .cat-stats .ibox .icon { width: 19px; height: 19px; }
+  .cat-stats b { font-size: 16px; }
+  .cat-stats small { font-size: 12.5px; line-height: 1.35; }
+  .cat-stats li { gap: 10px; }
+}
+@media (min-width: 1024px) {
+  .cat-hero__media {
+    width: min(50vw, 730px);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 30%), linear-gradient(180deg, transparent 0%, #000 12%, #000 82%, transparent);
+  }
+}
+@media (min-width: 1024px) {
+  .cat-hero__media { display: flex; align-items: center; -webkit-mask-image: none; mask-image: none; }
+  .cat-hero__media img {
+    height: auto; max-height: 100%; object-fit: contain;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 30%), linear-gradient(180deg, transparent 0%, #000 14%, #000 80%, transparent);
+    -webkit-mask-composite: source-in; mask-composite: intersect;
+  }
+}
