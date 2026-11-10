@@ -31,10 +31,10 @@
       if (sel.brand.value) fillSelect(sel.model, data.models || [], 'Все модели');
       else fillSelect(sel.model, [], 'Все модели');
     }
-    const engines = cars.map(function (car) { return car.engine; }).filter(Boolean);
+    const engines = Model.engineBuckets(cars.map(function (car) { return car.engine; }));
     const current = sel.engine.value;
     sel.engine.replaceChildren(new Option('Любой', ''));
-    Array.from(new Set(engines)).sort(function (a, b) { return a - b; }).forEach(function (engine) {
+    engines.forEach(function (engine) {
       sel.engine.add(new Option(Model.engineLabel(engine), String(engine)));
     });
     if (Array.from(sel.engine.options).some(function (option) { return option.value === current; })) sel.engine.value = current;
@@ -64,7 +64,7 @@
   }
 
   function render() {
-    count.textContent = total ? `${fmt(total)} ${plural(total, 'автомобиль', 'автомобиля', 'автомобилей')}` : '';
+    count.textContent = total ? `${fmt(total)} ${Model.plural(total, 'автомобиль', 'автомобиля', 'автомобилей')}` : '';
     grid.innerHTML = cars.length ? cars.map(cardMarkup).join('') : '<p class="empty">По выбранным параметрам ничего не найдено.</p>';
     loadMore.hidden = !hasMore;
   }

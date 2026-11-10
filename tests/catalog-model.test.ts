@@ -38,4 +38,14 @@ describe("catalog browser model", () => {
     expect(CatalogModel.engineLabel(null)).toBe("Объём не указан");
     expect(CatalogModel.escapeHtml('<img src=x onerror="bad">')).toBe("&lt;img src=x onerror=&quot;bad&quot;&gt;");
   });
+
+  test("formats the Russian vehicle count without demo helpers", () => {
+    expect(CatalogModel.plural(1, "автомобиль", "автомобиля", "автомобилей")).toBe("автомобиль");
+    expect(CatalogModel.plural(24, "автомобиль", "автомобиля", "автомобилей")).toBe("автомобиля");
+    expect(CatalogModel.plural(149_597, "автомобиль", "автомобиля", "автомобилей")).toBe("автомобилей");
+  });
+
+  test("groups near-identical engine sizes into one filter option", () => {
+    expect(CatalogModel.engineBuckets([998, 1995, 1998, 1999, null])).toEqual([1000, 2000]);
+  });
 });

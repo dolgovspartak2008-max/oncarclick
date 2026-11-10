@@ -49,5 +49,18 @@
     return '/api/catalog?' + params.toString();
   }
 
-  return { buildCatalogUrl, engineLabel, escapeHtml, normalizeCar };
+  function plural(number, one, few, many) {
+    const last = number % 10, lastTwo = number % 100;
+    if (last === 1 && lastTwo !== 11) return one;
+    if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) return few;
+    return many;
+  }
+
+  function engineBuckets(values) {
+    return Array.from(new Set(values.map(Number).filter(function (value) { return value > 0; }).map(function (value) {
+      return Math.round(value / 100) * 100;
+    }))).sort(function (a, b) { return a - b; });
+  }
+
+  return { buildCatalogUrl, engineBuckets, engineLabel, escapeHtml, normalizeCar, plural };
 });

@@ -34,4 +34,18 @@ describe("Trust Encar server client", () => {
     const fetcher = vi.fn().mockResolvedValue(new Response("no", { status: 503 }));
     await expect(fetchLiveCatalog(filters, fetcher)).rejects.toThrow("503");
   });
+
+  test("honors the requested API page size when Trust Encar returns its default batch", async () => {
+    const records = ["1", "2"].map((id) => ({
+      ID: id, MARKA_NAME: "KIA", MODEL_NAME: "K5", YEAR: 2023,
+      MILEAGE: 1000, ENG_V: 1998, FINISH: 20000000, FINISH_RUB: 2500000, IMAGES: "[]"
+    }));
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(new Response(bootstrap))
+      .mockResolvedValueOnce(Response.json(records))
+      .mockResolvedValueOnce(Response.json({ status: "success", total: 2 }));
+
+    const result = await fetchLiveCatalog({ ...filters, limit: 1 }, fetcher);
+    expect(result.items).toHaveLength(1);
+  });
 });

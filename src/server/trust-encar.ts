@@ -76,7 +76,7 @@ export async function fetchLiveCatalog(filters: CatalogFilters, fetcher: Fetcher
   const total = count.status === "success" && Number.isFinite(Number(count.total)) ? Number(count.total) : bootstrap.total;
 
   return {
-    items: normalizeTrustEncarRecords(records),
+    items: normalizeTrustEncarRecords(records).slice(0, filters.limit),
     total,
     makes: bootstrap.makes.map((item) => item.name),
     models: readModels(facets)
