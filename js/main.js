@@ -46,7 +46,7 @@
   // координаты в сетке карты: x = (долгота + 180) / 1.2, y = (80 − широта) / 1.2
   const P = {
     msk: [181.3, 20.2], vvo: [259.9, 30.75], bsn: [257.5, 37.4], tyo: [266.4, 36.9], pek: [247, 33.4], sha: [251.3, 40.7],
-    ham: [158.3, 22], dxb: [196.1, 45.7], syd: [276, 94.9], nyc: [88.3, 32.75]
+    ham: [158.3, 22], dxb: [196.1, 45.7], nsk: [219.1, 20.8], nbo: [180.7, 67.75]
   };
   // [откуда, куда, контрольная точка дуги x, y, задержка]
   const ROUTES = [
@@ -54,11 +54,11 @@
     ['tyo', 'vvo', 273, 26, 1.6],
     ['sha', 'vvo', 266, 35, 3.1],
     ['pek', 'msk', 214, 15, .8],
-    ['vvo', 'msk', 221, -8, 2.3],
+    ['vvo', 'msk', 221, 0, 2.3],
+    ['tyo', 'nsk', 248, 9, .4],
     ['sha', 'ham', 203, 47, 1.2],
-    ['bsn', 'dxb', 226, 70, 3.6],
-    ['tyo', 'syd', 292, 62, .4],
-    ['msk', 'nyc', 134, -6, 2.8],
+    ['bsn', 'dxb', 226, 66, 3.6],
+    ['sha', 'nbo', 222, 78, 2.8],
   ];
   const routes = ROUTES.map(([a, b, cx, cy, delay]) => {
     const d = `M${P[a][0]} ${P[a][1]}Q${cx} ${cy} ${P[b][0]} ${P[b][1]}`;
@@ -70,7 +70,7 @@
     <svg viewBox="0 0 300 115" preserveAspectRatio="none">
       <defs><filter id="geoGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation=".6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
       <g filter="url(#geoGlow)">${routes}</g>
-      ${dot('bsn', 'is-src', 0)}${dot('tyo', 'is-src', .7)}${dot('pek', 'is-src', 1.4)}${dot('sha', 'is-src', 2.1)}${dot('vvo', 'is-dst', .4)}${dot('msk', 'is-dst', 1.1)}${dot('ham', 'is-dst', 1.8)}${dot('dxb', 'is-dst', .2)}${dot('syd', 'is-dst', 2.4)}${dot('nyc', 'is-dst', 1.5)}
+      ${dot('bsn', 'is-src', 0)}${dot('tyo', 'is-src', .7)}${dot('pek', 'is-src', 1.4)}${dot('sha', 'is-src', 2.1)}${dot('vvo', 'is-dst', .4)}${dot('msk', 'is-dst', 1.1)}${dot('ham', 'is-dst', 1.8)}${dot('dxb', 'is-dst', .2)}${dot('nsk', 'is-dst', 2.4)}${dot('nbo', 'is-dst', 1.5)}
     </svg></div></div>`;
   if (!document.querySelector('.geo-bg')) document.body.insertAdjacentHTML('afterbegin', geoBg);
 

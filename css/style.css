@@ -766,7 +766,7 @@ main { flex: 1; }
 #catalog.section { padding-top: 0; }
 .cat-hero { position: relative; isolation: isolate; padding-top: 58vw; padding-bottom: 22px; }
 .cat-hero__media {
-  position: absolute; z-index: -1; top: 0; right: -6%; width: 112%; height: 67vw; pointer-events: none;
+  position: absolute; z-index: -1; top: 0; right: 0; width: 100%; height: 60vw; pointer-events: none;
   -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent), linear-gradient(90deg, transparent, #000 12%);
   -webkit-mask-composite: source-in; mask-composite: intersect;
 }
@@ -808,7 +808,7 @@ main { flex: 1; }
 
 @media (min-width: 560px) {
   .cat-hero { padding-top: min(54vw, 420px); }
-  .cat-hero__media { height: min(67vw, 500px); width: min(112%, 840px); }
+  .cat-hero__media { height: min(60vw, 450px); width: 100%; }
   .cat-perks { grid-template-columns: repeat(3, auto); justify-content: start; gap: 14px 22px; }
 }
 @media (min-width: 1024px) {
@@ -881,7 +881,8 @@ main { flex: 1; }
 .geo-bg__map {
   /* размер карты и точка фокуса */
   /* на телефоне — весь мир маршрутов целиком: от Нью-Йорка до Сиднея */
-  --w: 136vw; --fx: .622; --fy: .45; --ax: 50vw; --ay: 44vh;
+  /* на телефоне в экран целиком входят все маршруты: от Гамбурга до Японии и до Найроби */
+  --w: 232vw; --fx: .713; --fy: .33; --ax: 50vw; --ay: 44vh;
   position: absolute; width: var(--w); aspect-ratio: 300 / 115;
   left: calc(var(--ax) - var(--w) * var(--fx));
   top: calc(var(--ay) - var(--w) / 300 * 115 * var(--fy));
@@ -901,10 +902,10 @@ main { flex: 1; }
 .is-dst .geo__ring { fill: rgba(255,255,255,.22); }
 @keyframes geoPulse { 0% { transform: scale(.2); opacity: .9; } 100% { transform: scale(1); opacity: 0; } }
 @media (min-width: 768px) {
-  .geo-bg__map { --w: 125vw; --fx: .628; --fy: .42; --ax: 50vw; --ay: 42vh; }
+  .geo-bg__map { --w: 200vw; --ax: 50vw; --ay: 44vh; }
 }
 @media (min-width: 1024px) {
-  .geo-bg__map { --w: 106vw; --fx: .53; --fy: .33; --ax: 50vw; --ay: 42vh; }
+  .geo-bg__map { --w: max(150vw, 260vh); --ax: 52vw; --ay: 46vh; }
 }
 
 @media (max-width: 767px) {
@@ -914,3 +915,13 @@ main { flex: 1; }
   .geo__core { r: 1.1px; }
   .geo__ring { r: 3.4px; }
 }
+
+/* края точечной карты растворяются — без резкой линии сверху и снизу */
+.geo-bg__map img {
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 70%, transparent 92%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 70%, transparent 92%);
+}
+/* никакой прокрутки вбок */
+html, body { overflow-x: hidden; }
+@supports (overflow: clip) { html, body { overflow-x: clip; } }
+html, body { overscroll-behavior-x: none; }
