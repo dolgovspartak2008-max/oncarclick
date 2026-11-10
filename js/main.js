@@ -39,6 +39,40 @@
     '</svg>';
   document.body.insertAdjacentHTML('afterbegin', sprite);
 
+  // ---- Медленная плавная прокрутка к разделам ----
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const headerH = () => (document.querySelector('.header') || { offsetHeight: 0 }).offsetHeight;
+  let scrollAnim = 0;
+  window.smoothTo = function (target) {
+    const el = typeof target === 'string' ? document.querySelector(target) : target;
+    if (!el) return;
+    const to = el.id === 'home' || el.id === 'top' ? 0 : Math.max(0, el.getBoundingClientRect().top + scrollY - headerH());
+    const from = scrollY, dist = to - from;
+    if (reduce || Math.abs(dist) < 2) { window.scrollTo(0, to); return; }
+    const dur = Math.min(1600, Math.max(700, Math.abs(dist) * 0.45));
+    const ease = (t) => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    const t0 = performance.now(); const id = ++scrollAnim;
+    const step = (t) => {
+      if (id !== scrollAnim) return;
+      const p = Math.min(1, (t - t0) / dur);
+      window.scrollTo(0, from + dist * ease(p));
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  // любое колесо/касание прерывает анимацию
+  ['wheel', 'touchstart'].forEach(ev => window.addEventListener(ev, () => { scrollAnim++; }, { passive: true }));
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href^="#"]');
+    if (!a || a.closest('.mnav')) return;
+    const href = a.getAttribute('href');
+    const t = href === '#top' ? document.body : document.querySelector(href);
+    if (!t) return;
+    e.preventDefault();
+    window.smoothTo(href === '#top' ? '#home' : t);
+    if (href !== '#top') history.replaceState(null, '', href);
+  });
+
   // Мобильное меню — отдельный экран на весь дисплей (сайт под ним скрывается)
   const mnav = document.querySelector('.mnav');
   const openBtn = document.querySelector('.burger');
@@ -63,7 +97,7 @@
       e.preventDefault();
       setMenu(false, true);
       const t = document.querySelector(href);
-      if (t) { t.scrollIntoView({ behavior: 'instant', block: 'start' }); history.replaceState(null, '', href); window.dispatchEvent(new Event('scroll')); }
+      if (t) { setTimeout(() => window.smoothTo(t), 60); history.replaceState(null, '', href); }
       if (href === '#catalog' && window.openChooser) window.openChooser();
     } else if (!href.includes('://') && !href.startsWith('tel:')) {
       setMenu(false);
@@ -108,6 +142,23 @@
   window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
   window.addEventListener('resize', onScroll);
   onScroll();
+
+  // ---- Плавное появление блоков при прокрутке ----
+  if (!reduce && 'IntersectionObserver' in window) {
+    const sel = ['.page.section .page-title', '.page.section .page-lead', '.stat', '.section-title', '.why__item',
+      '.cat-teaser', '.calc__form', '.calc__side > *', '.rev-sum', '.slider', '.clist', '.form', '.socials',
+      '.hero__title', '.hero__sub', '.hero__text', '.hero__actions', '.features'].join(',');
+    const els = [...document.querySelectorAll(sel)].filter(el => !el.closest('.mnav, .catpage'));
+    const rio = new IntersectionObserver((es) => es.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('is-in'); rio.unobserve(e.target); }
+    }), { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+    els.forEach(el => {
+      const sib = [...el.parentElement.children].filter(x => els.includes(x));
+      el.style.transitionDelay = Math.min(sib.indexOf(el), 5) * 110 + 'ms';
+      el.classList.add('reveal');
+      rio.observe(el);
+    });
+  }
 
   // Анимация цифр, когда блок попадает на экран
   const counters = document.querySelectorAll('[data-count]');
