@@ -34,6 +34,7 @@
     bolt: '<path d="M13 2.5 4.5 13.5H11L10 21.5l8.5-11H12l1-8Z"/>',
     globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.5 3.8 5.5 3.8 9s-1.2 6.5-3.8 9c-2.6-2.5-3.8-5.5-3.8-9S9.4 5.5 12 3Z"/>',
     refresh: '<path d="M20 11a8 8 0 0 0-14.3-4.3L4 8.5M4 4v4.5h4.5M4 13a8 8 0 0 0 14.3 4.3L20 15.5M20 20v-4.5h-4.5"/>',
+    route: '<circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="6" r="2.2"/><path d="M8.2 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.8"/>',
     sparkle: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>'
   };
 
@@ -42,7 +43,8 @@
     '</svg>';
   document.body.insertAdjacentHTML('afterbegin', sprite);
 
-  // ---- Фон: точечная карта мира с маршрутами Корея / Япония / Китай → Россия ----
+  // ---- Статичная точечная карта с маршрутами Корея / Япония / Китай → Россия (раздел «Как проходит сделка») ----
+  // без анимаций и фильтров — рисуется один раз и не нагружает прокрутку
   // координаты в сетке карты: x = (долгота + 180) / 1.2, y = (80 − широта) / 1.2
   const P = {
     msk: [181.3, 20.2], vvo: [259.9, 30.75], bsn: [257.5, 37.4], tyo: [266.4, 36.9], pek: [247, 33.4], sha: [251.3, 40.7],
@@ -62,17 +64,16 @@
   ];
   const routes = ROUTES.map(([a, b, cx, cy, delay]) => {
     const d = `M${P[a][0]} ${P[a][1]}Q${cx} ${cy} ${P[b][0]} ${P[b][1]}`;
-    return `<path class="geo__line" d="${d}"/><path class="geo__comet" pathLength="100" style="animation-delay:${delay}s" d="${d}"/>`;
+    return `<path class="geo__line" d="${d}"/>`;
   }).join('');
-  const dot = (k, cls, delay) => `<g class="geo__pt ${cls}" style="--d:${delay}s"><circle class="geo__ring" cx="${P[k][0]}" cy="${P[k][1]}" r="2.6"/><circle class="geo__core" cx="${P[k][0]}" cy="${P[k][1]}" r=".75"/></g>`;
-  const geoBg = `<div class="geo-bg" aria-hidden="true"><div class="geo-bg__map">
-    <picture><source media="(max-width: 767px)" srcset="assets/img/worldmap-dots-m.svg"><img src="assets/img/worldmap-dots.svg" alt="" decoding="async"></picture>
+  const dot = (k, cls) => `<circle class="geo__core ${cls}" cx="${P[k][0]}" cy="${P[k][1]}" r=".9"/>`;
+  const geoBg = `<div class="geo-bg__map">
+    <picture><source media="(max-width: 767px)" srcset="assets/img/worldmap-dots-m.svg"><img src="assets/img/worldmap-dots.svg" alt="" decoding="async" loading="lazy"></picture>
     <svg viewBox="0 0 300 115" preserveAspectRatio="none">
-      <defs><filter id="geoGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation=".6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-      <g filter="url(#geoGlow)">${routes}</g>
+      <g>${routes}</g>
       ${dot('bsn', 'is-src', 0)}${dot('tyo', 'is-src', .7)}${dot('pek', 'is-src', 1.4)}${dot('sha', 'is-src', 2.1)}${dot('vvo', 'is-dst', .4)}${dot('msk', 'is-dst', 1.1)}${dot('ham', 'is-dst', 1.8)}${dot('dxb', 'is-dst', .2)}${dot('nsk', 'is-dst', 2.4)}${dot('nbo', 'is-dst', 1.5)}
-    </svg></div></div>`;
-  if (!document.querySelector('.geo-bg')) document.body.insertAdjacentHTML('afterbegin', geoBg);
+    </svg></div>`;
+  document.querySelectorAll('.deal-map').forEach(el => { el.innerHTML = geoBg; });
 
   // ---- Медленная плавная прокрутка к разделам ----
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -133,7 +134,6 @@
       setMenu(false, true);
       const t = document.querySelector(href);
       if (t) { setTimeout(() => window.smoothTo(t), 60); history.replaceState(null, '', href); }
-      if (href === '#catalog' && window.openChooser) window.openChooser();
     } else if (!href.includes('://') && !href.startsWith('tel:')) {
       setMenu(false);
     }
@@ -155,41 +155,42 @@
     toastT = setTimeout(() => toastEl.classList.remove('is-show'), 2400);
   };
 
-  // Подсветка пункта меню текущего раздела
+  // Подсветка пункта меню текущего раздела и кнопка «наверх» — через IntersectionObserver,
+  // без обработчика scroll и без замеров layout на каждом кадре
   const sections = [...document.querySelectorAll('.section[id]')];
-  const onePage = sections.length > 1;
   const navLinks = [...document.querySelectorAll('.nav a, .mnav__links a')];
   const totop = document.querySelector('.totop');
-  let ticking = false;
-  function onScroll() {
-    ticking = false;
-    const y = window.scrollY + window.innerHeight * 0.35;
-    let cur = sections[0] && sections[0].id;
-    sections.forEach(s => { if (s.offsetTop <= y) cur = s.id; });
-    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4 && sections.length) cur = sections[sections.length - 1].id;
-    if (onePage) navLinks.forEach(a => {
-      const on = a.getAttribute('href') === '#' + cur;
-      a.classList.toggle('is-active', on);
-      on ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current');
-    });
-    totop && totop.classList.toggle('is-show', window.scrollY > window.innerHeight * 0.8);
+  const setActive = (id) => navLinks.forEach(a => {
+    const on = a.getAttribute('href') === '#' + id;
+    a.classList.toggle('is-active', on);
+    on ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current');
+  });
+  if ('IntersectionObserver' in window) {
+    if (sections.length > 1) {
+      const sio = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) setActive(e.target.id); }),
+        { rootMargin: '-35% 0px -60% 0px' });
+      sections.forEach(s => sio.observe(s));
+    }
+    if (totop) {
+      const mark = document.createElement('div');
+      mark.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:80vh;pointer-events:none;visibility:hidden';
+      mark.setAttribute('aria-hidden', 'true');
+      document.body.prepend(mark);
+      new IntersectionObserver(([e]) => totop.classList.toggle('is-show', !e.isIntersecting)).observe(mark);
+    }
   }
-  window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
-  window.addEventListener('resize', onScroll);
-  onScroll();
 
   // ---- Плавное появление блоков при прокрутке ----
   if (!reduce && 'IntersectionObserver' in window) {
     const sel = ['.page.section .page-title', '.page.section .page-lead', '.stat', '.section-title', '.why__item',
-      '.cat-teaser', '.calc__form', '.calc__side > *', '.rev-sum', '.slider', '.clist', '.form', '.socials',
-      '.hero__title', '.hero__sub', '.hero__text', '.hero__actions', '.features'].join(',');
+      '.cat-teaser', '.step', '.deal-cta', '.faq', '.rev-sum', '.slider', '.clist', '.form', '.socials'].join(',');
     const els = [...document.querySelectorAll(sel)].filter(el => !el.closest('.mnav, .catpage'));
     const rio = new IntersectionObserver((es) => es.forEach(e => {
       if (e.isIntersecting) { e.target.classList.add('is-in'); rio.unobserve(e.target); }
     }), { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
     els.forEach(el => {
       const sib = [...el.parentElement.children].filter(x => els.includes(x));
-      el.style.transitionDelay = Math.min(sib.indexOf(el), 5) * 110 + 'ms';
+      el.style.transitionDelay = Math.min(sib.indexOf(el), 4) * 70 + 'ms';
       el.classList.add('reveal');
       rio.observe(el);
     });

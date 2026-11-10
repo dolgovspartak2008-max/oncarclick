@@ -1,76 +1,71 @@
-/* Страница каталога: возраст (вкладки), фильтры, поиск, сортировка, избранное */
+/* Страница каталога: три зависимых фильтра (марка → модель → объём), сортировка, избранное.
+   Каждый список показывает только варианты, которые есть среди машин,
+   подходящих под два других выбранных фильтра. */
 (function () {
-  const CARS = window.CARS, AGES = window.AGE_GROUPS;
+  const CARS = (window.CARS || []).map((c, i) => ({ ...c, i }));
   const $ = (s, r = document) => r.querySelector(s);
-  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-  const grid = $('#cars'), form = $('#filters'), q = $('#q');
-  let sort = 'pop';
-  let age = new URLSearchParams(location.search).get('age');
-  if (!AGES[age]) age = 'all';
+  const grid = $('#cars'), form = $('#filters');
+  const sel = { brand: $('#fBrand'), model: $('#fModel'), engine: $('#fEngine') };
+  const sortSel = $('#sort'), resetBtn = $('#fReset');
 
   function safeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function safeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-  const favs = new Set(JSON.parse(safeGet('favs2') || '[]'));
+  let favs;
+  try { favs = new Set(JSON.parse(safeGet('favs2') || '[]')); } catch (e) { favs = new Set(); }
   const fmt = (n) => n.toLocaleString('ru-RU');
+  const engineLabel = (e) => (+e ? (+e).toFixed(1) + ' л' : 'Электро');
+  const val = () => ({ brand: sel.brand.value, model: sel.model.value, engine: sel.engine.value });
 
-  // марки / модели
-  const brandSel = $('#fBrand'), modelSel = $('#fModel');
-  [...new Set(CARS.map(c => c.brand))].sort().forEach(b => brandSel.add(new Option(b, b)));
-  function fillModels() {
-    const b = brandSel.value;
-    modelSel.length = 1;
-    [...new Set(CARS.filter(c => !b || c.brand === b).map(c => c.model))].sort().forEach(m => modelSel.add(new Option(m, m)));
-  }
-  fillModels();
-  brandSel.addEventListener('change', fillModels);
-
-  function setAge(a, push) {
-    age = a;
-    $$('.tab').forEach(t => { const on = t.dataset.age === a; t.classList.toggle('is-active', on); t.setAttribute('aria-selected', on); });
-    $('#catTitle').textContent = AGES[a].title;
-    $('#catLead').textContent = AGES[a].lead;
-    document.title = AGES[a].title + ' — OnCarClick';
-    if (push) history.replaceState(null, '', a === 'all' ? 'catalog.html' : `catalog.html?age=${a}`);
-    render();
+  // подходит ли машина под фильтры, кроме указанного (для построения списков)
+  function match(c, v, skip) {
+    return (skip === 'brand' || !v.brand || c.brand === v.brand) &&
+           (skip === 'model' || !v.model || c.model === v.model) &&
+           (skip === 'engine' || v.engine === '' || String(c.engine) === v.engine);
   }
 
-  function getFiltered() {
-    const fd = new FormData(form);
-    const countries = fd.getAll('country');
-    const num = (k) => { const v = fd.get(k); return v === '' || v == null ? null : +v; };
-    const s = (q.value || '').trim().toLowerCase();
-    const list = CARS.map((c, i) => ({ ...c, i })).filter(c =>
-      AGES[age].test(c) &&
-      (!countries.length || countries.includes(c.country)) &&
-      (!fd.get('brand') || c.brand === fd.get('brand')) &&
-      (!fd.get('model') || c.model === fd.get('model')) &&
-      (num('yearFrom') == null || c.year >= num('yearFrom')) &&
-      (num('yearTo') == null || c.year <= num('yearTo')) &&
-      (num('priceFrom') == null || c.price >= num('priceFrom')) &&
-      (num('priceTo') == null || c.price <= num('priceTo')) &&
-      (num('kmFrom') == null || c.km >= num('kmFrom')) &&
-      (num('kmTo') == null || c.km <= num('kmTo')) &&
-      (!s || `${c.brand} ${c.model} ${c.country}`.toLowerCase().includes(s))
-    );
-    const by = { pop: (a, b) => b.pop - a.pop, cheap: (a, b) => a.price - b.price, exp: (a, b) => b.price - a.price, new: (a, b) => b.year - a.year || a.km - b.km };
-    return list.sort(by[sort]);
+  function fill(key, values, label) {
+    const s = sel[key], cur = s.value;
+    s.length = 1;
+    values.forEach(v => s.add(new Option(label ? label(v) : v, v)));
+    s.value = values.map(String).includes(cur) ? cur : '';
   }
+
+  function syncOptions() {
+    // до трёх проходов: смена одного списка может сбросить выбор в другом
+    for (let k = 0; k < 3; k++) {
+      const v = val();
+      fill('brand', [...new Set(CARS.filter(c => match(c, v, 'brand')).map(c => c.brand))].sort());
+      fill('model', [...new Set(CARS.filter(c => match(c, val(), 'model')).map(c => c.model))].sort());
+      fill('engine', [...new Set(CARS.filter(c => match(c, val(), 'engine')).map(c => String(c.engine)))].sort((a, b) => a - b), engineLabel);
+      const after = val();
+      if (after.brand === v.brand && after.model === v.model && after.engine === v.engine) break;
+    }
+  }
+
+  const SORTS = {
+    pop: (a, b) => b.pop - a.pop,
+    cheap: (a, b) => a.price - b.price,
+    exp: (a, b) => b.price - a.price,
+    new: (a, b) => b.year - a.year || a.km - b.km,
+  };
 
   function render() {
-    const list = getFiltered();
-    $('#count').textContent = `Найдено ${list.length} ${plural(list.length, 'автомобиль', 'автомобиля', 'автомобилей')}`;
-    $('#fShow').textContent = `Показать ${list.length} авто`;
-    if (!list.length) { grid.innerHTML = '<p class="empty">По вашему запросу ничего не найдено.<br>Попробуйте изменить фильтры.</p>'; return; }
-    grid.innerHTML = list.map((c, n) => `
-      <article class="car" style="animation-delay:${Math.min(n, 8) * 40}ms">
-        <div class="car__top">
+    const v = val();
+    const list = CARS.filter(c => match(c, v)).sort(SORTS[sortSel.value] || SORTS.pop);
+    resetBtn.hidden = !(v.brand || v.model || v.engine);
+    $('#count').textContent = `${list.length} ${plural(list.length, 'автомобиль', 'автомобиля', 'автомобилей')}`;
+    if (!list.length) { grid.innerHTML = '<p class="empty">По выбранным параметрам ничего не найдено.</p>'; return; }
+    grid.innerHTML = list.map(c => `
+      <article class="car">
+        <div class="car__img">${carSvg(c, c.i)}
           <span class="badge">${c.country}</span>
           <button class="fav${favs.has(c.i) ? ' is-on' : ''}" type="button" data-fav="${c.i}" aria-pressed="${favs.has(c.i)}" aria-label="В избранное"><svg class="icon"><use href="#i-heart"/></svg></button>
         </div>
-        <div class="car__img">${carSvg(c, c.i)}</div>
-        <h3 class="car__name">${c.brand} ${c.model}</h3>
-        <p class="car__meta">${c.year} · ${fmt(c.km)} км</p>
-        <p class="car__price">${fmt(c.price)} ₽</p>
+        <div class="car__body">
+          <h3 class="car__name">${c.brand} ${c.model}</h3>
+          <p class="car__meta">${c.year} · ${fmt(c.km)} км · ${engineLabel(c.engine)}</p>
+          <p class="car__price">${c.price ? fmt(c.price) + ' ₽' : 'Цена по запросу'}${c.price ? '<small>под ключ</small>' : ''}</p>
+        </div>
         <a class="car__link" href="index.html#contacts" aria-label="Узнать про ${c.brand} ${c.model}" data-car="${c.brand} ${c.model}, ${c.year}"></a>
       </article>`).join('');
   }
@@ -91,34 +86,13 @@
     if (l) safeSet('car', l.dataset.car);
   });
 
-  $$('.tab').forEach(t => t.addEventListener('click', () => setAge(t.dataset.age, true)));
-  $$('.pill').forEach(p => p.addEventListener('click', () => {
-    $$('.pill').forEach(x => x.classList.toggle('is-active', x === p));
-    sort = p.dataset.sort; render();
-  }));
-  $$('.fgroup__btn').forEach(b => b.addEventListener('click', () => {
-    const g = b.parentElement; g.classList.toggle('is-open');
-    b.setAttribute('aria-expanded', g.classList.contains('is-open'));
-  }));
+  form.addEventListener('change', () => { syncOptions(); render(); });
+  form.addEventListener('reset', () => setTimeout(() => { syncOptions(); render(); }));
+  sortSel.addEventListener('change', render);
 
-  // Фильтры на телефоне — отдельный экран на весь дисплей
-  const setSheet = (open) => {
-    form.classList.toggle('is-open', open);
-    document.body.classList.toggle('screen-open', open);
-    if (open) form.scrollTop = 0;
-  };
-  $('#fOpen').addEventListener('click', () => setSheet(true));
-  $('#fClose').addEventListener('click', () => setSheet(false));
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setSheet(false); });
-
-  form.addEventListener('input', render);
-  form.addEventListener('change', render);
-  form.addEventListener('submit', (e) => {
-    e.preventDefault(); render(); setSheet(false);
-    window.scrollTo({ top: grid.getBoundingClientRect().top + scrollY - 140, behavior: 'smooth' });
-  });
-  form.addEventListener('reset', () => setTimeout(() => { fillModels(); render(); }));
-  q.addEventListener('input', render);
-
-  setAge(age, false);
+  // фильтр из адреса: catalog.html?brand=Kia&model=K5
+  const qs = new URLSearchParams(location.search);
+  syncOptions();
+  ['brand', 'model', 'engine'].forEach(k => { if (qs.get(k)) { sel[k].value = qs.get(k); syncOptions(); } });
+  render();
 })();

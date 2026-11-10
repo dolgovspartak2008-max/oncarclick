@@ -1,43 +1,33 @@
-/* Демо-данные автомобилей (заменить на реальные) + рисовалка силуэта */
+/* Демо-данные автомобилей (заменить на реальные из базы) + рисовалка силуэта.
+   price — итоговая цена под ключ в рублях; engine — объём двигателя, л (0 — электромобиль). */
 window.CARS = [
-  // до 3 лет (2024–2026)
-  { brand: 'Kia', model: 'Sorento', country: 'Корея', year: 2024, km: 12000, price: 4390000, type: 'suv', color: '#1b1d22', pop: 10 },
-  { brand: 'Hyundai', model: 'Palisade', country: 'Корея', year: 2024, km: 9000, price: 5290000, type: 'suv', color: '#c9ccd1', pop: 9 },
-  { brand: 'Geely', model: 'Monjaro', country: 'Китай', year: 2025, km: 3000, price: 3990000, type: 'suv', color: '#2a2d33', pop: 10 },
-  { brand: 'Chery', model: 'Tiggo 8 Pro', country: 'Китай', year: 2024, km: 11000, price: 2890000, type: 'suv', color: '#b8241e', pop: 7 },
-  { brand: 'Haval', model: 'Jolion', country: 'Китай', year: 2025, km: 2000, price: 2190000, type: 'suv', color: '#d9dbe0', pop: 6 },
-  { brand: 'Toyota', model: 'RAV4', country: 'Япония', year: 2024, km: 15000, price: 3890000, type: 'suv', color: '#e9eaec', pop: 9 },
-  { brand: 'Genesis', model: 'GV80', country: 'Корея', year: 2024, km: 8000, price: 6990000, type: 'suv', color: '#141518', pop: 7 },
-  { brand: 'Zeekr', model: '001', country: 'Китай', year: 2025, km: 4000, price: 4690000, type: 'sedan', color: '#5d6168', pop: 8 },
-  { brand: 'Honda', model: 'CR-V', country: 'Япония', year: 2024, km: 10000, price: 3590000, type: 'suv', color: '#9aa0a8', pop: 6 },
-  { brand: 'Kia', model: 'K5', country: 'Корея', year: 2024, km: 14000, price: 2990000, type: 'sedan', color: '#7b8088', pop: 7 },
-  // от 3 до 5 лет (2022–2023)
-  { brand: 'Kia', model: 'Sorento', country: 'Корея', year: 2022, km: 36000, price: 3240000, type: 'suv', color: '#1b1d22', pop: 9 },
-  { brand: 'BMW', model: '5 Series (G30)', country: 'Корея', year: 2022, km: 41000, price: 4490000, type: 'sedan', color: '#5d6168', pop: 9 },
-  { brand: 'Toyota', model: 'Camry', country: 'Япония', year: 2022, km: 38000, price: 3190000, type: 'sedan', color: '#141518', pop: 8 },
-  { brand: 'Hyundai', model: 'Tucson', country: 'Корея', year: 2023, km: 27000, price: 2890000, type: 'suv', color: '#d5d7db', pop: 8 },
-  { brand: 'Mazda', model: 'CX-5', country: 'Япония', year: 2022, km: 44000, price: 2790000, type: 'suv', color: '#9b1c1c', pop: 6 },
-  { brand: 'Lexus', model: 'NX 250', country: 'Япония', year: 2022, km: 33000, price: 4590000, type: 'suv', color: '#f0f0f2', pop: 7 },
-  { brand: 'Geely', model: 'Coolray', country: 'Китай', year: 2023, km: 21000, price: 1890000, type: 'suv', color: '#7b8088', pop: 6 },
-  { brand: 'Hyundai', model: 'Grandeur', country: 'Корея', year: 2023, km: 24000, price: 3690000, type: 'sedan', color: '#2a2d33', pop: 7 },
-  // от 5 лет и старше (2021 и старше)
-  { brand: 'BMW', model: '5 Series (G30)', country: 'Корея', year: 2020, km: 58000, price: 3890000, type: 'sedan', color: '#5d6168', pop: 10 },
-  { brand: 'Toyota', model: 'RAV4', country: 'Япония', year: 2021, km: 42000, price: 2790000, type: 'suv', color: '#e9eaec', pop: 9 },
-  { brand: 'Honda', model: 'CR-V', country: 'Япония', year: 2020, km: 61000, price: 2590000, type: 'suv', color: '#9aa0a8', pop: 7 },
-  { brand: 'Genesis', model: 'G80', country: 'Корея', year: 2021, km: 39000, price: 4150000, type: 'sedan', color: '#d5d7db', pop: 7 },
-  { brand: 'Lexus', model: 'RX 300', country: 'Япония', year: 2019, km: 72000, price: 4290000, type: 'suv', color: '#f0f0f2', pop: 6 },
-  { brand: 'Toyota', model: 'Camry', country: 'Япония', year: 2020, km: 53000, price: 2890000, type: 'sedan', color: '#141518', pop: 8 },
-  { brand: 'Hyundai', model: 'Palisade', country: 'Корея', year: 2021, km: 47000, price: 3990000, type: 'suv', color: '#c9ccd1', pop: 8 },
-  { brand: 'Kia', model: 'K5', country: 'Корея', year: 2021, km: 44000, price: 2350000, type: 'sedan', color: '#7b8088', pop: 6 }
+  { brand: 'Kia', model: 'Sorento', country: 'Корея', year: 2024, km: 12000, engine: 2.5, price: 4390000, type: 'suv', color: '#1b1d22', pop: 10 },
+  { brand: 'Hyundai', model: 'Palisade', country: 'Корея', year: 2024, km: 9000, engine: 3.8, price: 5290000, type: 'suv', color: '#c9ccd1', pop: 9 },
+  { brand: 'Geely', model: 'Monjaro', country: 'Китай', year: 2025, km: 3000, engine: 2.0, price: 3990000, type: 'suv', color: '#2a2d33', pop: 10 },
+  { brand: 'Chery', model: 'Tiggo 8 Pro', country: 'Китай', year: 2024, km: 11000, engine: 2.0, price: 2890000, type: 'suv', color: '#b8241e', pop: 7 },
+  { brand: 'Haval', model: 'Jolion', country: 'Китай', year: 2025, km: 2000, engine: 1.5, price: 2190000, type: 'suv', color: '#d9dbe0', pop: 6 },
+  { brand: 'Toyota', model: 'RAV4', country: 'Япония', year: 2024, km: 15000, engine: 2.5, price: 3890000, type: 'suv', color: '#e9eaec', pop: 9 },
+  { brand: 'Genesis', model: 'GV80', country: 'Корея', year: 2024, km: 8000, engine: 3.5, price: 6990000, type: 'suv', color: '#141518', pop: 7 },
+  { brand: 'Zeekr', model: '001', country: 'Китай', year: 2025, km: 4000, engine: 0, price: 4690000, type: 'sedan', color: '#5d6168', pop: 8 },
+  { brand: 'Honda', model: 'CR-V', country: 'Япония', year: 2024, km: 10000, engine: 1.5, price: 3590000, type: 'suv', color: '#9aa0a8', pop: 6 },
+  { brand: 'Kia', model: 'K5', country: 'Корея', year: 2024, km: 14000, engine: 2.0, price: 2990000, type: 'sedan', color: '#7b8088', pop: 7 },
+  { brand: 'Kia', model: 'Sorento', country: 'Корея', year: 2022, km: 36000, engine: 2.2, price: 3240000, type: 'suv', color: '#1b1d22', pop: 9 },
+  { brand: 'BMW', model: '5 Series (G30)', country: 'Корея', year: 2022, km: 41000, engine: 2.0, price: 4490000, type: 'sedan', color: '#5d6168', pop: 9 },
+  { brand: 'Toyota', model: 'Camry', country: 'Япония', year: 2022, km: 38000, engine: 2.5, price: 3190000, type: 'sedan', color: '#141518', pop: 8 },
+  { brand: 'Hyundai', model: 'Tucson', country: 'Корея', year: 2023, km: 27000, engine: 2.0, price: 2890000, type: 'suv', color: '#d5d7db', pop: 8 },
+  { brand: 'Mazda', model: 'CX-5', country: 'Япония', year: 2022, km: 44000, engine: 2.5, price: 2790000, type: 'suv', color: '#9b1c1c', pop: 6 },
+  { brand: 'Lexus', model: 'NX 250', country: 'Япония', year: 2022, km: 33000, engine: 2.5, price: 4590000, type: 'suv', color: '#f0f0f2', pop: 7 },
+  { brand: 'Geely', model: 'Coolray', country: 'Китай', year: 2023, km: 21000, engine: 1.5, price: 1890000, type: 'suv', color: '#7b8088', pop: 6 },
+  { brand: 'Hyundai', model: 'Grandeur', country: 'Корея', year: 2023, km: 24000, engine: 2.5, price: 3690000, type: 'sedan', color: '#2a2d33', pop: 7 },
+  { brand: 'BMW', model: '5 Series (G30)', country: 'Корея', year: 2020, km: 58000, engine: 2.0, price: 3890000, type: 'sedan', color: '#5d6168', pop: 10 },
+  { brand: 'Toyota', model: 'RAV4', country: 'Япония', year: 2021, km: 42000, engine: 2.0, price: 2790000, type: 'suv', color: '#e9eaec', pop: 9 },
+  { brand: 'Honda', model: 'CR-V', country: 'Япония', year: 2020, km: 61000, engine: 2.0, price: 2590000, type: 'suv', color: '#9aa0a8', pop: 7 },
+  { brand: 'Genesis', model: 'G80', country: 'Корея', year: 2021, km: 39000, engine: 2.5, price: 4150000, type: 'sedan', color: '#d5d7db', pop: 7 },
+  { brand: 'Lexus', model: 'RX 300', country: 'Япония', year: 2019, km: 72000, engine: 2.0, price: 4290000, type: 'suv', color: '#f0f0f2', pop: 6 },
+  { brand: 'Toyota', model: 'Camry', country: 'Япония', year: 2020, km: 53000, engine: 2.5, price: 2890000, type: 'sedan', color: '#141518', pop: 8 },
+  { brand: 'Hyundai', model: 'Palisade', country: 'Корея', year: 2021, km: 47000, engine: 3.8, price: 3990000, type: 'suv', color: '#c9ccd1', pop: 8 },
+  { brand: 'Kia', model: 'K5', country: 'Корея', year: 2021, km: 44000, engine: 2.0, price: 2350000, type: 'sedan', color: '#7b8088', pop: 6 }
 ];
-
-/* Возрастные группы: до 3 лет / 3–5 лет / от 5 лет */
-window.AGE_GROUPS = {
-  all: { title: 'Каталог автомобилей', lead: 'Все предложения из Кореи, Японии и Китая с проверенной историей и выгодными ценами.', test: () => true },
-  new: { title: 'Автомобили до 3 лет', lead: 'Новые и почти новые автомобили 2024–2026 годов выпуска.', test: (c) => c.year >= 2024 },
-  mid: { title: 'Автомобили от 3 до 5 лет', lead: 'Автомобили 2022–2023 годов выпуска — оптимальная растаможка.', test: (c) => c.year >= 2022 && c.year <= 2023 },
-  old: { title: 'Автомобили от 5 лет и старше', lead: 'Автомобили 2021 года выпуска и старше — самые доступные цены.', test: (c) => c.year <= 2021 }
-};
 
 window.carSvg = function (c, i) {
   function shade(hex, k) {

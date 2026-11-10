@@ -1,34 +1,7 @@
-/* Главная: выбор возраста в каталоге, слайдер отзывов */
+/* Главная: слайдер отзывов, FAQ */
 (function () {
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-
-  // ---- Каталог: счётчики и раскрывающийся выбор ----
-  const cars = window.CARS || [];
-  $$('[data-total-count]').forEach(el => el.textContent = cars.length);
-  $$('[data-age-count]').forEach(el => {
-    const n = cars.filter(AGE_GROUPS[el.dataset.ageCount].test).length;
-    el.textContent = `${n} ${plural(n, 'авто', 'авто', 'авто')}`;
-  });
-
-  const btn = $('#catOpen'), chooser = $('#ageChooser');
-  function setChooser(open, scroll) {
-    chooser.classList.toggle('is-open', open);
-    btn.classList.toggle('is-open', open);
-    btn.setAttribute('aria-expanded', String(open));
-    if (open && scroll) {
-      setTimeout(() => {
-        const r = chooser.getBoundingClientRect();
-        if (r.bottom > innerHeight) window.scrollBy({ top: Math.min(r.bottom - innerHeight + 16, r.top - 80), behavior: 'smooth' });
-      }, 320);
-    }
-  }
-  window.openChooser = () => setChooser(true, false);
-  btn && btn.addEventListener('click', () => setChooser(!chooser.classList.contains('is-open'), true));
-
-  // «Подобрать авто» — сразу открываем выбор
-  $$('[data-open-catalog]').forEach(a => a.addEventListener('click', () => setChooser(true, false)));
-  if (location.hash === '#catalog') setChooser(true, false);
 
   // ---- Отзывы: слайдер ----
   const track = $('#revTrack'), dots = $('#revDots');
@@ -44,6 +17,12 @@
     track.addEventListener('scroll', () => requestAnimationFrame(paint), { passive: true });
     paint();
   }
+
+  // FAQ: открыт только один ответ за раз — меньше текста на экране
+  const faqItems = $$('.faq__item');
+  faqItems.forEach(d => d.addEventListener('toggle', () => {
+    if (d.open) faqItems.forEach(o => { if (o !== d) o.open = false; });
+  }));
 
   // «Оставить отзыв» — подсказка в форме
   $$('[data-review]').forEach(a => a.addEventListener('click', () => {
