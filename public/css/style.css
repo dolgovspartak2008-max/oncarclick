@@ -798,14 +798,18 @@ html, body { overscroll-behavior-x: none; }
 .select--sm { height: 40px; padding: 0 38px 0 14px; font-size: 14px; border-radius: 12px; width: auto; }
 .cars { margin-top: 0; }
 .car { padding: 0; overflow: hidden; animation: none; }
-.car__img { margin: 0; padding: 30px 12px 6px; background: radial-gradient(70% 60% at 50% 60%, rgba(255,255,255,.06), transparent 70%); }
+.car__img { margin: 0; padding: 0; background: radial-gradient(70% 60% at 50% 60%, rgba(255,255,255,.06), transparent 70%); overflow: hidden; }
+.car__photo { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s var(--ease); }
+.car:hover .car__photo { transform: scale(1.025); }
 .car__img .badge { position: absolute; left: 10px; top: 10px; z-index: 2; }
 .car__img .fav { position: absolute; right: 6px; top: 6px; z-index: 2; }
 .car__body { padding: 4px 14px 14px; }
 .car__price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; }
 .car__price small { font-family: var(--font); font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+.catalog__status { min-height: 20px; margin: -5px 0 0; color: var(--muted); font-size: 13px; }
+.catalog__more { justify-self: center; min-width: 220px; }
+.cars.is-loading { opacity: .45; pointer-events: none; }
 @media (max-width: 559px) {
-  .car__img { padding: 26px 6px 2px; }
   .car__body { padding: 2px 10px 12px; }
   .car__img .badge { left: 8px; top: 8px; }
   .car__meta { font-size: 11.5px; }

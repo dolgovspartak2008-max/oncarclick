@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,700;0,800;1,800;1,900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <script src="js/main.js" defer></script>
-<script src="js/cars-data.js" defer></script>
+<script src="js/catalog-model.js" defer></script>
 <script src="js/catalog.js" defer></script>
 </head>
 <body id="top">
@@ -106,7 +106,7 @@
   <div class="container page-head">
     <a class="back" href="index.html#catalog"><svg class="icon " aria-hidden="true"><use href="#i-chevronL"/></svg>На главную</a>
     <h1 class="page-title">Каталог автомобилей</h1>
-    <p class="page-lead">Автомобили из Кореи, Японии и Китая. Все цены указаны <b>под ключ</b> — с таможенными платежами, утильсбором и оформлением.</p>
+    <p class="page-lead">Актуальные автомобили из Южной Кореи. Цены рассчитаны <b>до Владивостока</b> — с таможенными платежами, утильсбором и оформлением.</p>
   </div>
   <section class="container catalog">
     <form class="fbar" id="filters" aria-label="Фильтры">
@@ -119,14 +119,16 @@
       <span class="results-count" id="count" aria-live="polite"></span>
       <label class="sortsel"><span class="sr-only">Сортировка</span>
         <select class="select select--sm" id="sort">
-          <option value="pop">По популярности</option>
+          <option value="pop">Сначала добавленные</option>
           <option value="cheap">Сначала дешёвые</option>
           <option value="exp">Сначала дорогие</option>
           <option value="new">Сначала новые</option>
         </select>
       </label>
     </div>
+    <p class="catalog__status" id="catalogStatus" role="status" aria-live="polite"></p>
     <div class="cars" id="cars"></div>
+    <button class="btn btn--line catalog__more" id="loadMore" type="button" hidden>Показать ещё автомобили</button>
   </section>
 </main>
 <footer class="footer">
