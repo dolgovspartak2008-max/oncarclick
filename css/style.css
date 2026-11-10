@@ -875,8 +875,8 @@ main { flex: 1; }
    ========================================================== */
 .geo-bg {
   position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
-  -webkit-mask-image: radial-gradient(120% 90% at 60% 45%, #000 40%, transparent 85%);
-  mask-image: radial-gradient(120% 90% at 60% 45%, #000 40%, transparent 85%);
+  -webkit-mask-image: radial-gradient(130% 95% at 55% 45%, #000 50%, transparent 92%);
+  mask-image: radial-gradient(130% 95% at 55% 45%, #000 50%, transparent 92%);
 }
 .geo-bg__map {
   /* размер карты и точка фокуса (между Москвой и Японией) */
@@ -886,21 +886,22 @@ main { flex: 1; }
   top: calc(var(--ay) - var(--w) / 300 * 115 * var(--fy));
   opacity: .9;
 }
+.geo-bg__map svg { overflow: visible; }
 .geo-bg__map img, .geo-bg__map svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.geo__line { fill: none; stroke: rgba(255,60,60,.32); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.geo__line { fill: none; stroke: rgba(255,60,60,.42); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
 .geo__comet {
-  fill: none; stroke: #ff4a4a; stroke-width: .42; stroke-linecap: round;
-  stroke-dasharray: 16 100; stroke-dashoffset: 116; animation: geoComet 4.2s cubic-bezier(.45,.05,.35,1) infinite;
+  fill: none; stroke: #ff4a4a; stroke-width: .6; stroke-linecap: round;
+  stroke-dasharray: 22 100; stroke-dashoffset: 122; animation: geoComet 4.6s cubic-bezier(.45,.05,.35,1) infinite;
 }
-@keyframes geoComet { 0% { stroke-dashoffset: 116; opacity: 0; } 10% { opacity: 1; } 85% { opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes geoComet { 0% { stroke-dashoffset: 122; opacity: 0; } 10% { opacity: 1; } 85% { opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
 .geo__core { fill: #ff2b2b; }
 .geo__ring { fill: rgba(255,43,43,.35); transform-box: fill-box; transform-origin: center; animation: geoPulse 2.8s ease-out infinite; animation-delay: var(--d); }
 .is-dst .geo__core { fill: #fff; }
 .is-dst .geo__ring { fill: rgba(255,255,255,.22); }
 @keyframes geoPulse { 0% { transform: scale(.2); opacity: .9; } 100% { transform: scale(1); opacity: 0; } }
 @media (min-width: 768px) {
-  .geo-bg__map { --w: 190vw; --ax: 50vw; --ay: 34vh; }
+  .geo-bg__map { --w: 150vw; --fx: .6; --ax: 50vw; --ay: 36vh; }
 }
 @media (min-width: 1024px) {
-  .geo-bg__map { --w: max(125vw, 150vh * 300 / 115 * .5); --ax: 58vw; --ay: 36vh; }
+  .geo-bg__map { --w: 106vw; --fx: .53; --fy: .33; --ax: 50vw; --ay: 42vh; }
 }
