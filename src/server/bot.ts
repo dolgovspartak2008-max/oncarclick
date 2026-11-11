@@ -9,7 +9,7 @@ import { getOurKrwRate, getSourceKrwRate, SETTINGS_TAG } from "./rate";
 
 export const REVIEWS_TAG = "site-reviews";
 
-type Chat = { id: number; first_name?: string; username?: string };
+type Chat = { id: number; type?: string; first_name?: string; username?: string };
 type Message = { message_id: number; chat: Chat; from?: Chat; text?: string; photo?: Array<{ file_id: string; width: number }> };
 type CallbackQuery = { id: string; from: Chat; message?: Message; data?: string };
 export type Update = { update_id: number; message?: Message; callback_query?: CallbackQuery };
@@ -29,8 +29,18 @@ const send = (chat: number, text: string, markup?: unknown) =>
 
 const getState = (chat: number) => rpc<State>("bot_get_state", { p_chat: chat });
 const setState = (chat: number, state: State) => rpc<void>("bot_set_state", { p_chat: chat, p_state: state });
-const isAdmin = (chat: number) => rpc<boolean>("bot_is_admin", { p_chat: chat });
+// Права проверяем по Telegram ID пользователя, а не чата: в группе chat.id общий для всех участников
+const isAdmin = (user: number) => rpc<boolean>("bot_is_admin", { p_chat: user });
 const fmt = (n: number) => n.toLocaleString("ru-RU", { maximumFractionDigits: 2 });
+
+/* Значения из кнопок приходят от клиента Telegram и могут быть подделаны — принимаем только ожидаемые. */
+export const COUNTRIES = ["Корея", "Япония", "Китай"] as const;
+export const parseCountry = (value: string) => (COUNTRIES as readonly string[]).includes(value) ? value : null;
+export const parseRating = (value: string) => (/^[1-5]$/.test(value) ? Number(value) : null);
+export const parseId = (value: string) => {
+  const id = /^[1-9]\d{0,15}$/.test(value) ? Number(value) : NaN;
+  return Number.isSafeInteger(id) ? id : null;
+};
 
 const STEPS: Array<{ step: keyof Draft; ask: string; skip?: boolean }> = [
   { step: "name", ask: "Как зовут клиента? (например: <b>Алексей</b>)" },
@@ -108,15 +118,18 @@ const HELP = [
 ].join("\n");
 
 async function handleCallback(q: CallbackQuery) {
-  const chat = q.message?.chat.id ?? q.from.id;
+  // Только кнопки из личного чата с ботом; в личном чате chat.id совпадает с ID пользователя
+  if (q.message?.chat.type !== "private") return;
+  const chat = q.message.chat.id;
   await tg("answerCallbackQuery", { callback_query_id: q.id }).catch(() => {});
-  if (!(await isAdmin(chat))) return;
+  if (!(await isAdmin(q.from.id))) return;
   const data = q.data ?? "";
   const state = await getState(chat);
 
   if (data === "cancel") { await setState(chat, {}); return send(chat, "Отменено.", MENU); }
   if (data.startsWith("del:")) {
-    const id = Number(data.slice(4));
+    const id = parseId(data.slice(4));
+    if (id === null) return;
     const ok = await rpc<boolean>("bot_delete_review", { p_id: id });
     revalidateTag(REVIEWS_TAG, "max");
     return send(chat, ok ? `Отзыв #${id} удалён с сайта.` : `Отзыв #${id} уже удалён.`, MENU);
@@ -134,15 +147,23 @@ async function handleCallback(q: CallbackQuery) {
     return send(chat, `✅ Отзыв #${id} опубликован на сайте.`, MENU);
   }
   const draft = state.draft ?? {};
-  if (data.startsWith("c:") && state.step === "country") return nextStep(chat, { ...state, draft: { ...draft, country: data.slice(2) } });
-  if (data.startsWith("r:") && state.step === "rating") return nextStep(chat, { ...state, draft: { ...draft, rating: Number(data.slice(2)) } });
+  if (data.startsWith("c:") && state.step === "country") {
+    const country = parseCountry(data.slice(2));
+    return country ? nextStep(chat, { ...state, draft: { ...draft, country } }) : undefined;
+  }
+  if (data.startsWith("r:") && state.step === "rating") {
+    const rating = parseRating(data.slice(2));
+    return rating ? nextStep(chat, { ...state, draft: { ...draft, rating } }) : undefined;
+  }
   if (data === "skip" && STEPS.some((s) => s.step === state.step && s.skip)) return nextStep(chat, state);
 }
 
 async function handleMessage(m: Message) {
+  // Группы и каналы молча игнорируем: бот работает только в личном чате
+  if (m.chat.type !== "private" || !m.from) return;
   const chat = m.chat.id;
   const text = (m.text ?? "").trim();
-  const admin = await isAdmin(chat);
+  const admin = await isAdmin(m.from.id);
 
   // Доступ только у администраторов из базы — список задаётся вручную, самостоятельно войти нельзя
   if (!admin) return send(chat, "Это служебный бот сайта OnCarClick. Доступ есть только у администраторов.");

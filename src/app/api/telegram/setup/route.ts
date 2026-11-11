@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { tg } from "@/server/telegram";
+import { safeEqual } from "@/server/secure";
+import { siteOrigin } from "@/server/site";
 
-/** Однократная настройка: адрес вебхука и меню команд бота. Доступно только с секретом. */
-export async function GET(request: NextRequest) {
-  const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
-  if (!secret || request.nextUrl.searchParams.get("key") !== secret) return NextResponse.json({ ok: false }, { status: 401 });
+/** Однократная настройка: адрес вебхука и меню команд бота.
+    Вызов: POST с заголовком x-setup-key = TELEGRAM_SETUP_SECRET. */
+export async function POST(request: NextRequest) {
+  const setupSecret = process.env.TELEGRAM_SETUP_SECRET;
+  if (!setupSecret || !safeEqual(request.headers.get("x-setup-key"), setupSecret)) {
+    return NextResponse.json({ ok: false }, { status: 401 });
+  }
+  const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  const origin = siteOrigin();
+  if (!webhookSecret || !origin) {
+    console.error("telegram setup: не задан TELEGRAM_WEBHOOK_SECRET или SITE_URL");
+    return NextResponse.json({ ok: false }, { status: 500 });
+  }
   try {
-    const url = `https://${request.nextUrl.host}/api/telegram`;
-    await tg("setWebhook", { url, secret_token: secret, allowed_updates: ["message", "callback_query"], drop_pending_updates: true });
+    const url = `${origin}/api/telegram`;
+    await tg("setWebhook", { url, secret_token: webhookSecret, allowed_updates: ["message", "callback_query"], drop_pending_updates: true });
     await tg("setMyCommands", { commands: [
       { command: "menu", description: "Главное меню" },
       { command: "review", description: "Добавить отзыв на сайт" },
@@ -20,6 +31,8 @@ export async function GET(request: NextRequest) {
     const me = await tg<{ username: string }>("getMe");
     return NextResponse.json({ ok: true, bot: `@${me.username}`, webhook: url });
   } catch (error) {
-    return NextResponse.json({ ok: false, error: error instanceof Error ? error.message : "setup failed" }, { status: 502 });
+    // Текст ошибки Telegram — только в логи
+    console.error("telegram setup failed", error);
+    return NextResponse.json({ ok: false }, { status: 502 });
   }
 }

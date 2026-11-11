@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handleUpdate, type Update } from "@/server/bot";
+import { safeEqual } from "@/server/secure";
 
 /** Вебхук Telegram. Принимаем только запросы с секретом, который знает Telegram. */
 export async function POST(request: NextRequest) {
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
-  if (!secret || request.headers.get("x-telegram-bot-api-secret-token") !== secret) {
+  if (!secret || !safeEqual(request.headers.get("x-telegram-bot-api-secret-token"), secret)) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
   try {

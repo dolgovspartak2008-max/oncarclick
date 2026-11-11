@@ -3,6 +3,25 @@
 
 type RpcArgs = Record<string, unknown>;
 
+/** Ошибка базы: HTTP-статус, код Postgres (например P0429) и текст ответа — только для логов. */
+export class DbError extends Error {
+  constructor(readonly status: number, readonly code: string | null, readonly details: string) {
+    super(`База ответила ${status}${code ? ` (${code})` : ""}`);
+    this.name = "DbError";
+  }
+}
+
+/** Достаём код ошибки из ответа PostgREST: { code, message, details, hint }. */
+function parseDbError(status: number, text: string) {
+  try {
+    const body = JSON.parse(text) as { code?: unknown; message?: unknown };
+    const code = typeof body.code === "string" ? body.code : null;
+    return new DbError(status, code, typeof body.message === "string" ? body.message : text.slice(0, 500));
+  } catch {
+    return new DbError(status, null, text.slice(0, 500));
+  }
+}
+
 function config() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_PUBLISHABLE_KEY;
@@ -25,8 +44,8 @@ export async function rpc<T>(fn: string, args: RpcArgs = {}): Promise<T> {
     cache: "no-store",
     signal: AbortSignal.timeout(8_000)
   });
-  if (!response.ok) throw new Error(`База ответила ${response.status}`);
   const text = await response.text();
+  if (!response.ok) throw parseDbError(response.status, text);
   return (text ? JSON.parse(text) : null) as T;
 }
 
