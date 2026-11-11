@@ -10,10 +10,10 @@
   const sortSel = $('#sort'), resetBtn = $('#fReset'), showBtn = $('#fShow'), showText = $('#fShowText');
   const sheet = $('#sheet'), sheetTitle = $('#sheetTitle'), sheetBody = $('#sheetBody');
   const sheetOk = $('#sheetOk'), sheetClear = $('#sheetClear');
-  const CACHE_KEY = 'oncarclick-catalog-cache-v5';
+  const CACHE_KEY = 'oncarclick-catalog-cache-v6';
   const NOW_YEAR = new Date().getFullYear();
   const MIN_YEAR = 1990, MILEAGE_STEP = 10000, MILEAGE_MAX = 300000;
-  const FIELDS = ['brand', 'model', 'generation', 'trim', 'yearFrom', 'yearTo', 'mileageTo'];
+  const FIELDS = ['brand', 'model', 'generation', 'trim', 'yearFrom', 'yearTo', 'mileageTo', 'priceFrom', 'priceTo'];
   const CHILDREN = { brand: ['model', 'generation', 'trim'], model: ['generation', 'trim'], generation: ['trim'] };
 
   let cars = [], page = 1, total = 0, hasMore = false, loading = false;
@@ -110,11 +110,12 @@
   }
 
   /* ---------- Плитки фильтров ---------- */
-  const EMPTY = { brand: 'Любая', model: 'Любая', generation: 'Любое', trim: 'Любая', year: 'Любой', mileage: 'Любой' };
+  const EMPTY = { brand: 'Любая', model: 'Любая', generation: 'Любое', trim: 'Любая', year: 'Любой', mileage: 'Любой', price: 'Любая' };
   function paintTiles() {
     const values = {
       brand: draft.brand, model: draft.model, generation: draft.generation, trim: draft.trim,
-      year: Model.yearLabel(draft.yearFrom, draft.yearTo), mileage: Model.mileageLabel(draft.mileageTo)
+      year: Model.yearLabel(draft.yearFrom, draft.yearTo), mileage: Model.mileageLabel(draft.mileageTo),
+      price: Model.priceLabel(draft.priceFrom, draft.priceTo)
     };
     Object.keys(values).forEach(function (key) {
       const el = $('[data-value="' + key + '"]', form);
@@ -141,7 +142,7 @@
 
   /* ---------- Нижняя шторка выбора ---------- */
   let sheetState = null, lastFocus = null;
-  const TITLES = { brand: 'Марка', model: 'Модель', generation: 'Поколение', trim: 'Комплектация', year: 'Год выпуска', mileage: 'Пробег' };
+  const TITLES = { brand: 'Марка', model: 'Модель', generation: 'Поколение', trim: 'Комплектация', year: 'Год выпуска', mileage: 'Пробег', price: 'Цена под ключ' };
 
   const updateSheetCount = liveCounter(sheetOk, function (result) {
     sheetOk.textContent = result ? 'Применить · ' + countLabel(result) : 'Применить';
@@ -152,12 +153,13 @@
     sheetState = { field: field, pending: {} };
     sheetTitle.textContent = TITLES[field];
     sheetBody.replaceChildren();
-    sheet.dataset.kind = field === 'year' || field === 'mileage' ? field : 'list';
+    sheet.dataset.kind = field === 'year' || field === 'mileage' || field === 'price' ? field : 'list';
     sheet.hidden = false;
     window.lockPage(true);
     requestAnimationFrame(function () { sheet.classList.add('is-open'); });
     if (field === 'year') renderYear();
     else if (field === 'mileage') renderMileage();
+    else if (field === 'price') renderPrice();
     else renderList(field);
   }
 
@@ -206,6 +208,8 @@
   sheetBody.addEventListener('click', function (event) {
     const chip = event.target.closest('[data-km]');
     if (chip && sheetState && sheetState.chip) { sheetState.chip(chip.dataset.km); return; }
+    const preset = event.target.closest('[data-price-from]');
+    if (preset && sheetState && sheetState.pricePreset) { sheetState.pricePreset(preset.dataset.priceFrom, preset.dataset.priceTo); return; }
     const option = event.target.closest('[data-opt]');
     if (!option || !sheetState) return;
     const change = {}; change[sheetState.field] = option.dataset.opt;
@@ -301,6 +305,57 @@
     updateSheetCount();
   }
 
+  /* Бюджет: «от» и «до» в рублях + быстрые варианты. Отбор — по итоговой цене под ключ. */
+  const PRICE_PRESETS = [
+    ['', '1500000'], ['1500000', '3000000'], ['3000000', '5000000'], ['5000000', '8000000'], ['8000000', '']
+  ];
+  function renderPrice() {
+    sheetOk.parentElement.hidden = false;
+    sheetState.pending = { priceFrom: draft.priceFrom || '', priceTo: draft.priceTo || '' };
+    const field = function (name, label) {
+      return '<label class="money"><span class="money__label">' + label + '</span>' +
+        '<input class="money__input" data-price="' + name + '" type="text" inputmode="numeric" autocomplete="off" placeholder="' + (name === 'priceFrom' ? '0' : 'Любая') + '">' +
+        '<span class="money__cur">₽</span></label>';
+    };
+    sheetBody.innerHTML =
+      '<div class="range">' +
+      '<div class="money__row">' + field('priceFrom', 'от') + field('priceTo', 'до') + '</div>' +
+      '<div class="range__chips">' + PRICE_PRESETS.map(function (preset) {
+        return '<button class="chip" type="button" data-price-from="' + preset[0] + '" data-price-to="' + preset[1] + '">' +
+          Model.priceLabel(preset[0], preset[1]).replace(' ₽', '') + '</button>';
+      }).join('') + '</div>' +
+      '<p class="sheet__note">Цена под ключ: с пошлиной, утильсбором и доставкой до Владивостока.</p></div>';
+    const inputs = $$('.money__input', sheetBody);
+    const digits = function (value) { return String(value || '').replace(/\D/g, '').replace(/^0+(?=\d)/, '').slice(0, 10); };
+    function paint() {
+      inputs.forEach(function (input) {
+        const value = sheetState.pending[input.dataset.price];
+        if (document.activeElement !== input) input.value = value ? fmt(value) : '';
+      });
+      $$('.chip', sheetBody).forEach(function (chip) {
+        chip.classList.toggle('is-on', chip.dataset.priceFrom === String(sheetState.pending.priceFrom) && chip.dataset.priceTo === String(sheetState.pending.priceTo));
+      });
+    }
+    inputs.forEach(function (input) {
+      input.addEventListener('input', function () {
+        const value = digits(input.value);
+        sheetState.pending[input.dataset.price] = value;
+        input.value = value ? fmt(value) : '';
+        paint();
+        updateSheetCount();
+      });
+      input.addEventListener('blur', paint);
+    });
+    sheetState.pricePreset = function (from, to) {
+      sheetState.pending.priceFrom = from;
+      sheetState.pending.priceTo = to;
+      paint();
+      updateSheetCount();
+    };
+    paint();
+    updateSheetCount();
+  }
+
   sheetOk.addEventListener('click', function () {
     if (sheetState) setDraft(sheetState.pending);
     closeSheet();
@@ -308,7 +363,8 @@
   sheetClear.addEventListener('click', function () {
     if (!sheetState) return;
     const field = sheetState.field;
-    const change = field === 'year' ? { yearFrom: '', yearTo: '' } : field === 'mileage' ? { mileageTo: '' } : (function () { const c = {}; c[field] = ''; return c; })();
+    const change = field === 'year' ? { yearFrom: '', yearTo: '' } : field === 'mileage' ? { mileageTo: '' }
+      : field === 'price' ? { priceFrom: '', priceTo: '' } : (function () { const c = {}; c[field] = ''; return c; })();
     setDraft(change);
     closeSheet();
   });

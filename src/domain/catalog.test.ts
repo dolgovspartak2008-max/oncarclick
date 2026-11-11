@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { parseCatalogParams } from "./catalog";
+import { inBudget, parseCatalogParams, sourcePriceWindow } from "./catalog";
 
 describe("parseCatalogParams", () => {
   test("uses safe defaults", () => {
@@ -22,5 +22,25 @@ describe("parseCatalogParams", () => {
       sort: "price-asc",
       page: 2
     });
+  });
+
+  test("бюджет: числа, перепутанные «от» и «до» меняются местами, мусор отбрасывается", () => {
+    expect(parseCatalogParams({ priceFrom: "3000000", priceTo: "1500000" })).toMatchObject({ priceFrom: 1_500_000, priceTo: 3_000_000 });
+    expect(parseCatalogParams({ priceFrom: "abc", priceTo: "" })).toMatchObject({ priceFrom: undefined, priceTo: undefined });
+  });
+});
+
+describe("бюджет", () => {
+  test("отбор по итоговой цене, границы включительно; без цены — не подходит", () => {
+    expect(inBudget(3_000_000, { priceFrom: 3_000_000, priceTo: 5_000_000 })).toBe(true);
+    expect(inBudget(5_000_000, { priceTo: 5_000_000 })).toBe(true);
+    expect(inBudget(5_000_001, { priceTo: 5_000_000 })).toBe(false);
+    expect(inBudget(null, { priceFrom: 1 })).toBe(false);
+    expect(inBudget(null, {})).toBe(true);
+  });
+
+  test("у источника просим диапазон с запасом: его цена выше нашей", () => {
+    expect(sourcePriceWindow({ priceFrom: 3_000_000, priceTo: 5_000_000 })).toEqual({ from: 2_700_000, to: Math.ceil(5_500_000 / 0.65) });
+    expect(sourcePriceWindow({})).toEqual({ from: undefined, to: undefined });
   });
 });
