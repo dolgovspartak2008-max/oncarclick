@@ -236,7 +236,7 @@ export async function fetchCarDetails(id: string, fetcher: Fetcher = fetch, now 
 const cacheOptions = { revalidate: CATALOG_REVALIDATE_SECONDS, tags: [CATALOG_CACHE_TAG] };
 const cachedCatalog = unstable_cache(
   async (serialized: string) => fetchLiveCatalog(JSON.parse(serialized) as CatalogFilters),
-  ["trust-encar-catalog-v4"], cacheOptions
+  ["trust-encar-catalog-v5"], cacheOptions
 );
 const cachedCount = unstable_cache(
   async (serialized: string) => fetchLiveCount(JSON.parse(serialized) as CatalogFilters),
@@ -262,7 +262,7 @@ export function getCatalogOptions(filters: Pick<CatalogFilters, "make" | "model"
 
 const cachedCar = unstable_cache(
   async (id: string) => fetchCarDetails(id),
-  ["trust-encar-car-v3"], { revalidate: 6 * 3_600, tags: [CATALOG_CACHE_TAG] }
+  ["trust-encar-car-v4"], { revalidate: 6 * 3_600, tags: [CATALOG_CACHE_TAG] }
 );
 
 export function getCarDetails(id: string) {

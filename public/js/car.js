@@ -135,16 +135,17 @@
       $('priceTotal').textContent = fmt(car.price) + ' ₽';
       const line = function (label, value) { return '<div><dt>' + label + '</dt><dd>' + value + '</dd></div>'; };
       const rub = function (n) { return fmt(Math.round(n)) + ' ₽'; };
-      const dutyKnown = car.dutyOfficial != null && car.dutyStatus !== 'needs_review';
+      const dutyKnown = car.duty != null && car.dutyStatus !== 'needs_review';
+      // корректировка пошлины уже учтена в сумме пошлины — отдельной строкой не показываем
       $('priceLines').innerHTML =
         (car.koreaPrice && car.expenses
           ? line('Автомобиль в Корее', rub(car.koreaPrice)) + car.expenses.map(function (item) { return line(item.label, rub(item.rub)); }).join('')
           : (car.basePrice ? line('Автомобиль с доставкой и оформлением', rub(car.basePrice)) : '')) +
         line('Утилизационный сбор', car.fee ? rub(car.fee) : 'уточним при расчёте') +
-        (dutyKnown ? line('Таможенная пошлина (расчётная)', rub(car.dutyOfficial)) : line('Таможенная пошлина', car.duty ? '≈ ' + rub(car.duty) + ', уточним' : 'уточним при расчёте')) +
-        (dutyKnown && car.dutyAdjustment > 0 ? line('Корректировка цены от OnCarClick', '−' + rub(car.dutyAdjustment)) : '') +
+        line('Таможенная пошлина', dutyKnown ? rub(car.duty) : (car.duty ? '≈ ' + rub(car.duty) + ', уточним' : 'уточним при расчёте')) +
         (car.dutyStatus === 'approximate' ? line('Расчёт', 'ориентировочный') : '') +
-        (car.moscow ? line('Доставка до Москвы (не входит в цену)', fmt(car.moscow[0]) + '–' + fmt(car.moscow[1]) + ' ₽') : '');
+        (car.optional || []).map(function (item) { return line(item.label + ' (по желанию, не входит в цену)', rub(item.rub)); }).join('') +
+        (car.moscow ? line('Доставка до Москвы (не входит в цену)', '≈ ' + rub(car.moscow)) : '');
     }
     paintFav();
   }
@@ -228,7 +229,7 @@
     const raw = preview.make ? preview : { id: preview.id, make: preview.name, model: '', trim: preview.trim, generation: preview.generation, year: preview.year,
       mileageKm: preview.km, engineCc: preview.engine, fuel: preview.fuel, priceRub: preview.price, priceBaseRub: preview.basePrice,
       recyclingFeeRub: preview.fee, dutyRub: preview.duty, carPriceKoreaRub: preview.koreaPrice,
-      expenses: preview.expenses ? { items: preview.expenses, moscowDeliveryRange: preview.moscow } : null,
+      expenses: preview.expenses ? { items: preview.expenses, optionalItems: preview.optional || [], moscowDeliveryRub: preview.moscow } : null,
       customs: preview.dutyStatus ? { officialDutyRub: preview.dutyOfficial, commercialAdjustmentRub: preview.dutyAdjustment, calculationStatus: preview.dutyStatus } : null,
       photos: preview.photo ? [preview.photo] : [] };
     renderMain(raw);

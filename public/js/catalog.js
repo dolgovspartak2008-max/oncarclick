@@ -10,7 +10,7 @@
   const sortSel = $('#sort'), resetBtn = $('#fReset'), showBtn = $('#fShow'), showText = $('#fShowText');
   const sheet = $('#sheet'), sheetTitle = $('#sheetTitle'), sheetBody = $('#sheetBody');
   const sheetOk = $('#sheetOk'), sheetClear = $('#sheetClear');
-  const CACHE_KEY = 'oncarclick-catalog-cache-v4';
+  const CACHE_KEY = 'oncarclick-catalog-cache-v5';
   const NOW_YEAR = new Date().getFullYear();
   const MIN_YEAR = 1990, MILEAGE_STEP = 10000, MILEAGE_MAX = 300000;
   const FIELDS = ['brand', 'model', 'generation', 'trim', 'yearFrom', 'yearTo', 'mileageTo'];

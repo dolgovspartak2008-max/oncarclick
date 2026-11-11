@@ -44,7 +44,10 @@
       expenses: raw.expenses && Array.isArray(raw.expenses.items) ? raw.expenses.items.map(function (item) {
         return { label: String(item.label || ''), rub: Number(item.rub) || 0 };
       }) : null,
-      moscow: raw.expenses && Array.isArray(raw.expenses.moscowDeliveryRange) ? raw.expenses.moscowDeliveryRange.map(Number) : null,
+      optional: raw.expenses && Array.isArray(raw.expenses.optionalItems) ? raw.expenses.optionalItems.map(function (item) {
+        return { label: String(item.label || ''), rub: Number(item.rub) || 0 };
+      }) : [],
+      moscow: raw.expenses && raw.expenses.moscowDeliveryRub ? Number(raw.expenses.moscowDeliveryRub) : null,
       photo: safePhoto(Array.isArray(raw.photos) ? raw.photos[0] : '')
     };
   }

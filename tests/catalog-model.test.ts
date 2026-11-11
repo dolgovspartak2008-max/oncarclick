@@ -64,7 +64,7 @@ describe("catalog browser model", () => {
 
   test("переносит в карточку расходы и доставку до Москвы", () => {
     expect(CatalogModel.normalizeCar({ id: "1", carPriceKoreaRub: 5_000_000,
-      expenses: { items: [{ label: "Транзитные номера", rub: 140_000 }], moscowDeliveryRange: [180_000, 260_000] } }))
-      .toMatchObject({ koreaPrice: 5_000_000, expenses: [{ label: "Транзитные номера", rub: 140_000 }], moscow: [180_000, 260_000] });
+      expenses: { items: [{ label: "Транзитные расходы", rub: 140_000 }], optionalItems: [{ label: "Минск", rub: 60_000 }], moscowDeliveryRub: 230_000 } }))
+      .toMatchObject({ koreaPrice: 5_000_000, expenses: [{ label: "Транзитные расходы", rub: 140_000 }], optional: [{ label: "Минск", rub: 60_000 }], moscow: 230_000 });
   });
 });

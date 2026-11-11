@@ -39,7 +39,8 @@ describe("итоговая цена: без двойного начислени�
     // машина в Корее + наши расходы для машин от 3 лет: 80 000 + 100 000
     expect(car.expenses?.group).toBe("3-plus");
     expect(car.expenses?.totalRub).toBe(180_000);
-    expect(car.expenses?.moscowDeliveryRange).toBeNull();
+    expect(car.expenses?.moscowDeliveryRub).toBeNull();
+    expect(car.expenses?.optionalItems).toEqual([]);
     expect(car.priceBaseRub).toBe(461_068 + 180_000);
     expect(car.recyclingFeeRub).toBe(3_660_000); // таблица ON Car Click совпала с источником
     expect(car.customs?.ageCategory).toBe("over-5");
@@ -48,14 +49,16 @@ describe("итоговая цена: без двойного начислени�
     expect(car.priceRub).toBe(Math.round(461_068 + 180_000 + 3_660_000 + 14_995 * 92.39));
   });
 
-  test("машина младше 3 лет: наши расходы 80 000 + 140 000 (середина 120–160) + 60 000, Москва — отдельно", () => {
+  test("машина младше 3 лет: в цене 80 000 + 140 000 (середина 120–160); Минск и Москва — отдельно, не в цене", () => {
     const car = priced(BMW_X3_YOUNG);
     expect(car.expenses?.group).toBe("under-3");
-    expect(car.expenses?.items.map((item) => item.rub)).toEqual([80_000, 140_000, 60_000]);
-    expect(car.expenses?.totalRub).toBe(280_000);
-    expect(car.expenses?.moscowDeliveryRange).toEqual([180_000, 260_000]);
-    expect(car.priceBaseRub).toBe(5_463_340 + 280_000);
-    expect(car.priceRub).toBe(Math.round(5_463_340 + 280_000 + car.recyclingFeeRub! + car.dutyRub!));
+    expect(car.expenses?.items.map((item) => [item.label, item.rub])).toEqual([
+      ["Расходы по Корее и доставка до Владивостока", 80_000], ["Транзитные расходы", 140_000]]);
+    expect(car.expenses?.totalRub).toBe(220_000);
+    expect(car.expenses?.optionalItems.map((item) => item.rub)).toEqual([60_000]);
+    expect(car.expenses?.moscowDeliveryRub).toBe(230_000);
+    expect(car.priceBaseRub).toBe(5_463_340 + 220_000);
+    expect(car.priceRub).toBe(Math.round(5_463_340 + 220_000 + car.recyclingFeeRub! + car.dutyRub!));
   });
 
   test("без цены машины в Корее — запасная база источника", () => {
