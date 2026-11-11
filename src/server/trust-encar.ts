@@ -1,5 +1,5 @@
 import { unstable_cache } from "next/cache";
-import { inBudget, type CatalogFilters } from "@/domain/catalog";
+import type { CatalogFilters } from "@/domain/catalog";
 import {
   buildTrustEncarSearchBody,
   engineKindOf,
@@ -17,7 +17,7 @@ import {
 } from "@/domain/trust-encar";
 import { parseTrustEncarVehiclePage, type VehiclePage } from "@/domain/trust-encar-vehicle";
 import { calculateRecyclingFee } from "@/domain/recycling-fee";
-import { provisionalPrice, sortByFinalPrice, withExpenses } from "@/domain/car-price";
+import { provisionalPrice, withExpenses } from "@/domain/car-price";
 
 export const CATALOG_REVALIDATE_SECONDS = 86_400;
 export const CATALOG_CACHE_TAG = "trust-encar-catalog";
@@ -141,28 +141,14 @@ async function resolve(filters: CatalogFilters, fetcher: Fetcher): Promise<Resol
   };
 }
 
-/** Итоговая цена для фильтра по бюджету (наш курс воны + пошлина по ЦБ). Загружается лениво: rate.ts импортирует этот модуль. */
-export type Pricer = (cars: CatalogCar[]) => Promise<CatalogCar[]>;
-const defaultPricer: Pricer = async (cars) => (await import("./rate")).priceCars(cars);
-
-/** Комплектации и бюджета нет в фильтрах источника — просматриваем выдачу и отбираем сами. */
-const needsScan = (filters: CatalogFilters) => Boolean(filters.trim || filters.priceFrom || filters.priceTo);
-
-async function scanMatches(ctx: Context, filters: CatalogFilters, effective: CatalogFilters, now: Date, price: Pricer) {
-  const { records, complete } = await scanRecords(ctx, effective);
-  let cars = normalizeTrustEncarRecords(records, now);
-  if (filters.trim) cars = cars.filter((car) => sameText(car.trim, filters.trim));
-  if (filters.priceFrom || filters.priceTo) cars = (await price(cars)).filter((car) => inBudget(car.priceRub, filters));
-  return { matched: sortByFinalPrice(cars, filters.sort), complete };
-}
-
-export async function fetchLiveCatalog(filters: CatalogFilters, fetcher: Fetcher = fetch, now = new Date(), price: Pricer = defaultPricer): Promise<CatalogResult> {
+export async function fetchLiveCatalog(filters: CatalogFilters, fetcher: Fetcher = fetch, now = new Date()): Promise<CatalogResult> {
   const { ctx, effective, models, generations, empty } = await resolve(filters, fetcher);
   const base = { makes: ctx.bootstrap.makes.map((item) => item.name), models, generations };
   if (empty) return { ...base, items: [], total: 0, approximate: false };
 
-  if (needsScan(filters)) {
-    const { matched, complete } = await scanMatches(ctx, filters, effective, now, price);
+  if (filters.trim) {
+    const { records, complete } = await scanRecords(ctx, effective);
+    const matched = normalizeTrustEncarRecords(records, now).filter((car) => sameText(car.trim, filters.trim));
     const start = (filters.page - 1) * filters.limit;
     return { ...base, items: matched.slice(start, start + filters.limit), total: matched.length, approximate: !complete };
   }
@@ -171,12 +157,13 @@ export async function fetchLiveCatalog(filters: CatalogFilters, fetcher: Fetcher
   return { ...base, items: normalizeTrustEncarRecords(records, now).slice(0, filters.limit), total, approximate: false };
 }
 
-export async function fetchLiveCount(filters: CatalogFilters, fetcher: Fetcher = fetch, now = new Date(), price: Pricer = defaultPricer): Promise<CountResult> {
+export async function fetchLiveCount(filters: CatalogFilters, fetcher: Fetcher = fetch): Promise<CountResult> {
   const { ctx, effective, empty } = await resolve(filters, fetcher);
   if (empty) return { total: 0, approximate: false };
-  if (needsScan(filters)) {
-    const { matched, complete } = await scanMatches(ctx, filters, effective, now, price);
-    return { total: matched.length, approximate: !complete };
+  if (filters.trim) {
+    const { records, complete } = await scanRecords(ctx, effective);
+    const total = normalizeTrustEncarRecords(records).filter((car) => sameText(car.trim, filters.trim)).length;
+    return { total, approximate: !complete };
   }
   return { total: await countMatches(ctx, effective), approximate: false };
 }
@@ -249,11 +236,11 @@ export async function fetchCarDetails(id: string, fetcher: Fetcher = fetch, now 
 const cacheOptions = { revalidate: CATALOG_REVALIDATE_SECONDS, tags: [CATALOG_CACHE_TAG] };
 const cachedCatalog = unstable_cache(
   async (serialized: string) => fetchLiveCatalog(JSON.parse(serialized) as CatalogFilters),
-  ["trust-encar-catalog-v6"], cacheOptions
+  ["trust-encar-catalog-v5"], cacheOptions
 );
 const cachedCount = unstable_cache(
   async (serialized: string) => fetchLiveCount(JSON.parse(serialized) as CatalogFilters),
-  ["trust-encar-count-v2"], cacheOptions
+  ["trust-encar-count-v1"], cacheOptions
 );
 const cachedOptions = unstable_cache(
   async (serialized: string) => fetchLiveOptions(JSON.parse(serialized) as CatalogFilters),

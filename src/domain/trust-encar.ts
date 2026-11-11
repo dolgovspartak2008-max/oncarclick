@@ -1,4 +1,4 @@
-import { sourcePriceWindow, type CatalogFilters, type CatalogSort } from "./catalog";
+import type { CatalogFilters, CatalogSort } from "./catalog";
 import { calculateRecyclingFee, parseMonth } from "./recycling-fee";
 import { provisionalPrice, withExpenses, type PricingFields } from "./car-price";
 import type { EngineKind, ProductionBasis } from "./customs-duty";
@@ -242,9 +242,6 @@ export function buildTrustEncarSearchBody(
   if (filters.yearFrom) body.set("year_from", String(filters.yearFrom));
   if (filters.yearTo) body.set("year_to", String(filters.yearTo));
   if (filters.mileageTo) body.set("mileage_to", String(filters.mileageTo));
-  const price = sourcePriceWindow(filters);
-  if (price.from) body.set("priceRubFrom", String(price.from));
-  if (price.to) body.set("priceRubTo", String(price.to));
   const [field, order] = sortFields[filters.sort];
   body.set("field_sort", field);
   body.set("order_by", order);

@@ -69,8 +69,7 @@
 
   const FILTER_KEYS = [
     ['brand', 'make'], ['model', 'model'], ['generation', 'generation'], ['trim', 'trim'],
-    ['yearFrom', 'yearFrom'], ['yearTo', 'yearTo'], ['mileageTo', 'mileageTo'], ['engine', 'engine'],
-    ['priceFrom', 'priceFrom'], ['priceTo', 'priceTo']
+    ['yearFrom', 'yearFrom'], ['yearTo', 'yearTo'], ['mileageTo', 'mileageTo'], ['engine', 'engine']
   ];
 
   function filterParams(filters) {
@@ -125,21 +124,6 @@
     return km ? 'до ' + Number(km).toLocaleString('ru-RU') + ' км' : '';
   }
 
-  /** «1,5 млн», «800 тыс.» — коротко для плитки фильтра. */
-  function shortRub(value) {
-    const n = Number(value);
-    if (n >= 1000000) return String(Math.round(n / 100000) / 10).replace('.', ',') + ' млн';
-    if (n >= 1000) return Math.round(n / 1000) + ' тыс.';
-    return String(n);
-  }
-
-  function priceLabel(from, to) {
-    if (from && to) return shortRub(from) + ' – ' + shortRub(to) + ' ₽';
-    if (from) return 'от ' + shortRub(from) + ' ₽';
-    if (to) return 'до ' + shortRub(to) + ' ₽';
-    return '';
-  }
-
   function plural(number, one, few, many) {
     const last = number % 10, lastTwo = number % 100;
     if (last === 1 && lastTwo !== 11) return one;
@@ -153,5 +137,5 @@
     }))).sort(function (a, b) { return a - b; });
   }
 
-  return { buildCatalogUrl, buildCountUrl, buildOptionsUrl, filtersFromQuery, filterParams, yearLabel, mileageLabel, engineBuckets, engineLabel, escapeHtml, normalizeCar, plural, priceNote, priceLabel, shortRub };
+  return { buildCatalogUrl, buildCountUrl, buildOptionsUrl, filtersFromQuery, filterParams, yearLabel, mileageLabel, engineBuckets, engineLabel, escapeHtml, normalizeCar, plural, priceNote };
 });

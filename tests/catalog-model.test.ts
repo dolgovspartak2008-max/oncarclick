@@ -67,12 +67,4 @@ describe("catalog browser model", () => {
       expenses: { items: [{ label: "Транзитные расходы", rub: 140_000 }], optionalItems: [{ label: "Минск", rub: 60_000 }], moscowDeliveryRub: 230_000 } }))
       .toMatchObject({ koreaPrice: 5_000_000, expenses: [{ label: "Транзитные расходы", rub: 140_000 }], optional: [{ label: "Минск", rub: 60_000 }], moscow: 230_000 });
   });
-
-  test("бюджет попадает в адрес запроса и коротко подписывается", () => {
-    expect(CatalogModel.buildCatalogUrl({ priceFrom: "1500000", priceTo: "3000000", sort: "cheap" }, 1))
-      .toBe("/api/catalog?page=1&limit=24&priceFrom=1500000&priceTo=3000000&sort=price-asc");
-    expect(CatalogModel.priceLabel("1500000", "3000000")).toBe("1,5 млн – 3 млн ₽");
-    expect(CatalogModel.priceLabel("", "800000")).toBe("до 800 тыс. ₽");
-    expect(CatalogModel.priceLabel("8000000", "")).toBe("от 8 млн ₽");
-  });
 });

@@ -1,6 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
 import type { CatalogFilters } from "@/domain/catalog";
-import type { CatalogCar } from "@/domain/trust-encar";
 import { CATALOG_REVALIDATE_SECONDS, fetchLiveCatalog } from "./trust-encar";
 
 const filters: CatalogFilters = { page: 1, limit: 24, sort: "newest" };
@@ -48,25 +47,5 @@ describe("Trust Encar server client", () => {
 
     const result = await fetchLiveCatalog({ ...filters, limit: 1 }, fetcher);
     expect(result.items).toHaveLength(1);
-  });
-
-  test("бюджет: просит у источника цену с запасом и отбирает по нашей итоговой цене", async () => {
-    const records = [["1", 2_000_000], ["2", 3_500_000], ["3", 6_000_000]].map(([id, rub]) => ({
-      ID: id, MARKA_NAME: "KIA", MODEL_NAME: "K5", YEAR: 2018, MILEAGE: 1000, ENG_V: 1998, FINISH: 20000000, FINISH_RUB: rub, IMAGES: "[]"
-    }));
-    const fetcher = vi.fn()
-      .mockResolvedValueOnce(new Response(bootstrap))
-      .mockResolvedValueOnce(Response.json(records))
-      .mockResolvedValueOnce(Response.json({ status: "success", total: 3 }));
-    // «наша» цена — на 10 % ниже цены источника
-    const price = async (cars: CatalogCar[]) => cars.map((car) => ({ ...car, priceRub: Math.round(car.sourcePriceRub! * 0.9) }));
-
-    const result = await fetchLiveCatalog({ ...filters, priceFrom: 1_500_000, priceTo: 3_200_000, sort: "price-desc" }, fetcher, new Date(), price);
-
-    expect(result.items.map((car) => car.id)).toEqual(["2", "1"]); // 3 150 000 и 1 800 000; 5 400 000 — мимо
-    expect(result.total).toBe(2);
-    const body = fetcher.mock.calls[1][1].body as URLSearchParams;
-    expect(body.get("priceRubFrom")).toBe("1350000");
-    expect(Number(body.get("priceRubTo"))).toBeGreaterThan(3_200_000);
   });
 });
