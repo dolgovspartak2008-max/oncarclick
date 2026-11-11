@@ -40,7 +40,7 @@ describe("бюджет", () => {
   });
 
   test("у источника просим диапазон с запасом: его цена выше нашей", () => {
-    expect(sourcePriceWindow({ priceFrom: 3_000_000, priceTo: 5_000_000 })).toEqual({ from: 2_700_000, to: Math.ceil(5_500_000 / 0.65) });
+    expect(sourcePriceWindow({ priceFrom: 3_000_000, priceTo: 5_000_000 })).toEqual({ from: 3_150_000, to: Math.ceil(5_300_000 / 0.75) });
     expect(sourcePriceWindow({})).toEqual({ from: undefined, to: undefined });
   });
 });

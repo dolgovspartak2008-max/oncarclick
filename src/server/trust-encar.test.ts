@@ -66,7 +66,8 @@ describe("Trust Encar server client", () => {
     expect(result.items.map((car) => car.id)).toEqual(["2", "1"]); // 3 150 000 и 1 800 000; 5 400 000 — мимо
     expect(result.total).toBe(2);
     const body = fetcher.mock.calls[1][1].body as URLSearchParams;
-    expect(body.get("priceRubFrom")).toBe("1350000");
+    expect(body.get("priceRubFrom")).toBe("1650000");
     expect(Number(body.get("priceRubTo"))).toBeGreaterThan(3_200_000);
+    expect(body.get("field_sort")).toBe("CREATED_DATE"); // по цене сортируем сами
   });
 });
