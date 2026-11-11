@@ -2,10 +2,12 @@ import { unstable_cache } from "next/cache";
 import type { CatalogFilters } from "@/domain/catalog";
 import {
   buildTrustEncarSearchBody,
+  engineKindOf,
   normalizeTrustEncarRecords,
   parseTrustEncarBootstrap,
   parseTrustEncarGenerations,
   parseTrustEncarTrimsFacet,
+  productionOf,
   resolveYearRange,
   sameText,
   uniqueSorted,
@@ -15,6 +17,7 @@ import {
 } from "@/domain/trust-encar";
 import { parseTrustEncarVehiclePage, type VehiclePage } from "@/domain/trust-encar-vehicle";
 import { calculateRecyclingFee } from "@/domain/recycling-fee";
+import { provisionalPrice } from "@/domain/car-price";
 
 export const CATALOG_REVALIDATE_SECONDS = 86_400;
 export const CATALOG_CACHE_TAG = "trust-encar-catalog";
@@ -180,13 +183,23 @@ export type CarDetails = CatalogCar & Pick<VehiclePage, "specs" | "optionGroups"
 
 function fromVehiclePage(page: VehiclePage, now: Date): CatalogCar {
   const fee = calculateRecyclingFee({ engineCc: page.engineCc, powerHp: page.powerHp, year: page.year }, now)?.feeRub ?? null;
-  return {
+  const spec = (pattern: RegExp) => page.specs.find((item) => pattern.test(item.label))?.value;
+  const production = productionOf({ PRODUCTION_LABEL: spec(/дата производства/i), MONTH: spec(/дата регистрации/i) }, page.year);
+  const fuelCode = /электр/i.test(page.fuel ?? "") && !/гибрид|hybrid/i.test(page.fuel ?? "") ? "E"
+    : /гибрид|hybrid/i.test(page.fuel ?? "") ? "G+E"
+    : /дизел|diesel|бензин|gasoline|petrol|газ|lpg/i.test(page.fuel ?? "") ? "G" : "";
+  const priceBaseRub = page.priceRub ? page.priceRub - (page.sourceDutyRub ?? 0) - (page.sourceRecyclingFeeRub ?? 0) : null;
+  return provisionalPrice({
     id: page.id, slug: page.id, make: page.make, model: page.model, trim: page.trim, generation: null,
     year: page.year, month: null, mileageKm: page.mileageKm, engineCc: page.engineCc, powerHp: page.powerHp,
     fuel: page.fuel, transmission: page.transmission, drive: null, bodyType: null, exteriorColor: page.color,
-    interiorColor: null, vin: null, priceKrw: 0, priceBaseRub: page.priceRub, recyclingFeeRub: fee,
-    priceRub: page.priceRub ? page.priceRub + (fee ?? 0) : null, photos: page.photos, details: {}
-  };
+    interiorColor: null, vin: null, priceKrw: page.priceKrw ?? 0,
+    sourcePriceRub: page.priceRub, sourceDutyRub: page.sourceDutyRub, sourceRecyclingFeeRub: page.sourceRecyclingFeeRub,
+    priceBaseRub, recyclingFeeRub: fee ?? page.sourceRecyclingFeeRub,
+    recyclingFeeSource: fee ? "table" : page.sourceRecyclingFeeRub != null ? "source" : null,
+    ...production, engineKind: engineKindOf(fuelCode),
+    dutyRub: null, dutySource: null, customs: null, priceRub: null, photos: page.photos, details: {}
+  });
 }
 
 /** Одна машина: запись каталога (цена, мощность, утильсбор) + страница источника (все фото, характеристики, опции). */
@@ -222,7 +235,7 @@ export async function fetchCarDetails(id: string, fetcher: Fetcher = fetch, now 
 const cacheOptions = { revalidate: CATALOG_REVALIDATE_SECONDS, tags: [CATALOG_CACHE_TAG] };
 const cachedCatalog = unstable_cache(
   async (serialized: string) => fetchLiveCatalog(JSON.parse(serialized) as CatalogFilters),
-  ["trust-encar-catalog-v2"], cacheOptions
+  ["trust-encar-catalog-v3"], cacheOptions
 );
 const cachedCount = unstable_cache(
   async (serialized: string) => fetchLiveCount(JSON.parse(serialized) as CatalogFilters),
@@ -248,7 +261,7 @@ export function getCatalogOptions(filters: Pick<CatalogFilters, "make" | "model"
 
 const cachedCar = unstable_cache(
   async (id: string) => fetchCarDetails(id),
-  ["trust-encar-car-v1"], { revalidate: 6 * 3_600, tags: [CATALOG_CACHE_TAG] }
+  ["trust-encar-car-v2"], { revalidate: 6 * 3_600, tags: [CATALOG_CACHE_TAG] }
 );
 
 export function getCarDetails(id: string) {

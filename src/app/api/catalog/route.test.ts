@@ -5,7 +5,7 @@ import { createCatalogHandler } from "./route";
 describe("GET /api/catalog", () => {
   test("returns a paginated catalog", async () => {
     const getCatalog = vi.fn().mockResolvedValue({ items: [{ id: "1" }], total: 25, makes: ["KIA"], models: [] });
-    const GET = createCatalogHandler(getCatalog);
+    const GET = createCatalogHandler(getCatalog, undefined, async (cars) => cars);
     const response = await GET(new NextRequest("http://localhost/api/catalog?page=2&limit=24"));
 
     expect(response.status).toBe(200);

@@ -8,11 +8,12 @@ describe("курс воны", () => {
     expect(parseTrustEncarRate(html.replace("</div>", ":</div>"))).toBeCloseTo(64.88, 1);
   });
 
-  test("переносит разницу курсов на цену машины, утильсбор не трогает", () => {
-    const car = { priceKrw: 30_000_000, priceBaseRub: 3_000_000, recyclingFeeRub: 900_000, priceRub: 3_900_000 } as CatalogCar;
+  test("переносит разницу курсов на цену машины, утильсбор и пошлину не трогает", () => {
+    const car = { priceKrw: 30_000_000, priceBaseRub: 3_000_000, recyclingFeeRub: 900_000, dutyRub: 500_000, priceRub: 4_400_000 } as CatalogCar;
     const priced = applyKrwRate(car, 66, 65);
     expect(priced.priceBaseRub).toBe(3_030_000);
-    expect(priced.priceRub).toBe(3_930_000);
+    expect(priced.recyclingFeeRub).toBe(900_000);
+    expect(priced.dutyRub).toBe(500_000);
     expect(applyKrwRate(car, null, 65)).toBe(car);
   });
 });

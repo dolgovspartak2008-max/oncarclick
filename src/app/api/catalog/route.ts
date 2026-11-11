@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parseCatalogParams } from "@/domain/catalog";
+import { sortByFinalPrice } from "@/domain/car-price";
 import { getCatalog, getCatalogCount } from "@/server/trust-encar";
-import { withOurRate } from "@/server/rate";
+import { priceCars } from "@/server/rate";
 
 type CatalogLoader = typeof getCatalog;
 type CountLoader = typeof getCatalogCount;
@@ -9,7 +10,7 @@ type CountLoader = typeof getCatalogCount;
 const CACHE_HEADERS = { "Cache-Control": "public, max-age=300, stale-while-revalidate=86400" };
 const FAILURE = { message: "Источник временно не ответил. Показываем последнюю сохранённую версию, если она доступна." };
 
-export function createCatalogHandler(loadCatalog: CatalogLoader = getCatalog, loadCount: CountLoader = getCatalogCount) {
+export function createCatalogHandler(loadCatalog: CatalogLoader = getCatalog, loadCount: CountLoader = getCatalogCount, price: typeof priceCars = priceCars) {
   return async function GET(request: NextRequest) {
     const params = Object.fromEntries(request.nextUrl.searchParams);
     const filters = parseCatalogParams(params);
@@ -19,8 +20,8 @@ export function createCatalogHandler(loadCatalog: CatalogLoader = getCatalog, lo
         return NextResponse.json(await loadCount(filters), { headers: CACHE_HEADERS });
       }
       const result = await loadCatalog(filters);
-      // курс воны из Telegram-бота применяется поверх кеша каталога — меняется сразу
-      const items = await withOurRate(result.items);
+      // курс воны из Telegram-бота и пошлина по курсам ЦБ применяются поверх кеша каталога — меняются сразу
+      const items = sortByFinalPrice(await price(result.items), filters.sort);
       return NextResponse.json({
         ...result,
         items,

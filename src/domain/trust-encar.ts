@@ -1,5 +1,7 @@
 import type { CatalogFilters, CatalogSort } from "./catalog";
 import { calculateRecyclingFee, parseMonth } from "./recycling-fee";
+import { provisionalPrice, type PricingFields } from "./car-price";
+import type { EngineKind, ProductionBasis } from "./customs-duty";
 
 export type TrustEncarBootstrap = {
   ajaxUrl: string;
@@ -8,7 +10,7 @@ export type TrustEncarBootstrap = {
   makes: Array<{ id: string; name: string }>;
 };
 
-export type CatalogCar = {
+export type CatalogCar = PricingFields & {
   id: string;
   slug: string;
   make: string;
@@ -28,11 +30,16 @@ export type CatalogCar = {
   interiorColor: string | null;
   vin: string | null;
   priceKrw: number;
-  /** Цена Trust Encar до Владивостока без утильсбора. */
+  /** Цена Trust Encar «до Владивостока» как есть: уже включает его пошлину и его утильсбор. */
+  sourcePriceRub: number | null;
+  /** Утильсбор, заложенный источником в sourcePriceRub. */
+  sourceRecyclingFeeRub: number | null;
+  /** Цена без пошлины и утильсбора: машина, фрахт, комиссии, брокер, таможенный сбор (= источник − его пошлина − его утильсбор). */
   priceBaseRub: number | null;
-  /** Утильсбор по таблице ON Car Click; null — не хватает мощности, считаем вручную. */
+  /** Утильсбор по таблице ON Car Click; если не хватает мощности — утильсбор источника (recyclingFeeSource = "source"). */
   recyclingFeeRub: number | null;
-  /** Итоговая цена: Trust Encar + утильсбор. */
+  recyclingFeeSource: "table" | "source" | null;
+  /** Итоговая цена: priceBaseRub + утильсбор + пошлина клиента (см. src/domain/car-price.ts). */
   priceRub: number | null;
   photos: string[];
   details: Record<string, unknown>;
@@ -91,6 +98,50 @@ function parseImages(value: unknown) {
   });
 }
 
+/** Число из поля источника; null — поля нет совсем (не путать с честным нулём). */
+function optionalNumber(value: unknown) {
+  if (value === undefined || value === null || String(value).trim() === "") return null;
+  const parsed = numberFrom(value);
+  return parsed >= 0 ? parsed : null;
+}
+
+/** «09.2023», «~ 09.2023», «2023.09», «2023-09», «202309» → год и месяц. */
+export function parseYearMonth(value: unknown): { year: number; month: number } | null {
+  const text = String(value ?? "").replace(/[~≈\s]/g, "");
+  const match = text.match(/^(\d{1,2})[./-](\d{4})$/) ?? text.match(/^(\d{4})[./-]?(\d{1,2})$/);
+  if (!match) return null;
+  const [a, b] = [Number(match[1]), Number(match[2])];
+  const [year, month] = a > 12 ? [a, b] : [b, a];
+  return year >= 1950 && month >= 1 && month <= 12 ? { year, month } : null;
+}
+
+/**
+ * Дата выпуска для таможни: сначала дата производства (PRODUCTION_LABEL), затем месяц регистрации, затем только год.
+ * Год берём из той же даты: машина, выпущенная в 09.2023 и зарегистрированная в 01.2024, для таможни — 2023 года.
+ */
+export function productionOf(raw: Record<string, unknown>, year: number): {
+  productionYear: number | null; productionMonth: number | null; productionBasis: ProductionBasis | null;
+} {
+  const produced = parseYearMonth(raw.PRODUCTION_LABEL);
+  if (produced) return { productionYear: produced.year, productionMonth: produced.month, productionBasis: "production-month" };
+  const registered = parseYearMonth(raw.MONTH) ?? parseYearMonth(raw.REGISTRATION_LABEL);
+  if (registered) return { productionYear: registered.year, productionMonth: registered.month, productionBasis: "registration-month" };
+  return year >= 1950 ? { productionYear: year, productionMonth: null, productionBasis: "year-only" } : { productionYear: null, productionMonth: null, productionBasis: null };
+}
+
+/** Тип силовой установки по коду топлива источника. */
+export function engineKindOf(fuelCode: string, raw: Record<string, unknown> = {}): EngineKind {
+  const code = fuelCode.toUpperCase();
+  if (code === "E") return "electric";
+  if (/\+E$|^E\+/.test(code)) return "hybrid";
+  if (["G", "D", "LPG", "LPGP", "L", "G+L", "CNG"].includes(code)) return "ice";
+  const electric = String(raw.HAS_ELECTRIC_POWER ?? "") === "1";
+  const combustion = String(raw.HAS_COMBUSTION_POWER ?? "") === "1";
+  if (combustion && !electric) return "ice";
+  if (electric && !combustion) return "electric";
+  return "unknown";
+}
+
 export function normalizeTrustEncarRecords(records: unknown[], now = new Date()): CatalogCar[] {
   return records.flatMap((record) => {
     if (!record || typeof record !== "object") return [];
@@ -104,12 +155,18 @@ export function normalizeTrustEncarRecords(records: unknown[], now = new Date())
     const month = parseMonth(raw.MONTH) ?? parseMonth(raw.REGISTRATION_LABEL);
     const engineCc = numberFrom(raw.ENG_V) || null;
     const powerHp = numberFrom(textFrom(raw.POWER_TEXT).match(/\d+/)?.[0]) || null;
-    const priceBaseRub = numberFrom(raw.FINISH_RUB) || null;
+    const sourcePriceRub = numberFrom(raw.FINISH_RUB) || null;
+    const sourceDutyRub = optionalNumber(raw.TAMOG_P);
+    const sourceRecyclingFeeRub = optionalNumber(raw.UTIL);
+    // Цена источника уже содержит его пошлину и утильсбор — вычитаем, чтобы не начислить их второй раз.
+    const priceBaseRub = sourcePriceRub ? sourcePriceRub - (sourceDutyRub ?? 0) - (sourceRecyclingFeeRub ?? 0) : null;
     const fee = calculateRecyclingFee({ engineCc, powerHp, year, month }, now);
-    const recyclingFeeRub = fee?.feeRub ?? null;
+    const recyclingFeeRub = fee?.feeRub ?? sourceRecyclingFeeRub;
+    const recyclingFeeSource = fee ? "table" : sourceRecyclingFeeRub != null ? "source" : null;
     const fuel = (({ G: "Бензин", D: "Дизель", E: "Электро", "G+E": "Гибрид", LPGP: "Газ" } as Record<string, string>)[fuelCode] ?? fuelCode) || null;
+    const production = productionOf(raw, year);
 
-    return [{
+    return [provisionalPrice({
       id,
       slug: `${slugPart(make)}-${slugPart(model)}-${slugPart(id)}`,
       make,
@@ -129,9 +186,18 @@ export function normalizeTrustEncarRecords(records: unknown[], now = new Date())
       interiorColor: textFrom(raw.SEAT_COLOR) || null,
       vin: textFrom(raw.VEHICLENO) || null,
       priceKrw: numberFrom(raw.FINISH),
+      sourcePriceRub,
+      sourceDutyRub,
+      sourceRecyclingFeeRub,
       priceBaseRub,
       recyclingFeeRub,
-      priceRub: priceBaseRub ? priceBaseRub + (recyclingFeeRub ?? 0) : null,
+      recyclingFeeSource,
+      ...production,
+      engineKind: engineKindOf(fuelCode, raw),
+      dutyRub: null,
+      dutySource: null,
+      customs: null,
+      priceRub: null,
       photos: parseImages(raw.IMAGES),
       details: {
         sourceStatus: raw.STATUS_LABEL_RU ?? raw.STATUS ?? null,
@@ -139,7 +205,7 @@ export function normalizeTrustEncarRecords(records: unknown[], now = new Date())
         accidentCount: numberFrom(raw.ACCIDENT_COUNT_SUM),
         accidentPayoutRub: numberFrom(raw.ACCIDENT_COST_RUB_SUM)
       }
-    }];
+    })];
   });
 }
 

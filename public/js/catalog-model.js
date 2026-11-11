@@ -34,8 +34,23 @@
       price: Number(raw.priceRub) || null,
       basePrice: Number(raw.priceBaseRub) || null,
       fee: raw.recyclingFeeRub == null ? null : Number(raw.recyclingFeeRub),
+      // пошлина считается на сервере (src/domain/customs-duty.ts); здесь только отображение
+      duty: raw.dutyRub == null ? null : Number(raw.dutyRub),
+      dutyOfficial: raw.customs && raw.customs.officialDutyRub != null ? Number(raw.customs.officialDutyRub) : null,
+      dutyAdjustment: raw.customs && raw.customs.commercialAdjustmentRub ? Number(raw.customs.commercialAdjustmentRub) : 0,
+      dutyStatus: raw.customs ? String(raw.customs.calculationStatus || '') : '',
       photo: safePhoto(Array.isArray(raw.photos) ? raw.photos[0] : '')
     };
+  }
+
+  /** Подпись под ценой в карточке: что уже входит в цену (суммы — на странице машины). */
+  function priceNote(car) {
+    if (!car.price) return '';
+    const included = [], pending = [];
+    (car.duty && car.dutyStatus !== 'needs_review' ? included : pending).push('пошлину');
+    (car.fee ? included : pending).push('утильсбор');
+    return (included.length ? 'вкл. ' + included.join(' и ') : '') +
+      (pending.length ? (included.length ? '; ' : '') + pending.join(' и ') + ' уточним при расчёте' : '');
   }
 
   function engineLabel(engineCc) {
@@ -113,5 +128,5 @@
     }))).sort(function (a, b) { return a - b; });
   }
 
-  return { buildCatalogUrl, buildCountUrl, buildOptionsUrl, filtersFromQuery, filterParams, yearLabel, mileageLabel, engineBuckets, engineLabel, escapeHtml, normalizeCar, plural };
+  return { buildCatalogUrl, buildCountUrl, buildOptionsUrl, filtersFromQuery, filterParams, yearLabel, mileageLabel, engineBuckets, engineLabel, escapeHtml, normalizeCar, plural, priceNote };
 });

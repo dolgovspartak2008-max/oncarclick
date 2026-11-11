@@ -12,7 +12,7 @@
     const name = Model.escapeHtml(car.name);
     const extra = car.trim ? ' · ' + Model.escapeHtml(car.trim) : '';
     const photo = car.photo || 'assets/img/catalog-car.webp';
-    const fee = car.fee ? 'вкл. утильсбор ' + fmt(car.fee) + ' ₽' : (car.price ? 'утильсбор уточним при расчёте' : '');
+    const fee = Model.escapeHtml(Model.priceNote(car));
     return `
       <article class="car">
         <div class="car__img">

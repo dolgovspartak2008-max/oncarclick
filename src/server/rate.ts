@@ -2,6 +2,8 @@ import { unstable_cache } from "next/cache";
 import type { CatalogCar } from "@/domain/trust-encar";
 import { select } from "./db";
 import { getCatalog } from "./trust-encar";
+import { getOfficialRates } from "./customs-rates";
+import { priceWithCustoms } from "@/domain/car-price";
 
 export const SETTINGS_TAG = "site-settings";
 
@@ -45,18 +47,26 @@ export async function getSourceKrwRate(): Promise<number | null> {
   try { return await cachedSourceRate(); } catch { return null; }
 }
 
-/** Разница курсов переносится на стоимость машины в Корее; утильсбор не меняется. */
+/**
+ * Разница курсов переносится на стоимость машины в Корее (priceBaseRub). Утильсбор и пошлина не меняются:
+ * пошлина считается по официальному курсу ЦБ, а не по курсу из бота.
+ */
 export function applyKrwRate<T extends CatalogCar>(car: T, ourPerThousand: number | null, sourcePerThousand: number | null): T {
   if (!ourPerThousand || !sourcePerThousand || !car.priceKrw || !car.priceBaseRub) return car;
   const delta = Math.round(car.priceKrw * (ourPerThousand - sourcePerThousand) / 1_000);
-  const priceBaseRub = car.priceBaseRub + delta;
-  return { ...car, priceBaseRub, priceRub: priceBaseRub + (car.recyclingFeeRub ?? 0) };
+  return { ...car, priceBaseRub: car.priceBaseRub + delta };
 }
 
-/** Применяет курс к списку машин. Курс источника кешируется по первой машине в списке. */
-export async function withOurRate<T extends CatalogCar>(cars: T[]): Promise<T[]> {
-  const ours = await getOurKrwRate();
-  if (!ours || !cars.length) return cars;
-  const source = await getSourceKrwRate();
-  return cars.map((car) => applyKrwRate(car, ours, source));
+/**
+ * Окончательная цена для всех мест сайта (каталог, страница машины, избранное, сортировка):
+ * наш курс воны → цена в Корее, затем пошлина по курсам ЦБ → итог (src/domain/car-price.ts).
+ */
+export async function priceCars<T extends CatalogCar>(cars: T[], now = new Date()): Promise<T[]> {
+  if (!cars.length) return cars;
+  const [ours, official] = await Promise.all([getOurKrwRate(), getOfficialRates(now)]);
+  const source = ours ? await getSourceKrwRate() : null;
+  return cars.map((car) => priceWithCustoms(applyKrwRate(car, ours, source), official, now));
 }
+
+/** Прежнее имя — оставлено для совместимости. */
+export const withOurRate = priceCars;

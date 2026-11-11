@@ -48,4 +48,17 @@ describe("catalog browser model", () => {
   test("groups near-identical engine sizes into one filter option", () => {
     expect(CatalogModel.engineBuckets([998, 1995, 1998, 1999, null])).toEqual([1000, 2000]);
   });
+
+  test("подпись под ценой говорит, что входит в цену", () => {
+    const base = { price: 5_000_000, fee: 3_660_000, duty: 1_385_000, dutyStatus: "exact" };
+    expect(CatalogModel.priceNote(base)).toBe("вкл. пошлину и утильсбор");
+    expect(CatalogModel.priceNote({ ...base, fee: null })).toBe("вкл. пошлину; утильсбор уточним при расчёте");
+    expect(CatalogModel.priceNote({ ...base, dutyStatus: "needs_review" })).toBe("вкл. утильсбор; пошлину уточним при расчёте");
+    expect(CatalogModel.priceNote({ ...base, price: null })).toBe("");
+  });
+
+  test("переносит в карточку пошлину и корректировку", () => {
+    expect(CatalogModel.normalizeCar({ id: "1", priceRub: 100, dutyRub: 60, customs: { officialDutyRub: 100, commercialAdjustmentRub: 40, calculationStatus: "exact" } }))
+      .toMatchObject({ duty: 60, dutyOfficial: 100, dutyAdjustment: 40, dutyStatus: "exact" });
+  });
 });

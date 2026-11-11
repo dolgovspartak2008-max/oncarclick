@@ -10,7 +10,7 @@
   const sortSel = $('#sort'), resetBtn = $('#fReset'), showBtn = $('#fShow'), showText = $('#fShowText');
   const sheet = $('#sheet'), sheetTitle = $('#sheetTitle'), sheetBody = $('#sheetBody');
   const sheetOk = $('#sheetOk'), sheetClear = $('#sheetClear');
-  const CACHE_KEY = 'oncarclick-catalog-cache-v2';
+  const CACHE_KEY = 'oncarclick-catalog-cache-v3';
   const NOW_YEAR = new Date().getFullYear();
   const MIN_YEAR = 1990, MILEAGE_STEP = 10000, MILEAGE_MAX = 300000;
   const FIELDS = ['brand', 'model', 'generation', 'trim', 'yearFrom', 'yearTo', 'mileageTo'];
@@ -352,7 +352,7 @@
     const extra = car.trim ? ' · ' + Model.escapeHtml(car.trim) : '';
     const photo = car.photo || 'assets/img/catalog-car.webp';
     const pressed = Favs.has(car.id);
-    const fee = car.fee ? 'вкл. утильсбор ' + fmt(car.fee) + ' ₽' : (car.price ? 'утильсбор уточним при расчёте' : '');
+    const fee = Model.escapeHtml(Model.priceNote(car));
     return `
       <article class="car">
         <div class="car__img">
@@ -415,7 +415,7 @@
       safeSet(CACHE_KEY, JSON.stringify({ url: url, data: data, savedAt: Date.now() }));
       page = targetPage;
       accept(data, append);
-      status.textContent = 'Каталог обновляется автоматически один раз в сутки. Цены — с утильсбором.';
+      status.textContent = 'Каталог обновляется автоматически один раз в сутки. Цены — с пошлиной и утильсбором.';
     } catch (error) {
       const cached = !append && readCache(url);
       if (cached) {
@@ -494,7 +494,7 @@
     paintSort();
     page = saved.page || 1;
     accept({ items: saved.items, total: saved.total, hasMore: saved.hasMore, approximate: saved.approximate, makes: saved.makes }, false);
-    status.textContent = 'Каталог обновляется автоматически один раз в сутки. Цены — с утильсбором.';
+    status.textContent = 'Каталог обновляется автоматически один раз в сутки. Цены — с пошлиной и утильсбором.';
     scrollBack(saved.scrollY || 0);
     return true;
   }

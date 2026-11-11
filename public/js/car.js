@@ -1,4 +1,4 @@
-/* Страница автомобиля: галерея, цена с утильсбором, характеристики и опции. */
+/* Страница автомобиля: галерея, цена с пошлиной и утильсбором, характеристики и опции. */
 (function () {
   const Model = window.CatalogModel;
   const Favs = window.Favs;
@@ -133,9 +133,15 @@
     box.hidden = !car.price;
     if (car.price) {
       $('priceTotal').textContent = fmt(car.price) + ' ₽';
+      const line = function (label, value) { return '<div><dt>' + label + '</dt><dd>' + value + '</dd></div>'; };
+      const rub = function (n) { return fmt(Math.round(n)) + ' ₽'; };
+      const dutyKnown = car.dutyOfficial != null && car.dutyStatus !== 'needs_review';
       $('priceLines').innerHTML =
-        (car.basePrice ? '<div><dt>Автомобиль с доставкой и таможней</dt><dd>' + fmt(car.basePrice) + ' ₽</dd></div>' : '') +
-        '<div><dt>Утилизационный сбор</dt><dd>' + (car.fee ? fmt(car.fee) + ' ₽' : 'уточним при расчёте') + '</dd></div>';
+        (car.basePrice ? line('Автомобиль с доставкой и оформлением', rub(car.basePrice)) : '') +
+        line('Утилизационный сбор', car.fee ? rub(car.fee) : 'уточним при расчёте') +
+        (dutyKnown ? line('Таможенная пошлина (расчётная)', rub(car.dutyOfficial)) : line('Таможенная пошлина', car.duty ? '≈ ' + rub(car.duty) + ', уточним' : 'уточним при расчёте')) +
+        (dutyKnown && car.dutyAdjustment > 0 ? line('Корректировка цены от OnCarClick', '−' + rub(car.dutyAdjustment)) : '') +
+        (car.dutyStatus === 'approximate' ? line('Расчёт', 'ориентировочный') : '');
     }
     paintFav();
   }
@@ -218,7 +224,9 @@
   if (preview) {
     const raw = preview.make ? preview : { id: preview.id, make: preview.name, model: '', trim: preview.trim, generation: preview.generation, year: preview.year,
       mileageKm: preview.km, engineCc: preview.engine, fuel: preview.fuel, priceRub: preview.price, priceBaseRub: preview.basePrice,
-      recyclingFeeRub: preview.fee, photos: preview.photo ? [preview.photo] : [] };
+      recyclingFeeRub: preview.fee, dutyRub: preview.duty,
+      customs: preview.dutyStatus ? { officialDutyRub: preview.dutyOfficial, commercialAdjustmentRub: preview.dutyAdjustment, calculationStatus: preview.dutyStatus } : null,
+      photos: preview.photo ? [preview.photo] : [] };
     renderMain(raw);
     renderGallery(Array.isArray(raw.photos) ? raw.photos : []);
   }
