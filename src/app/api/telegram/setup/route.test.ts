@@ -22,13 +22,13 @@ afterEach(() => vi.unstubAllEnvs());
 
 describe("siteOrigin", () => {
   test("SITE_URL важнее домена Vercel, схема дописывается", () => {
-    expect(siteOrigin({ SITE_URL: "https://a.example/", VERCEL_PROJECT_PRODUCTION_URL: "b.vercel.app" } as NodeJS.ProcessEnv)).toBe("https://a.example");
-    expect(siteOrigin({ VERCEL_PROJECT_PRODUCTION_URL: "b.vercel.app" } as NodeJS.ProcessEnv)).toBe("https://b.vercel.app");
+    expect(siteOrigin({ SITE_URL: "https://a.example/", VERCEL_PROJECT_PRODUCTION_URL: "b.vercel.app" })).toBe("https://a.example");
+    expect(siteOrigin({ VERCEL_PROJECT_PRODUCTION_URL: "b.vercel.app" })).toBe("https://b.vercel.app");
   });
 
   test("без адреса или не https — null", () => {
-    expect(siteOrigin({} as NodeJS.ProcessEnv)).toBeNull();
-    expect(siteOrigin({ SITE_URL: "http://a.example" } as NodeJS.ProcessEnv)).toBeNull();
+    expect(siteOrigin({})).toBeNull();
+    expect(siteOrigin({ SITE_URL: "http://a.example" })).toBeNull();
   });
 });
 

@@ -1,6 +1,8 @@
 /** Адрес сайта: SITE_URL, а если её нет — продакшен-домен Vercel. Заголовок Host не используем:
     его присылает клиент, и подделанный Host увёл бы вебхук на чужой сервер. */
-export function siteOrigin(env: NodeJS.ProcessEnv = process.env) {
+type SiteEnv = { SITE_URL?: string; VERCEL_PROJECT_PRODUCTION_URL?: string };
+
+export function siteOrigin(env: SiteEnv = process.env) {
   const raw = (env.SITE_URL || env.VERCEL_PROJECT_PRODUCTION_URL || "").trim();
   if (!raw) return null;
   try {
