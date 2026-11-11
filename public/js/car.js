@@ -137,11 +137,14 @@
       const rub = function (n) { return fmt(Math.round(n)) + ' ₽'; };
       const dutyKnown = car.dutyOfficial != null && car.dutyStatus !== 'needs_review';
       $('priceLines').innerHTML =
-        (car.basePrice ? line('Автомобиль с доставкой и оформлением', rub(car.basePrice)) : '') +
+        (car.koreaPrice && car.expenses
+          ? line('Автомобиль в Корее', rub(car.koreaPrice)) + car.expenses.map(function (item) { return line(item.label, rub(item.rub)); }).join('')
+          : (car.basePrice ? line('Автомобиль с доставкой и оформлением', rub(car.basePrice)) : '')) +
         line('Утилизационный сбор', car.fee ? rub(car.fee) : 'уточним при расчёте') +
         (dutyKnown ? line('Таможенная пошлина (расчётная)', rub(car.dutyOfficial)) : line('Таможенная пошлина', car.duty ? '≈ ' + rub(car.duty) + ', уточним' : 'уточним при расчёте')) +
         (dutyKnown && car.dutyAdjustment > 0 ? line('Корректировка цены от OnCarClick', '−' + rub(car.dutyAdjustment)) : '') +
-        (car.dutyStatus === 'approximate' ? line('Расчёт', 'ориентировочный') : '');
+        (car.dutyStatus === 'approximate' ? line('Расчёт', 'ориентировочный') : '') +
+        (car.moscow ? line('Доставка до Москвы (не входит в цену)', fmt(car.moscow[0]) + '–' + fmt(car.moscow[1]) + ' ₽') : '');
     }
     paintFav();
   }
@@ -224,7 +227,8 @@
   if (preview) {
     const raw = preview.make ? preview : { id: preview.id, make: preview.name, model: '', trim: preview.trim, generation: preview.generation, year: preview.year,
       mileageKm: preview.km, engineCc: preview.engine, fuel: preview.fuel, priceRub: preview.price, priceBaseRub: preview.basePrice,
-      recyclingFeeRub: preview.fee, dutyRub: preview.duty,
+      recyclingFeeRub: preview.fee, dutyRub: preview.duty, carPriceKoreaRub: preview.koreaPrice,
+      expenses: preview.expenses ? { items: preview.expenses, moscowDeliveryRange: preview.moscow } : null,
       customs: preview.dutyStatus ? { officialDutyRub: preview.dutyOfficial, commercialAdjustmentRub: preview.dutyAdjustment, calculationStatus: preview.dutyStatus } : null,
       photos: preview.photo ? [preview.photo] : [] };
     renderMain(raw);

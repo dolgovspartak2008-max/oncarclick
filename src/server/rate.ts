@@ -48,13 +48,14 @@ export async function getSourceKrwRate(): Promise<number | null> {
 }
 
 /**
- * Разница курсов переносится на стоимость машины в Корее (priceBaseRub). Утильсбор и пошлина не меняются:
+ * Разница курсов переносится на стоимость машины в Корее (carPriceKoreaRub и база цены). Утильсбор и пошлина не меняются:
  * пошлина считается по официальному курсу ЦБ, а не по курсу из бота.
  */
 export function applyKrwRate<T extends CatalogCar>(car: T, ourPerThousand: number | null, sourcePerThousand: number | null): T {
-  if (!ourPerThousand || !sourcePerThousand || !car.priceKrw || !car.priceBaseRub) return car;
+  if (!ourPerThousand || !sourcePerThousand || !car.priceKrw) return car;
   const delta = Math.round(car.priceKrw * (ourPerThousand - sourcePerThousand) / 1_000);
-  return { ...car, priceBaseRub: car.priceBaseRub + delta };
+  const shift = (value: number | null) => (value ? value + delta : value);
+  return { ...car, carPriceKoreaRub: shift(car.carPriceKoreaRub), sourceBaseRub: shift(car.sourceBaseRub), priceBaseRub: shift(car.priceBaseRub) };
 }
 
 /**

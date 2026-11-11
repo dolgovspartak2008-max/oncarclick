@@ -1,6 +1,6 @@
 import type { CatalogFilters, CatalogSort } from "./catalog";
 import { calculateRecyclingFee, parseMonth } from "./recycling-fee";
-import { provisionalPrice, type PricingFields } from "./car-price";
+import { provisionalPrice, withExpenses, type PricingFields } from "./car-price";
 import type { EngineKind, ProductionBasis } from "./customs-duty";
 
 export type TrustEncarBootstrap = {
@@ -34,7 +34,7 @@ export type CatalogCar = PricingFields & {
   sourcePriceRub: number | null;
   /** Утильсбор, заложенный источником в sourcePriceRub. */
   sourceRecyclingFeeRub: number | null;
-  /** Цена без пошлины и утильсбора: машина, фрахт, комиссии, брокер, таможенный сбор (= источник − его пошлина − его утильсбор). */
+  /** Машина в Корее + расходы ON Car Click (src/domain/expenses.ts), без пошлины и утильсбора. */
   priceBaseRub: number | null;
   /** Утильсбор по таблице ON Car Click; если не хватает мощности — утильсбор источника (recyclingFeeSource = "source"). */
   recyclingFeeRub: number | null;
@@ -159,14 +159,15 @@ export function normalizeTrustEncarRecords(records: unknown[], now = new Date())
     const sourceDutyRub = optionalNumber(raw.TAMOG_P);
     const sourceRecyclingFeeRub = optionalNumber(raw.UTIL);
     // Цена источника уже содержит его пошлину и утильсбор — вычитаем, чтобы не начислить их второй раз.
-    const priceBaseRub = sourcePriceRub ? sourcePriceRub - (sourceDutyRub ?? 0) - (sourceRecyclingFeeRub ?? 0) : null;
+    const sourceBaseRub = sourcePriceRub ? sourcePriceRub - (sourceDutyRub ?? 0) - (sourceRecyclingFeeRub ?? 0) : null;
+    const carPriceKoreaRub = numberFrom(raw.PRICE_KOREA_RUB) || null;
     const fee = calculateRecyclingFee({ engineCc, powerHp, year, month }, now);
     const recyclingFeeRub = fee?.feeRub ?? sourceRecyclingFeeRub;
     const recyclingFeeSource = fee ? "table" : sourceRecyclingFeeRub != null ? "source" : null;
     const fuel = (({ G: "Бензин", D: "Дизель", E: "Электро", "G+E": "Гибрид", LPGP: "Газ" } as Record<string, string>)[fuelCode] ?? fuelCode) || null;
     const production = productionOf(raw, year);
 
-    return [provisionalPrice({
+    return [provisionalPrice(withExpenses({
       id,
       slug: `${slugPart(make)}-${slugPart(model)}-${slugPart(id)}`,
       make,
@@ -189,7 +190,10 @@ export function normalizeTrustEncarRecords(records: unknown[], now = new Date())
       sourcePriceRub,
       sourceDutyRub,
       sourceRecyclingFeeRub,
-      priceBaseRub,
+      carPriceKoreaRub,
+      expenses: null,
+      sourceBaseRub,
+      priceBaseRub: sourceBaseRub,
       recyclingFeeRub,
       recyclingFeeSource,
       ...production,
@@ -205,7 +209,7 @@ export function normalizeTrustEncarRecords(records: unknown[], now = new Date())
         accidentCount: numberFrom(raw.ACCIDENT_COUNT_SUM),
         accidentPayoutRub: numberFrom(raw.ACCIDENT_COST_RUB_SUM)
       }
-    })];
+    }, now))];
   });
 }
 

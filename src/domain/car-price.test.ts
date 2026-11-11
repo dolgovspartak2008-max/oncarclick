@@ -11,17 +11,17 @@ const CBR: OfficialRates = { eurRub: 92.39, krwRubPer1000: 60.94, rateDate: "202
 const GRANDEUR = {
   ID: "43139186", MARKA_NAME: "Hyundai", MODEL_NAME: "Grandeur", YEAR: "2018", MONTH: "2018.02",
   PRODUCTION_LABEL: "01.2018", REGISTRATION_LABEL: "02.2018", ENG_V: "2999", POWER_TEXT: "266 л.с.", TIME: "G",
-  FINISH: "7300000", FINISH_RUB: "5900536", TAMOG_P: "1385000", UTIL: "3660000", IMAGES: "[]"
+  FINISH: "7300000", FINISH_RUB: "5900536", TAMOG_P: "1385000", UTIL: "3660000", PRICE_KOREA_RUB: "461068", IMAGES: "[]"
 };
 const BMW_X5 = {
   ID: "43139200", MARKA_NAME: "BMW", MODEL_NAME: "X5", YEAR: "2024", MONTH: "2024.01",
   PRODUCTION_LABEL: "09.2023", REGISTRATION_LABEL: "01.2024", ENG_V: "2998", POWER_TEXT: "381 л.с.", TIME: "G",
-  FINISH: "82000000", FINISH_RUB: "10473658", TAMOG_P: "831000", UTIL: "4094400", IMAGES: "[]"
+  FINISH: "82000000", FINISH_RUB: "10473658", TAMOG_P: "831000", UTIL: "4094400", PRICE_KOREA_RUB: "5179120", IMAGES: "[]"
 };
 const BMW_X3_YOUNG = {
   ID: "43139119", MARKA_NAME: "BMW", MODEL_NAME: "X3", YEAR: "2025", MONTH: "2025.12",
   PRODUCTION_LABEL: "08.2025", REGISTRATION_LABEL: "12.2025", ENG_V: "1984", POWER_TEXT: "272 л.с.", TIME: "G",
-  FINISH: "86500000", FINISH_RUB: "9504878", TAMOG_P: "2530000", UTIL: "1142400", IMAGES: "[]"
+  FINISH: "86500000", FINISH_RUB: "9504878", TAMOG_P: "2530000", UTIL: "1142400", PRICE_KOREA_RUB: "5463340", IMAGES: "[]"
 };
 const EV = {
   ID: "43139168", MARKA_NAME: "Kia", MODEL_NAME: "Ray EV", YEAR: "2024", MONTH: "2024.10",
@@ -32,17 +32,37 @@ const EV = {
 const priced = (raw: Record<string, string>) => priceWithCustoms(normalizeTrustEncarRecords([raw], NOW)[0], CBR, NOW);
 
 describe("итоговая цена: без двойного начисления", () => {
-  test("пошлина и утильсбор источника вычитаются, наши — прибавляются один раз", () => {
+  test("расходы, пошлина и утильсбор источника заменяются нашими — каждый учтён один раз", () => {
     const car = priced(GRANDEUR);
     expect(car.sourcePriceRub).toBe(5_900_536);
-    expect(car.priceBaseRub).toBe(5_900_536 - 1_385_000 - 3_660_000);
+    expect(car.sourceBaseRub).toBe(5_900_536 - 1_385_000 - 3_660_000);
+    // машина в Корее + наши расходы для машин от 3 лет: 80 000 + 100 000
+    expect(car.expenses?.group).toBe("3-plus");
+    expect(car.expenses?.totalRub).toBe(180_000);
+    expect(car.expenses?.moscowDeliveryRange).toBeNull();
+    expect(car.priceBaseRub).toBe(461_068 + 180_000);
     expect(car.recyclingFeeRub).toBe(3_660_000); // таблица ON Car Click совпала с источником
     expect(car.customs?.ageCategory).toBe("over-5");
     expect(car.customs?.officialDutyEur).toBe(2_999 * 5);
     expect(car.dutyRub).toBeCloseTo(14_995 * 92.39, 2);
-    // итог совпадает с ценой источника с точностью до его округления пошлины до тысяч
-    expect(Math.abs(car.priceRub! - 5_900_536)).toBeLessThan(1_000);
-    expect(car.priceRub).toBe(Math.round(car.priceBaseRub! + car.recyclingFeeRub! + car.dutyRub!));
+    expect(car.priceRub).toBe(Math.round(461_068 + 180_000 + 3_660_000 + 14_995 * 92.39));
+  });
+
+  test("машина младше 3 лет: наши расходы 80 000 + 140 000 (середина 120–160) + 60 000, Москва — отдельно", () => {
+    const car = priced(BMW_X3_YOUNG);
+    expect(car.expenses?.group).toBe("under-3");
+    expect(car.expenses?.items.map((item) => item.rub)).toEqual([80_000, 140_000, 60_000]);
+    expect(car.expenses?.totalRub).toBe(280_000);
+    expect(car.expenses?.moscowDeliveryRange).toEqual([180_000, 260_000]);
+    expect(car.priceBaseRub).toBe(5_463_340 + 280_000);
+    expect(car.priceRub).toBe(Math.round(5_463_340 + 280_000 + car.recyclingFeeRub! + car.dutyRub!));
+  });
+
+  test("без цены машины в Корее — запасная база источника", () => {
+    const { PRICE_KOREA_RUB: _omit, ...raw } = GRANDEUR;
+    const car = priced(raw);
+    expect(car.expenses).toBeNull();
+    expect(car.priceBaseRub).toBe(5_900_536 - 1_385_000 - 3_660_000);
   });
 
   test("машина 3–5 лет: возраст по дате производства (09.2023), а не по регистрации (01.2024)", () => {
@@ -84,7 +104,16 @@ describe("итоговая цена: без двойного начислени�
   test("без курсов цена не занижается: берётся пошлина источника", () => {
     const car = priceWithCustoms(normalizeTrustEncarRecords([GRANDEUR], NOW)[0], null, NOW);
     expect(car.customs?.calculationStatus).toBe("needs_review");
-    expect(car.priceRub).toBe(5_900_536);
+    expect(car.dutyRub).toBe(1_385_000);
+    expect(car.priceRub).toBe(461_068 + 180_000 + 3_660_000 + 1_385_000);
+  });
+
+  test("наш курс воны меняет только цену машины в Корее", async () => {
+    const { applyKrwRate } = await import("@/server/rate");
+    const base = normalizeTrustEncarRecords([GRANDEUR], NOW)[0];
+    const shifted = priceWithCustoms(applyKrwRate(base, 64.16, 63.16), CBR, NOW);
+    expect(shifted.carPriceKoreaRub).toBe(461_068 + 7_300);
+    expect(shifted.priceRub! - priced(GRANDEUR).priceRub!).toBe(7_300);
   });
 });
 

@@ -39,6 +39,12 @@
       dutyOfficial: raw.customs && raw.customs.officialDutyRub != null ? Number(raw.customs.officialDutyRub) : null,
       dutyAdjustment: raw.customs && raw.customs.commercialAdjustmentRub ? Number(raw.customs.commercialAdjustmentRub) : 0,
       dutyStatus: raw.customs ? String(raw.customs.calculationStatus || '') : '',
+      // машина в Корее + расходы OnCarClick (src/domain/expenses.ts)
+      koreaPrice: Number(raw.carPriceKoreaRub) || null,
+      expenses: raw.expenses && Array.isArray(raw.expenses.items) ? raw.expenses.items.map(function (item) {
+        return { label: String(item.label || ''), rub: Number(item.rub) || 0 };
+      }) : null,
+      moscow: raw.expenses && Array.isArray(raw.expenses.moscowDeliveryRange) ? raw.expenses.moscowDeliveryRange.map(Number) : null,
       photo: safePhoto(Array.isArray(raw.photos) ? raw.photos[0] : '')
     };
   }

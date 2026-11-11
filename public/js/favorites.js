@@ -31,7 +31,7 @@
     try { return new Set(JSON.parse((s && s.getItem(LEGACY_KEY)) || '[]').map(String)); } catch (e) { return new Set(); }
   }
 
-  const SNAPSHOT_FIELDS = ['id', 'name', 'trim', 'generation', 'year', 'km', 'engine', 'fuel', 'price', 'basePrice', 'fee', 'duty', 'dutyOfficial', 'dutyAdjustment', 'dutyStatus', 'photo'];
+  const SNAPSHOT_FIELDS = ['id', 'name', 'trim', 'generation', 'year', 'km', 'engine', 'fuel', 'price', 'basePrice', 'fee', 'duty', 'dutyOfficial', 'dutyAdjustment', 'dutyStatus', 'koreaPrice', 'expenses', 'moscow', 'photo'];
   function snapshot(car) {
     const out = { addedAt: Date.now() };
     SNAPSHOT_FIELDS.forEach(function (key) { if (car[key] !== undefined) out[key] = car[key]; });

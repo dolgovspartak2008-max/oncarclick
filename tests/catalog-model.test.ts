@@ -61,4 +61,10 @@ describe("catalog browser model", () => {
     expect(CatalogModel.normalizeCar({ id: "1", priceRub: 100, dutyRub: 60, customs: { officialDutyRub: 100, commercialAdjustmentRub: 40, calculationStatus: "exact" } }))
       .toMatchObject({ duty: 60, dutyOfficial: 100, dutyAdjustment: 40, dutyStatus: "exact" });
   });
+
+  test("переносит в карточку расходы и доставку до Москвы", () => {
+    expect(CatalogModel.normalizeCar({ id: "1", carPriceKoreaRub: 5_000_000,
+      expenses: { items: [{ label: "Транзитные номера", rub: 140_000 }], moscowDeliveryRange: [180_000, 260_000] } }))
+      .toMatchObject({ koreaPrice: 5_000_000, expenses: [{ label: "Транзитные номера", rub: 140_000 }], moscow: [180_000, 260_000] });
+  });
 });

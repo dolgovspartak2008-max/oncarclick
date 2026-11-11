@@ -127,6 +127,14 @@ export function classifyAge(productionTime: number, clearanceTime: number) {
   return { category, youngDiscount: clearanceTime < three, nearBoundary };
 }
 
+/** Возрастная группа по дате выпуска на дату оформления; null — год неизвестен. */
+export function ageAt(productionYear: number | null, productionMonth: number | null, now: Date) {
+  if (!productionYear || productionYear < 1950) return null;
+  const productionTime = productionMoment(productionYear, productionMonth);
+  const clearanceTime = clearanceDay(now);
+  return productionTime > clearanceTime ? null : classifyAge(productionTime, clearanceTime);
+}
+
 const fmtEur = (value: string) => value.replace(".", ",");
 
 function officialDutyEur(category: AgeCategory, priceEur: Dec, engineCc: Dec) {

@@ -15,8 +15,9 @@ export type VehiclePage = {
   color: string | null;
   /** «Стоимость до Владивостока» — уже с пошлиной и утильсбором источника. */
   priceRub: number | null;
-  /** Цена машины в Корее, ₩. */
+  /** Цена машины в Корее, ₩ и ₽ (по курсу источника). */
   priceKrw: number | null;
+  priceKoreaRub: number | null;
   /** Строки «Подробного расчёта» источника: таможенная пошлина и утильсбор, ₽. */
   sourceDutyRub: number | null;
   sourceRecyclingFeeRub: number | null;
@@ -100,7 +101,9 @@ export function parseTrustEncarVehiclePage(html: string): VehiclePage | null {
     const match = pageText.match(new RegExp(`${label}:\\s*([\\d\\s]+?)\\s*₽`, "i"));
     return match ? numberFrom(match[1]) : null;
   };
-  const koreaKrw = numberFrom(pageText.match(/Стоимость автомобиля в Корее:\s*([\d\s]+?)\s*₩/i)?.[1]) || null;
+  const korea = pageText.match(/Стоимость автомобиля в Корее:\s*([\d\s]+?)\s*₩\s*\(\s*([\d\s]+?)\s*₽/i);
+  const koreaKrw = numberFrom(korea?.[1]) || null;
+  const koreaRub = numberFrom(korea?.[2]) || null;
 
   const id = clean(data.sku);
   const make = clean(obj(data.brand).name);
@@ -120,6 +123,7 @@ export function parseTrustEncarVehiclePage(html: string): VehiclePage | null {
     color: spec("Цвет кузова") || clean(data.color) || null,
     priceRub: numberFrom(offers.price) || visiblePrice || null,
     priceKrw: koreaKrw,
+    priceKoreaRub: koreaRub,
     sourceDutyRub: rubLine("Таможенная пошлина"),
     sourceRecyclingFeeRub: rubLine("Утилизационный сбор"),
     photos: Array.from(new Set(images)),
