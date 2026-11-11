@@ -149,10 +149,7 @@ const defaultPricer: Pricer = async (cars) => (await import("./rate")).priceCars
 const needsScan = (filters: CatalogFilters) => Boolean(filters.trim || filters.priceFrom || filters.priceTo);
 
 async function scanMatches(ctx: Context, filters: CatalogFilters, effective: CatalogFilters, now: Date, price: Pricer) {
-  const budget = Boolean(filters.priceFrom || filters.priceTo);
-  // С бюджетом не просим у источника сортировку по его цене: иначе просмотр упрётся в край окна,
-  // где наша цена ещё не дотягивает до бюджета. Сортируем по нашей цене сами.
-  const { records, complete } = await scanRecords(ctx, budget ? { ...effective, sort: "newest" } : effective);
+  const { records, complete } = await scanRecords(ctx, effective);
   let cars = normalizeTrustEncarRecords(records, now);
   if (filters.trim) cars = cars.filter((car) => sameText(car.trim, filters.trim));
   if (filters.priceFrom || filters.priceTo) cars = (await price(cars)).filter((car) => inBudget(car.priceRub, filters));
@@ -252,11 +249,11 @@ export async function fetchCarDetails(id: string, fetcher: Fetcher = fetch, now 
 const cacheOptions = { revalidate: CATALOG_REVALIDATE_SECONDS, tags: [CATALOG_CACHE_TAG] };
 const cachedCatalog = unstable_cache(
   async (serialized: string) => fetchLiveCatalog(JSON.parse(serialized) as CatalogFilters),
-  ["trust-encar-catalog-v7"], cacheOptions
+  ["trust-encar-catalog-v6"], cacheOptions
 );
 const cachedCount = unstable_cache(
   async (serialized: string) => fetchLiveCount(JSON.parse(serialized) as CatalogFilters),
-  ["trust-encar-count-v3"], cacheOptions
+  ["trust-encar-count-v2"], cacheOptions
 );
 const cachedOptions = unstable_cache(
   async (serialized: string) => fetchLiveOptions(JSON.parse(serialized) as CatalogFilters),
