@@ -41,6 +41,11 @@ export const OVER_5_BY_VOLUME: ReadonlyArray<{ upToCc: number; eurPerCc: string 
 ];
 /** Доля пошлины, которую платит клиент за машину строго младше 3 лет (−40 %). */
 export const YOUNG_CAR_CUSTOMER_SHARE = "0.60";
+/**
+ * Через сколько дней после расчёта ожидается таможенное оформление. 0 — возраст считается на сегодня
+ * (так же считает Trust Encar). Если заложить срок доставки, машины на границе 3/5 лет сразу попадут в старшую группу.
+ */
+export const EXPECTED_CLEARANCE_DELAY_DAYS = 0;
 /** Если 3-я или 5-я годовщина ближе этого числа дней — расчёт помечается приблизительным. */
 export const AGE_BOUNDARY_WINDOW_DAYS = 90;
 
@@ -98,7 +103,7 @@ const iso = (time: number) => new Date(time).toISOString().slice(0, 10);
 /** Дата оформления — сегодняшний день по Москве (курсы ЦБ и таможня живут по московскому времени). */
 export function clearanceDay(now: Date) {
   const moscow = new Date(now.getTime() + 3 * 3_600_000);
-  return Date.UTC(moscow.getUTCFullYear(), moscow.getUTCMonth(), moscow.getUTCDate());
+  return Date.UTC(moscow.getUTCFullYear(), moscow.getUTCMonth(), moscow.getUTCDate()) + EXPECTED_CLEARANCE_DELAY_DAYS * DAY_MS;
 }
 
 /**
