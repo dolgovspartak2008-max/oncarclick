@@ -7,7 +7,7 @@ import { priceCars } from "@/server/rate";
 type CatalogLoader = typeof getCatalog;
 type CountLoader = typeof getCatalogCount;
 
-const CACHE_HEADERS = { "Cache-Control": "public, max-age=300, stale-while-revalidate=86400" };
+const CACHE_HEADERS = { "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=86400" };
 const FAILURE = { message: "Источник временно не ответил. Показываем последнюю сохранённую версию, если она доступна." };
 
 export function createCatalogHandler(loadCatalog: CatalogLoader = getCatalog, loadCount: CountLoader = getCatalogCount, price: typeof priceCars = priceCars) {

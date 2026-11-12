@@ -9,7 +9,7 @@ export function createOptionsHandler(loadOptions: OptionsLoader = getCatalogOpti
     const filters = parseCatalogParams(Object.fromEntries(request.nextUrl.searchParams));
     try {
       const result = await loadOptions(filters);
-      return NextResponse.json(result, { headers: { "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400" } });
+      return NextResponse.json(result, { headers: { "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400" } });
     } catch {
       return NextResponse.json({ message: "Не удалось загрузить список вариантов." }, { status: 502 });
     }

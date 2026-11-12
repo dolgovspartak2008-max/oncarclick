@@ -12,7 +12,7 @@ export function createCarHandler(loadCar: CarLoader = getCarDetails, price: type
       const car = await loadCar(id);
       if (!car) return NextResponse.json({ message: "Автомобиль не найден — возможно, он уже продан." }, { status: 404 });
       const [priced] = await price([car]);
-      return NextResponse.json(priced, { headers: { "Cache-Control": "public, max-age=600, stale-while-revalidate=86400" } });
+      return NextResponse.json(priced, { headers: { "Cache-Control": "public, max-age=0, s-maxage=600, stale-while-revalidate=86400" } });
     } catch {
       return NextResponse.json({ message: "Источник временно не ответил. Попробуйте обновить страницу." }, { status: 502 });
     }
