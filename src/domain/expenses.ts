@@ -21,12 +21,9 @@ export const OPTIONAL_UNDER_3: ExpenseItem[] = [];
 /** Машины от 3 лет (3–5 и старше 5 — одинаково). */
 export const EXPENSES_3_PLUS: ExpenseItem[] = [
   { label: "Расходы по Корее и доставка до Владивостока", rub: 80_000 },
-  { label: "Услуги брокера, сопровождение", rub: 100_000 }
+  { label: "Услуги брокера, сопровождение", rub: 100_000 },
+  { label: "Доставка до Москвы", rub: 230_000 }
 ];
-
-/** Доставка до Москвы для машин от 3 лет — примерно, в цену не входит.
- *  Для машин младше 3 лет доставка до Москвы уже входит в цену (EXPENSES_UNDER_3). */
-export const MOSCOW_DELIVERY_3_PLUS_RUB = 230_000;
 
 export type Expenses = {
   group: "under-3" | "3-plus";
@@ -35,7 +32,7 @@ export type Expenses = {
   totalRub: number;
   /** По желанию клиента — в цену не входят. */
   optionalItems: ExpenseItem[];
-  /** Примерная доставка до Москвы, в цену не входит. null — для этой группы не показывается. */
+  /** Примерная доставка до Москвы вне цены. Сейчас null: доставка до Москвы входит в цену для всех машин. */
   moscowDeliveryRub: number | null;
 };
 
@@ -46,6 +43,6 @@ export function expensesFor(young: boolean): Expenses {
     items,
     totalRub: items.reduce((sum, item) => sum + item.rub, 0),
     optionalItems: young ? OPTIONAL_UNDER_3 : [],
-    moscowDeliveryRub: young ? null : MOSCOW_DELIVERY_3_PLUS_RUB
+    moscowDeliveryRub: null
   };
 }
