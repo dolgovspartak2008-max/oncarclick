@@ -1229,3 +1229,4 @@ body:has(.catpage) .header { position: relative; }
 .review { background: #15171c; }
 .review__photo { aspect-ratio: 16 / 10; border: 1px solid var(--line); background: radial-gradient(60% 55% at 50% 65%, rgba(227,18,31,.14), transparent 70%), #101116; }
 .dd__menu { min-width: 250px; } .dd__menu button { white-space: nowrap; }
+#about .page-lead { max-width: 720px; }

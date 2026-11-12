@@ -11,13 +11,12 @@ const mid = (from: number, to: number): ExpenseItem["rub"] => Math.round((from +
 /** Машины младше 3 лет — входит в цену. */
 export const EXPENSES_UNDER_3: ExpenseItem[] = [
   { label: "Расходы по Корее и доставка до Владивостока", rub: 80_000 },
-  { label: "Транзитные расходы", rub: mid(120_000, 160_000), range: [120_000, 160_000] }
+  { label: "Транзитные расходы", rub: mid(120_000, 160_000), range: [120_000, 160_000] },
+  { label: "Доставка до Москвы", rub: 60_000 }
 ];
 
-/** Машины младше 3 лет — по желанию клиента, в цену не входит. */
-export const OPTIONAL_UNDER_3: ExpenseItem[] = [
-  { label: "Поездка в Минск и обратно", rub: 60_000 }
-];
+/** Машины младше 3 лет — по желанию клиента, в цену не входит. Сейчас таких нет. */
+export const OPTIONAL_UNDER_3: ExpenseItem[] = [];
 
 /** Машины от 3 лет (3–5 и старше 5 — одинаково). */
 export const EXPENSES_3_PLUS: ExpenseItem[] = [
@@ -25,8 +24,9 @@ export const EXPENSES_3_PLUS: ExpenseItem[] = [
   { label: "Услуги брокера, сопровождение", rub: 100_000 }
 ];
 
-/** Доставка до Москвы для машин младше 3 лет — примерно, в цену не входит. */
-export const MOSCOW_DELIVERY_UNDER_3_RUB = 230_000;
+/** Доставка до Москвы для машин от 3 лет — примерно, в цену не входит.
+ *  Для машин младше 3 лет доставка до Москвы уже входит в цену (EXPENSES_UNDER_3). */
+export const MOSCOW_DELIVERY_3_PLUS_RUB = 230_000;
 
 export type Expenses = {
   group: "under-3" | "3-plus";
@@ -46,6 +46,6 @@ export function expensesFor(young: boolean): Expenses {
     items,
     totalRub: items.reduce((sum, item) => sum + item.rub, 0),
     optionalItems: young ? OPTIONAL_UNDER_3 : [],
-    moscowDeliveryRub: young ? MOSCOW_DELIVERY_UNDER_3_RUB : null
+    moscowDeliveryRub: young ? null : MOSCOW_DELIVERY_3_PLUS_RUB
   };
 }
