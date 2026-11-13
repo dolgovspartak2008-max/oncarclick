@@ -67,7 +67,7 @@
 
   function engineLabel(engineCc) {
     const value = Number(engineCc);
-    return value > 0 ? (value / 1000).toFixed(1) + ' л' : 'Объём не указан';
+    return value > 0 ? (Math.round(value / 100) / 10).toFixed(1) + ' л' : 'Объём не указан';
   }
 
   const FILTER_KEYS = [
