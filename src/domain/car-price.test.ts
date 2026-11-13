@@ -50,18 +50,19 @@ describe("итоговая цена: без двойного начислени�
     expect(car.priceRub).toBe(Math.round(461_068 + 80_000 + 3_660_000 + 14_995 * 92.39));
   });
 
-  test("машина младше 3 лет: Корея→Владивосток 80 000 + Владивосток→Москва 230 000 и памятка про Беларусь", () => {
+  test("машина младше 3 лет: Корея→Владивосток 80 000 + Владивосток→Москва 230 000 + Беларусь 60 000 и памятка про Беларусь", () => {
     const car = priced(BMW_X3_YOUNG);
     expect(car.expenses?.group).toBe("under-3");
     expect(car.expenses?.items.map((item) => [item.label, item.rub])).toEqual([
       ["Расходы по Корее и доставка до Владивостока", 80_000],
-      ["Доставка из Владивостока до Москвы", 230_000]]);
-    expect(car.expenses?.totalRub).toBe(310_000);
+      ["Доставка из Владивостока до Москвы", 230_000],
+      ["Растаможка в Беларуси (Москва → Беларусь → Москва)", 60_000]]);
+    expect(car.expenses?.totalRub).toBe(370_000);
     expect(car.expenses?.note).toMatch(/Беларус/);
     expect(car.expenses?.optionalItems).toEqual([]);
     expect(car.expenses?.moscowDeliveryRub).toBeNull();
-    expect(car.priceBaseRub).toBe(5_463_340 + 310_000);
-    expect(car.priceRub).toBe(Math.round(5_463_340 + 310_000 + car.recyclingFeeRub! + car.dutyRub!));
+    expect(car.priceBaseRub).toBe(5_463_340 + 370_000);
+    expect(car.priceRub).toBe(Math.round(5_463_340 + 370_000 + car.recyclingFeeRub! + car.dutyRub!));
   });
 
   test("без цены машины в Корее — запасная база источника", () => {
