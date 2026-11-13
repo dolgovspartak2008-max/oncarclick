@@ -133,6 +133,8 @@
     box.hidden = !car.price;
     if (car.price) {
       $('priceTotal').textContent = fmt(car.price) + ' ₽';
+      $('priceReserved').hidden = !car.reserved;
+      $('priceReservedNote').hidden = !car.reserved;
       const line = function (label, value) { return '<div><dt>' + label + '</dt><dd>' + value + '</dd></div>'; };
       const rub = function (n) { return fmt(Math.round(n)) + ' ₽'; };
       const dutyKnown = car.duty != null && car.dutyStatus !== 'needs_review';
@@ -227,7 +229,7 @@
   if (!preview || String(preview.id) !== id) preview = Favs.list().find(function (item) { return item.id === id; }) || null;
   if (preview) {
     const raw = preview.make ? preview : { id: preview.id, make: preview.name, model: '', trim: preview.trim, generation: preview.generation, year: preview.year,
-      mileageKm: preview.km, engineCc: preview.engine, fuel: preview.fuel, priceRub: preview.price, priceBaseRub: preview.basePrice,
+      mileageKm: preview.km, engineCc: preview.engine, fuel: preview.fuel, priceRub: preview.price, priceBaseRub: preview.basePrice, reserved: preview.reserved,
       recyclingFeeRub: preview.fee, dutyRub: preview.duty, carPriceKoreaRub: preview.koreaPrice,
       expenses: preview.expenses ? { items: preview.expenses, optionalItems: preview.optional || [], moscowDeliveryRub: preview.moscow } : null,
       customs: preview.dutyStatus ? { officialDutyRub: preview.dutyOfficial, commercialAdjustmentRub: preview.dutyAdjustment, calculationStatus: preview.dutyStatus } : null,

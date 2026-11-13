@@ -10,7 +10,7 @@
   const sortSel = $('#sort'), resetBtn = $('#fReset'), showBtn = $('#fShow'), showText = $('#fShowText');
   const sheet = $('#sheet'), sheetTitle = $('#sheetTitle'), sheetBody = $('#sheetBody');
   const sheetOk = $('#sheetOk'), sheetClear = $('#sheetClear');
-  const CACHE_KEY = 'oncarclick-catalog-cache-v6';
+  const CACHE_KEY = 'oncarclick-catalog-cache-v7';
   const NOW_YEAR = new Date().getFullYear();
   const MIN_YEAR = 1990, MILEAGE_STEP = 10000, MILEAGE_MAX = 300000;
   const FIELDS = ['brand', 'model', 'generation', 'trim', 'yearFrom', 'yearTo', 'mileageTo', 'priceFrom', 'priceTo'];
@@ -324,7 +324,7 @@
         return '<button class="chip" type="button" data-price-from="' + preset[0] + '" data-price-to="' + preset[1] + '">' +
           Model.priceLabel(preset[0], preset[1]).replace(' ₽', '') + '</button>';
       }).join('') + '</div>' +
-      '<p class="sheet__note">Цена под ключ: с пошлиной, утильсбором и доставкой до Владивостока.</p></div>';
+      '<p class="sheet__note">Цена под ключ: с пошлиной, утильсбором и доставкой до Москвы.</p></div>';
     const inputs = $$('.money__input', sheetBody);
     const digits = function (value) { return String(value || '').replace(/\D/g, '').replace(/^0+(?=\d)/, '').slice(0, 10); };
     function paint() {
@@ -419,7 +419,7 @@
         <div class="car__body">
           <h3 class="car__name">${name}</h3>
           <p class="car__meta">${car.year || 'Год не указан'} · ${fmt(car.km)} км · ${Model.engineLabel(car.engine)}${extra}</p>
-          <p class="car__price">${car.price ? fmt(car.price) + ' ₽' : 'Цена по запросу'}</p>
+          <p class="car__price">${car.price ? fmt(car.price) + ' ₽' : 'Цена по запросу'}${car.reserved ? ' <span class="reserved">Забронирован</span>' : ''}</p>
           ${fee ? `<p class="car__fee">${fee}</p>` : ''}
         </div>
         <a class="car__link" href="car.html?id=${encodeURIComponent(car.id)}" aria-label="Подробнее: ${name}" data-open="${Model.escapeHtml(car.id)}"></a>

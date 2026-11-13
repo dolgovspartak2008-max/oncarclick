@@ -42,8 +42,15 @@ export type CatalogCar = PricingFields & {
   /** Итоговая цена: priceBaseRub + утильсбор + пошлина клиента (см. src/domain/car-price.ts). */
   priceRub: number | null;
   photos: string[];
+  /** Машину уже кто-то забронировал (внёс задаток) — на Encar «계약중». */
+  reserved: boolean;
   details: Record<string, unknown>;
 };
+
+/** Статус источника означает бронь/задаток: «Забронирован», «В резерве», «Контракт», «계약중» и т. п. */
+export function isReservedStatus(value: unknown) {
+  return /брон|резерв|задат|залог|контракт|договор|계약|contract|reserv/i.test(String(value ?? ""));
+}
 
 const numberFrom = (value: unknown) => {
   const parsed = Number(String(value ?? "").replace(/[^\d.-]/g, ""));
@@ -203,6 +210,7 @@ export function normalizeTrustEncarRecords(records: unknown[], now = new Date())
       customs: null,
       priceRub: null,
       photos: parseImages(raw.IMAGES),
+      reserved: isReservedStatus(raw.STATUS_LABEL_RU) || isReservedStatus(raw.STATUS),
       details: {
         sourceStatus: raw.STATUS_LABEL_RU ?? raw.STATUS ?? null,
         registration: raw.REGISTRATION_LABEL ?? raw.MONTH ?? null,

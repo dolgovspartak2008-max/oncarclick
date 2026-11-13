@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { buildTrustEncarSearchBody, normalizeTrustEncarRecords, parseTrustEncarBootstrap, parseTrustEncarGenerations, resolveYearRange } from "./trust-encar";
+import { buildTrustEncarSearchBody, isReservedStatus, normalizeTrustEncarRecords, parseTrustEncarBootstrap, parseTrustEncarGenerations, resolveYearRange } from "./trust-encar";
 
 const html = `
   <script>var TE_CATALOG = {"ajaxUrl":"https://trust-encar.ru/wp-admin/admin-ajax.php","nonce":"public-key"};</script>
@@ -97,5 +97,14 @@ describe("Trust Encar parsing", () => {
     const [gen] = parseTrustEncarGenerations({ facets: { generations: [{ name: "911 (992)", min_year: 2019, max_year: 2026 }] } });
     expect(resolveYearRange({ yearFrom: 2015 }, gen)).toEqual({ yearFrom: 2019, yearTo: 2026 });
     expect(resolveYearRange({ yearTo: 2010 }, gen)).toBeNull();
+  });
+});
+
+describe("бронь (задаток) из статуса источника", () => {
+  test.each(["Забронирован", "В резерве", "Под задатком", "Контракт", "계약중", "CONTRACT"])("«%s» — забронирован", (status) => {
+    expect(isReservedStatus(status)).toBe(true);
+  });
+  test.each(["В продаже", "Лизинг", "", null])("«%s» — свободен", (status) => {
+    expect(isReservedStatus(status)).toBe(false);
   });
 });

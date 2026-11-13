@@ -215,7 +215,7 @@ function fromVehiclePage(page: VehiclePage, now: Date): CatalogCar {
     recyclingFeeRub: fee ?? page.sourceRecyclingFeeRub,
     recyclingFeeSource: fee ? "table" : page.sourceRecyclingFeeRub != null ? "source" : null,
     ...production, engineKind: engineKindOf(fuelCode),
-    dutyRub: null, dutySource: null, customs: null, priceRub: null, photos: page.photos, details: {}
+    dutyRub: null, dutySource: null, customs: null, priceRub: null, photos: page.photos, reserved: false, details: {}
   }, now));
 }
 
@@ -252,7 +252,7 @@ export async function fetchCarDetails(id: string, fetcher: Fetcher = fetch, now 
 const cacheOptions = { revalidate: CATALOG_REVALIDATE_SECONDS, tags: [CATALOG_CACHE_TAG] };
 const cachedCatalog = unstable_cache(
   async (serialized: string) => fetchLiveCatalog(JSON.parse(serialized) as CatalogFilters),
-  ["trust-encar-catalog-v7"], cacheOptions
+  ["trust-encar-catalog-v8"], cacheOptions
 );
 const cachedCount = unstable_cache(
   async (serialized: string) => fetchLiveCount(JSON.parse(serialized) as CatalogFilters),
@@ -278,7 +278,7 @@ export function getCatalogOptions(filters: Pick<CatalogFilters, "make" | "model"
 
 const cachedCar = unstable_cache(
   async (id: string) => fetchCarDetails(id),
-  ["trust-encar-car-v4"], { revalidate: 6 * 3_600, tags: [CATALOG_CACHE_TAG] }
+  ["trust-encar-car-v5"], { revalidate: 6 * 3_600, tags: [CATALOG_CACHE_TAG] }
 );
 
 export function getCarDetails(id: string) {

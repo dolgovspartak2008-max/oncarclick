@@ -111,7 +111,11 @@
       <ul class="carview__chips" id="carChips"></ul>
       <div class="pricebox" id="priceBox" hidden>
         <p class="pricebox__label">Цена под ключ</p>
-        <p class="pricebox__total" id="priceTotal"></p>
+        <div class="pricebox__head">
+          <p class="pricebox__total" id="priceTotal"></p>
+          <span class="reserved" id="priceReserved" hidden>Забронирован</span>
+        </div>
+        <p class="pricebox__reserved-note" id="priceReservedNote" hidden>Машину уже забронировал другой покупатель (внесён задаток). Если сделка сорвётся — она снова станет доступна; подберём похожую.</p>
         <dl class="pricebox__lines" id="priceLines"></dl>
         <p class="pricebox__note">Включены таможенные платежи, утильсбор и оформление. Точный расчёт подтвердим перед покупкой.</p>
       </div>

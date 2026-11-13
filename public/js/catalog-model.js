@@ -48,6 +48,8 @@
         return { label: String(item.label || ''), rub: Number(item.rub) || 0 };
       }) : [],
       moscow: raw.expenses && raw.expenses.moscowDeliveryRub ? Number(raw.expenses.moscowDeliveryRub) : null,
+      // машину уже забронировали (внесён задаток) — показываем рядом с ценой
+      reserved: raw.reserved === true,
       photo: safePhoto(Array.isArray(raw.photos) ? raw.photos[0] : '')
     };
   }

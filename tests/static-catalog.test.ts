@@ -13,7 +13,7 @@ describe("static catalog page", () => {
     const script = await readFile("public/js/catalog.js", "utf8");
     expect(script).toContain("fetch(");
     expect(script).toContain("car__photo");
-    expect(script).toContain("oncarclick-catalog-cache-v6");
+    expect(script).toContain("oncarclick-catalog-cache-v7");
   });
 });
 
