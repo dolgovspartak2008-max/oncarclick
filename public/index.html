@@ -14,12 +14,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=Montserrat:ital,wght@0,700;0,800;1,800;1,900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<script>/* Интро: решаем до отрисовки, чтобы сайт не мелькнул перед видео */(function(){try{var n=navigator,c=n.connection;if(sessionStorage.getItem("occ-intro")||location.hash||/bot|crawl|spider|slurp|yandex|lighthouse/i.test(n.userAgent)||matchMedia("(prefers-reduced-motion: reduce)").matches||(c&&c.saveData))return;document.documentElement.classList.add("has-intro")}catch(e){}})()</script>
 <script src="js/main.js" defer></script>
 <script src="js/favorites.js" defer></script>
 <script src="js/home.js" defer></script>
 <script src="js/contacts.js" defer></script>
 </head>
 <body id="top">
+<div class="intro" id="intro" aria-hidden="true">
+  <video class="intro__video" muted playsinline preload="auto" disablepictureinpicture disableremoteplayback></video>
+  <button class="intro__skip" type="button" tabindex="-1">Пропустить<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+</div>
+<script src="js/intro.js"></script>
 <header class="header">
   <div class="container header__inner">
     <a class="logo" href="#home" aria-label="OnCarClick — на главную">

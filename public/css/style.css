@@ -1246,3 +1246,34 @@ body:has(.catpage) .header { position: relative; }
   #contacts.section { padding-top: 0; }
   #contacts .page-head { padding-top: 28px; }
 }
+/* ---------- Видео-интро на главной ---------- */
+.intro { display: none; }
+.has-intro, .has-intro body { overflow: hidden; }
+.has-intro .intro, .intro-reveal .intro {
+  display: block; position: fixed; inset: 0; z-index: 1000;
+  background: #000; overflow: hidden;
+  transition: opacity .8s var(--ease-soft), visibility 0s linear .8s;
+}
+.intro__video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  opacity: 0; transition: opacity .5s ease, transform .9s var(--ease-soft);
+}
+.intro.is-playing .intro__video { opacity: 1; }
+.intro.is-out { opacity: 0; visibility: hidden; pointer-events: none; }
+.intro.is-out .intro__video { transform: scale(1.06); }
+.intro__skip {
+  position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom));
+  display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 12px 0 16px;
+  border-radius: 999px; border: 1px solid rgba(255,255,255,.22);
+  background: rgba(8,9,12,.45); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  color: rgba(255,255,255,.85); font-family: var(--font-tech); font-weight: 600; font-size: 14px; letter-spacing: .03em;
+  opacity: 0; transform: translateY(6px); transition: opacity .4s ease, transform .4s ease, background .2s ease;
+}
+.intro__skip svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.intro__skip.is-shown { opacity: 1; transform: none; }
+@media (hover: hover) { .intro__skip:hover { background: rgba(227,18,31,.75); border-color: transparent; color: #fff; } }
+@media (min-width: 900px) { .intro__skip { right: 32px; bottom: 32px; min-height: 44px; font-size: 15px; } }
+/* сайт мягко «проявляется» под уходящим видео */
+.intro-reveal main, .intro-reveal .header { animation: introReveal .9s var(--ease-soft) both; }
+@keyframes introReveal { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
