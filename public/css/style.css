@@ -1243,4 +1243,6 @@ body:has(.catpage) .header { position: relative; }
   #reviews.section { padding-bottom: 32px; }
   #faq.section { padding-top: 0; padding-bottom: 16px; }
   #faq .page-head { padding-top: 16px; padding-bottom: 24px; }
+  #contacts.section { padding-top: 0; }
+  #contacts .page-head { padding-top: 28px; }
 }
