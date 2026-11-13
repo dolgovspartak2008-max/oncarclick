@@ -7,7 +7,7 @@ vi.mock("./db", () => ({ rpc, select: vi.fn().mockResolvedValue([]) }));
 vi.mock("./telegram", () => ({ tg, esc: (v: unknown) => String(v ?? "") }));
 vi.mock("./rate", () => ({ getOurKrwRate: vi.fn(), getSourceKrwRate: vi.fn(), SETTINGS_TAG: "settings" }));
 
-import { handleUpdate, parseCountry, parseId, parseRating } from "./bot";
+import { handleUpdate, looksLikeRate, parseCountry, parseId, parseRateInput, parseRating } from "./bot";
 
 const ADMIN = 111;
 const STRANGER = 222;
@@ -110,5 +110,32 @@ describe("callback-данные", () => {
     expect(state).toEqual({ step: "rating", draft: { name: "А" } });
     await handleUpdate(callback(ADMIN, privateChat, "r:4"));
     expect(state).toMatchObject({ step: "body", draft: { rating: 4 } });
+  });
+});
+
+describe("курс воны", () => {
+  test("понимает «1000 вон = 64 рубля» и короткие варианты", () => {
+    expect(parseRateInput("1000 вон = 64 рубля")).toBe(64);
+    expect(parseRateInput("1 000 ₩ — 64,5 ₽")).toBe(64.5);
+    expect(parseRateInput("1000=64")).toBe(64);
+    expect(parseRateInput("64 руб за 1000 вон")).toBe(64);
+    expect(parseRateInput("10 000 вон = 641 рубль")).toBe(64.1);
+    expect(parseRateInput("64,5")).toBe(64.5);
+  });
+
+  test("бессмыслица и опечатки отклоняются", () => {
+    for (const bad of ["", "abc", "1000 вон = 6400 рублей", "1 2 3", "5"]) expect(parseRateInput(bad)).toBeNull();
+  });
+
+  test("курс из меню без кнопки сохраняется", async () => {
+    expect(looksLikeRate("1000 вон = 64 рубля")).toBe(true);
+    expect(looksLikeRate("Алексей")).toBe(false);
+    await handleUpdate(message(ADMIN, { id: ADMIN, type: "private" }, "1000 вон = 64 рубля"));
+    expect(calls("bot_set_setting")).toEqual([["bot_set_setting", { p_key: "krw_rate", p_value: { perThousand: 64 } }]]);
+  });
+
+  test("посторонний не может поменять курс", async () => {
+    await handleUpdate(message(STRANGER, { id: STRANGER, type: "private" }, "1000 вон = 64 рубля"));
+    expect(calls("bot_set_setting")).toHaveLength(0);
   });
 });

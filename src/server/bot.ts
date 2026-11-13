@@ -42,6 +42,29 @@ export const parseId = (value: string) => {
   return Number.isSafeInteger(id) ? id : null;
 };
 
+/**
+ * Курс из сообщения администратора → рублей за 1 000 ₩. Понимает:
+ * «1000 вон = 64 рубля», «1 000 ₩ — 64,5 ₽», «1000=64», «64 руб за 1000 вон», «64,5».
+ * Если чисел два — большее считается суммой в вонах, меньшее — в рублях (вона всегда «дешевле» рубля).
+ */
+export const RATE_MIN = 20;
+export const RATE_MAX = 150;
+export function parseRateInput(text: string): number | null {
+  const numbers = (text.match(/\d{1,3}(?:[ \u00a0]\d{3}(?!\d))+(?:[.,]\d+)?|\d+(?:[.,]\d+)?/g) ?? [])
+    .map((n) => Number(n.replace(/[ \u00a0]/g, "").replace(",", ".")))
+    .filter((n) => Number.isFinite(n) && n > 0);
+  let perThousand: number;
+  if (numbers.length === 1) perThousand = numbers[0];
+  else if (numbers.length === 2) {
+    const krw = Math.max(...numbers), rub = Math.min(...numbers);
+    perThousand = (rub / krw) * 1_000;
+  } else return null;
+  perThousand = Math.round(perThousand * 100) / 100;
+  return perThousand >= RATE_MIN && perThousand <= RATE_MAX ? perThousand : null;
+}
+/** Похоже ли сообщение на курс («… вон … руб …»), чтобы принимать его прямо из меню, без кнопки. */
+export const looksLikeRate = (text: string) => /(вон|₩|krw|won)/i.test(text) && /(руб|₽|rub|=)/i.test(text);
+
 const STEPS: Array<{ step: keyof Draft; ask: string; skip?: boolean }> = [
   { step: "name", ask: "Как зовут клиента? (например: <b>Алексей</b>)" },
   { step: "city", ask: "Город клиента?", skip: true },
@@ -101,8 +124,10 @@ async function showRate(chat: number) {
     "<b>Курс воны для цен в каталоге</b>", "",
     `Курс источника: ${source ? `<b>${fmt(source)} ₽</b> за 1 000 ₩` : "не удалось узнать"}`,
     `Ваш курс: ${ours ? `<b>${fmt(ours)} ₽</b> за 1 000 ₩` : "не задан — цены считаются по курсу источника"}`, "",
-    "Отправьте новый курс числом в рублях за 1 000 ₩, например <code>64,5</code>.",
-    "Цена машины в Корее пересчитается по вашему курсу, утильсбор не меняется."
+    "Пришлите новый курс в таком виде:",
+    "<code>1000 вон = 64 рубля</code>",
+    "(можно короче: <code>1000=64</code> или просто <code>64</code>)", "",
+    "Цена машины в Корее пересчитается по вашему курсу, пошлина и утильсбор не меняются."
   ].join("\n");
   await setState(chat, { step: "rate" });
   return send(chat, text, ours ? inline([[{ text: "↩️ Вернуть курс источника", data: "rate:reset" }]]) : CANCEL);
@@ -113,7 +138,8 @@ const HELP = [
   "📨 Присылает сюда все заявки с сайта.",
   `${BTN.review} — пошагово добавить отзыв, он сразу появится на главной.`,
   `${BTN.reviews} — посмотреть и удалить отзывы.`,
-  `${BTN.rate} — задать курс воны для цен в каталоге.`, "",
+  `${BTN.rate} — задать курс воны для цен в каталоге.`,
+  "Курс можно прислать и без кнопки: <code>1000 вон = 64 рубля</code>", "",
   "Отменить любое действие — /cancel"
 ].join("\n");
 
@@ -179,13 +205,16 @@ async function handleMessage(m: Message) {
   if (text === BTN.rate || text === "/rate") return showRate(chat);
 
   const state = await getState(chat);
-  if (state.step === "rate") {
-    const value = Number(text.replace(",", ".").replace(/[^\d.]/g, ""));
-    if (!(value > 1 && value < 1_000)) return send(chat, "Не понял число. Пример: <code>64,5</code> — это 64,5 ₽ за 1 000 ₩.");
+  // Курс принимаем после кнопки «Курс воны» или сразу из меню, если сообщение похоже на «1000 вон = 64 рубля»
+  if (state.step === "rate" || (!state.step && looksLikeRate(text))) {
+    const value = parseRateInput(text);
+    if (value === null) {
+      return send(chat, `Не понял курс. Пришлите так: <code>1000 вон = 64 рубля</code>\n(допустимо от ${RATE_MIN} до ${RATE_MAX} ₽ за 1 000 ₩)`);
+    }
     await rpc("bot_set_setting", { p_key: "krw_rate", p_value: { perThousand: value } });
     revalidateTag(SETTINGS_TAG, "max");
     await setState(chat, {});
-    return send(chat, `✅ Курс обновлён: <b>${fmt(value)} ₽</b> за 1 000 ₩. Цены в каталоге пересчитаются в течение 5 минут.`, MENU);
+    return send(chat, `✅ Курс обновлён: <b>1 000 ₩ = ${fmt(value)} ₽</b>.\nЦены в каталоге пересчитаются в течение 5 минут.`, MENU);
   }
   if (state.step === "photo") {
     const photo = m.photo?.length ? m.photo.reduce((a, b) => (b.width > a.width ? b : a)) : null;

@@ -50,7 +50,7 @@ describe("GET /api/internal/sync", () => {
     vi.stubEnv("CRON_SECRET", "secret");
     const response = await call("Bearer secret");
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true, received: 2, total: 2 });
+    expect(await response.json()).toEqual({ ok: true, received: 2, total: 2, webhook: "skipped" });
   });
 
   test("ошибка синхронизации не раскрывает подробности", async () => {

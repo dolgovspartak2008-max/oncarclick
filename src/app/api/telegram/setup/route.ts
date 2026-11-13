@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { tg } from "@/server/telegram";
 import { safeEqual } from "@/server/secure";
-import { siteOrigin } from "@/server/site";
+import { setWebhook, webhookUrl } from "@/server/webhook";
 
 /** Однократная настройка: адрес вебхука и меню команд бота.
     Вызов: POST с заголовком x-setup-key = TELEGRAM_SETUP_SECRET. */
@@ -10,15 +10,12 @@ export async function POST(request: NextRequest) {
   if (!setupSecret || !safeEqual(request.headers.get("x-setup-key"), setupSecret)) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
-  const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
-  const origin = siteOrigin();
-  if (!webhookSecret || !origin) {
+  if (!process.env.TELEGRAM_WEBHOOK_SECRET || !webhookUrl()) {
     console.error("telegram setup: не задан TELEGRAM_WEBHOOK_SECRET или SITE_URL");
     return NextResponse.json({ ok: false }, { status: 500 });
   }
   try {
-    const url = `${origin}/api/telegram`;
-    await tg("setWebhook", { url, secret_token: webhookSecret, allowed_updates: ["message", "callback_query"], drop_pending_updates: true });
+    const url = await setWebhook(true);
     await tg("setMyCommands", { commands: [
       { command: "menu", description: "Главное меню" },
       { command: "review", description: "Добавить отзыв на сайт" },
