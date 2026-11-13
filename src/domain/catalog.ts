@@ -78,11 +78,11 @@ export function inBudget(priceRub: number | null, filters: Pick<CatalogFilters, 
 
 /**
  * Источник фильтрует по своей цене «до Владивостока», а наша итоговая ниже: его расходы
- * (~350–400 тыс. ₽) больше наших (60 тыс. ₽ до 3 лет, 230 тыс. ₽ от 3 лет), а для машин до 3 лет пошлина у нас −40 %.
- * Поэтому цена источника ≥ нашей + ~100 тыс. ₽, но может быть заметно выше для молодых машин.
+ * (~350–400 тыс. ₽) больше или около наших (310 тыс. ₽ до 3 лет, 80 тыс. ₽ от 3 лет), а для машин до 3 лет пошлина у нас −40 %.
+ * Для молодых машин запас по расходам почти нулевой, поэтому нижнюю границу у источника не поднимаем.
  * У источника просим такое окно, а точный отбор делаем по нашей цене.
  */
-export const SOURCE_PRICE_MIN_GAP_RUB = 100_000;
+export const SOURCE_PRICE_MIN_GAP_RUB = 0;
 export function sourcePriceWindow(filters: Pick<CatalogFilters, "priceFrom" | "priceTo">) {
   return {
     from: filters.priceFrom ? filters.priceFrom + SOURCE_PRICE_MIN_GAP_RUB : undefined,

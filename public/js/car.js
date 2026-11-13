@@ -148,6 +148,8 @@
         (car.dutyStatus === 'approximate' ? line('Расчёт', 'ориентировочный') : '') +
         (car.optional || []).map(function (item) { return line(item.label + ' (по желанию, не входит в цену)', rub(item.rub)); }).join('') +
         (car.moscow ? line('Доставка до Москвы (не входит в цену)', '≈ ' + rub(car.moscow)) : '');
+      $('priceRoute').textContent = car.expensesNote || '';
+      $('priceRoute').hidden = !car.expensesNote;
     }
     paintFav();
   }
@@ -231,7 +233,7 @@
     const raw = preview.make ? preview : { id: preview.id, make: preview.name, model: '', trim: preview.trim, generation: preview.generation, year: preview.year,
       mileageKm: preview.km, engineCc: preview.engine, fuel: preview.fuel, priceRub: preview.price, priceBaseRub: preview.basePrice, reserved: preview.reserved,
       recyclingFeeRub: preview.fee, dutyRub: preview.duty, carPriceKoreaRub: preview.koreaPrice,
-      expenses: preview.expenses ? { items: preview.expenses, optionalItems: preview.optional || [], moscowDeliveryRub: preview.moscow } : null,
+      expenses: preview.expenses ? { items: preview.expenses, optionalItems: preview.optional || [], note: preview.expensesNote || null, moscowDeliveryRub: preview.moscow } : null,
       customs: preview.dutyStatus ? { officialDutyRub: preview.dutyOfficial, commercialAdjustmentRub: preview.dutyAdjustment, calculationStatus: preview.dutyStatus } : null,
       photos: preview.photo ? [preview.photo] : [] };
     renderMain(raw);

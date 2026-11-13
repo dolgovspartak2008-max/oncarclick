@@ -36,29 +36,32 @@ describe("итоговая цена: без двойного начислени�
     const car = priced(GRANDEUR);
     expect(car.sourcePriceRub).toBe(5_900_536);
     expect(car.sourceBaseRub).toBe(5_900_536 - 1_385_000 - 3_660_000);
-    // машина в Корее + наши расходы для машин от 3 лет: только доставка до Москвы 230 000
+    // машина в Корее + наши расходы для машин от 3 лет: только расходы по Корее и доставка до Владивостока 80 000
     expect(car.expenses?.group).toBe("3-plus");
-    expect(car.expenses?.totalRub).toBe(230_000);
+    expect(car.expenses?.totalRub).toBe(80_000);
+    expect(car.expenses?.note).toBeNull();
     expect(car.expenses?.moscowDeliveryRub).toBeNull();
     expect(car.expenses?.optionalItems).toEqual([]);
-    expect(car.priceBaseRub).toBe(461_068 + 230_000);
+    expect(car.priceBaseRub).toBe(461_068 + 80_000);
     expect(car.recyclingFeeRub).toBe(3_660_000); // таблица ON Car Click совпала с источником
     expect(car.customs?.ageCategory).toBe("over-5");
     expect(car.customs?.officialDutyEur).toBe(2_999 * 5);
     expect(car.dutyRub).toBeCloseTo(14_995 * 92.39, 2);
-    expect(car.priceRub).toBe(Math.round(461_068 + 230_000 + 3_660_000 + 14_995 * 92.39));
+    expect(car.priceRub).toBe(Math.round(461_068 + 80_000 + 3_660_000 + 14_995 * 92.39));
   });
 
-  test("машина младше 3 лет: в цене только доставка до Москвы 60 000", () => {
+  test("машина младше 3 лет: Корея→Владивосток 80 000 + Владивосток→Москва 230 000 и памятка про Беларусь", () => {
     const car = priced(BMW_X3_YOUNG);
     expect(car.expenses?.group).toBe("under-3");
     expect(car.expenses?.items.map((item) => [item.label, item.rub])).toEqual([
-      ["Доставка до Москвы", 60_000]]);
-    expect(car.expenses?.totalRub).toBe(60_000);
+      ["Расходы по Корее и доставка до Владивостока", 80_000],
+      ["Доставка из Владивостока до Москвы", 230_000]]);
+    expect(car.expenses?.totalRub).toBe(310_000);
+    expect(car.expenses?.note).toMatch(/Беларус/);
     expect(car.expenses?.optionalItems).toEqual([]);
     expect(car.expenses?.moscowDeliveryRub).toBeNull();
-    expect(car.priceBaseRub).toBe(5_463_340 + 60_000);
-    expect(car.priceRub).toBe(Math.round(5_463_340 + 60_000 + car.recyclingFeeRub! + car.dutyRub!));
+    expect(car.priceBaseRub).toBe(5_463_340 + 310_000);
+    expect(car.priceRub).toBe(Math.round(5_463_340 + 310_000 + car.recyclingFeeRub! + car.dutyRub!));
   });
 
   test("без цены машины в Корее — запасная база источника", () => {
@@ -108,7 +111,7 @@ describe("итоговая цена: без двойного начислени�
     const car = priceWithCustoms(normalizeTrustEncarRecords([GRANDEUR], NOW)[0], null, NOW);
     expect(car.customs?.calculationStatus).toBe("needs_review");
     expect(car.dutyRub).toBe(1_385_000);
-    expect(car.priceRub).toBe(461_068 + 230_000 + 3_660_000 + 1_385_000);
+    expect(car.priceRub).toBe(461_068 + 80_000 + 3_660_000 + 1_385_000);
   });
 
   test("наш курс воны меняет только цену машины в Корее", async () => {

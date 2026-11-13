@@ -47,6 +47,7 @@
       optional: raw.expenses && Array.isArray(raw.expenses.optionalItems) ? raw.expenses.optionalItems.map(function (item) {
         return { label: String(item.label || ''), rub: Number(item.rub) || 0 };
       }) : [],
+      expensesNote: raw.expenses && raw.expenses.note ? String(raw.expenses.note) : '',
       moscow: raw.expenses && raw.expenses.moscowDeliveryRub ? Number(raw.expenses.moscowDeliveryRub) : null,
       // машину уже забронировали (внесён задаток) — показываем рядом с ценой
       reserved: raw.reserved === true,
