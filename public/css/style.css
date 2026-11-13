@@ -1252,16 +1252,17 @@ body:has(.catpage) .header { position: relative; }
 .has-intro .intro, .intro-reveal .intro {
   display: block; position: fixed; inset: 0; z-index: 1000;
   background: #000; overflow: hidden;
-  transition: opacity .8s var(--ease-soft), visibility 0s linear .8s;
+  transition: opacity 1.6s cubic-bezier(.45, 0, .25, 1), visibility 0s linear 1.6s;
 }
 .intro__video {
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; object-position: center;
-  opacity: 0; transition: opacity .5s ease, transform .9s var(--ease-soft);
+  opacity: 0; transition: opacity .5s ease, transform 2s cubic-bezier(.25, .1, .25, 1);
 }
 .intro.is-playing .intro__video { opacity: 1; }
 .intro.is-out { opacity: 0; visibility: hidden; pointer-events: none; }
-.intro.is-out .intro__video { transform: scale(1.06); }
+.intro.is-out .intro__video { transform: scale(1.04); }
+.intro.is-out .intro__skip { opacity: 0; transition-duration: .3s; }
 .intro__skip {
   position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom));
   display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 12px 0 16px;
@@ -1275,5 +1276,6 @@ body:has(.catpage) .header { position: relative; }
 @media (hover: hover) { .intro__skip:hover { background: rgba(227,18,31,.75); border-color: transparent; color: #fff; } }
 @media (min-width: 900px) { .intro__skip { right: 32px; bottom: 32px; min-height: 44px; font-size: 15px; } }
 /* сайт мягко «проявляется» под уходящим видео */
-.intro-reveal main, .intro-reveal .header { animation: introReveal .9s var(--ease-soft) both; }
-@keyframes introReveal { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+/* сайт мягко проявляется, пока видео растворяется (перекрёстный переход) */
+.intro-reveal main, .intro-reveal .header { animation: introReveal 1.7s cubic-bezier(.33, 0, .2, 1) .15s both; }
+@keyframes introReveal { from { opacity: 0; transform: translateY(10px) scale(.995); } to { opacity: 1; transform: none; } }

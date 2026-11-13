@@ -28,7 +28,7 @@
       try { video.pause(); video.removeAttribute("src"); video.load(); } catch (e) {}
       box.remove();
       root.classList.remove("intro-reveal");
-    }, 900);
+    }, 1900); // дождались конца плавного перехода
   }
   function onKey(e) { if (e.key === "Escape" || e.key === "Enter" || e.key === " ") finish(); }
 
@@ -41,6 +41,10 @@
     clearTimeout(timers[0]);
     timers.push(setTimeout(function () { skip.classList.add("is-shown"); }, 900));
   }, { once: true });
+  // переход начинается за 0,9 с до конца ролика — видео ещё играет, а сайт уже проявляется
+  video.addEventListener("timeupdate", function () {
+    if (video.duration && video.duration - video.currentTime <= 0.9) finish();
+  });
   video.addEventListener("ended", finish);
   video.addEventListener("error", finish);
   skip.addEventListener("click", finish);
