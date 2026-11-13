@@ -1237,3 +1237,10 @@ body:has(.catpage) .header { position: relative; }
 .review__photo { aspect-ratio: 16 / 10; border: 1px solid var(--line); background: radial-gradient(60% 55% at 50% 65%, rgba(227,18,31,.14), transparent 70%), #101116; }
 .dd__menu { min-width: 250px; } .dd__menu button { white-space: nowrap; }
 #about .page-lead { max-width: 720px; }
+
+/* Компьютер: «Частые вопросы» ближе к соседним блокам, без больших пустот сверху и снизу */
+@media (min-width: 768px) {
+  #reviews.section { padding-bottom: 32px; }
+  #faq.section { padding-top: 0; padding-bottom: 16px; }
+  #faq .page-head { padding-top: 16px; padding-bottom: 24px; }
+}
