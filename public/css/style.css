@@ -1197,8 +1197,10 @@ body:has(.catpage, .favpage, .carpage) .geo__line { stroke: rgba(255,90,90,.28);
 .site-map::after { z-index: 2; }
 /* карточки на главной плотнее, чтобы карта под ними не просвечивала */
 .card { background: linear-gradient(180deg, #15171c, #111317); }
-/* В каталоге шапка не едет за прокруткой — остаётся наверху страницы */
-body:has(.catpage) .header { position: relative; }
+/* Шапка не едет за прокруткой — на всех страницах остаётся наверху страницы */
+.header { position: relative; }
+.section { scroll-margin-top: 0; }
+.catalog__toolbar { scroll-margin-top: 14px; }
 /* Карта чуть светлее — едва проступает */
 .site-map .geo-bg__map { opacity: .42; }
 .site-map::before { background: rgba(8,9,12,.25); }

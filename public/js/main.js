@@ -89,7 +89,12 @@
 
   // ---- Медленная плавная прокрутка к разделам ----
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const headerH = () => (document.querySelector('.header') || { offsetHeight: 0 }).offsetHeight;
+  const headerH = () => {
+    const h = document.querySelector('.header');
+    if (!h) return 0;
+    const pos = getComputedStyle(h).position; // шапка не закреплена — отступ под неё не нужен
+    return pos === 'sticky' || pos === 'fixed' ? h.offsetHeight : 0;
+  };
   let scrollAnim = 0;
   window.smoothTo = function (target) {
     const el = typeof target === 'string' ? document.querySelector(target) : target;
