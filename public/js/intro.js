@@ -47,7 +47,7 @@
   document.addEventListener("keydown", onKey);
 
   timers.push(setTimeout(function () { if (video.paused) finish(); }, 3000)); // не дождались старта
-  timers.push(setTimeout(finish, 12000)); // страховка
+  timers.push(setTimeout(finish, 11000)); // страховка
 
   var p = video.play();
   if (p && p.catch) p.catch(finish); // автозапуск запрещён (энергосбережение и т.п.)
