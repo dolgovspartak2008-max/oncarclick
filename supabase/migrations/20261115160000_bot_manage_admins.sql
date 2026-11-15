@@ -1,0 +1,2 @@
+-- Управление администраторами из бота: список, добавление по Telegram ID, удаление (кроме последнего).
+-- Применено через Supabase: bot_list_admins, bot_add_admin(returns boolean), bot_remove_admin(returns boolean).

@@ -15,10 +15,10 @@ type CallbackQuery = { id: string; from: Chat; message?: Message; data?: string 
 export type Update = { update_id: number; message?: Message; callback_query?: CallbackQuery };
 
 type Draft = { name?: string; city?: string; car?: string; country?: string; rating?: number; body?: string; photo?: string };
-type State = { step?: string; draft?: Draft };
+type State = { step?: string; draft?: Draft; adminId?: number };
 
-const BTN = { review: "📝 Добавить отзыв", reviews: "🗂 Отзывы", rate: "💱 Курс воны", help: "ℹ️ Помощь", cancel: "✖️ Отмена" };
-const MENU = { keyboard: [[{ text: BTN.review }, { text: BTN.reviews }], [{ text: BTN.rate }, { text: BTN.help }]], resize_keyboard: true, is_persistent: true };
+const BTN = { review: "📝 Добавить отзыв", reviews: "🗂 Отзывы", rate: "💱 Курс воны", help: "ℹ️ Помощь", admins: "👥 Админы", cancel: "✖️ Отмена" };
+const MENU = { keyboard: [[{ text: BTN.review }, { text: BTN.reviews }], [{ text: BTN.rate }, { text: BTN.admins }], [{ text: BTN.help }]], resize_keyboard: true, is_persistent: true };
 const CANCEL = { keyboard: [[{ text: BTN.cancel }]], resize_keyboard: true };
 const inline = (rows: Array<Array<{ text: string; data: string }>>) => ({
   inline_keyboard: rows.map((row) => row.map((b) => ({ text: b.text, callback_data: b.data })))
@@ -133,15 +133,41 @@ async function showRate(chat: number) {
   return send(chat, text, ours ? inline([[{ text: "↩️ Вернуть курс источника", data: "rate:reset" }]]) : CANCEL);
 }
 
+/** Telegram ID из сообщения: «123456789», «ID: 123456789», «/admin 123456789». */
+export const parseTelegramId = (text: string) => {
+  const match = text.match(/(?:^|\D)(\d{5,15})(?!\d)/);
+  return match ? parseId(match[1]) : null;
+};
+
+type AdminRow = { chat_id: number; name: string | null };
+async function showAdmins(chat: number) {
+  const admins = await rpc<AdminRow[]>("bot_list_admins");
+  const lines = admins.map((a, i) => `${i + 1}. <code>${a.chat_id}</code>${a.name ? ` — ${esc(a.name)}` : ""}${Number(a.chat_id) === chat ? " (вы)" : ""}`);
+  const rows = admins
+    .filter((a) => Number(a.chat_id) !== chat)
+    .map((a) => [{ text: `🗑 Убрать ${a.name ?? a.chat_id}`, data: `adm:del:${a.chat_id}` }]);
+  rows.unshift([{ text: "➕ Добавить администратора", data: "adm:add" }]);
+  await setState(chat, {});
+  return send(chat, [`<b>Администраторы бота (${admins.length}):</b>`, "", ...lines, "",
+    "Администраторы получают заявки с сайта и могут менять отзывы и курс."].join("\n"), inline(rows));
+}
+
 const HELP = [
   "<b>Что умеет бот</b>", "",
   "📨 Присылает сюда все заявки с сайта.",
   `${BTN.review} — пошагово добавить отзыв, он сразу появится на главной.`,
   `${BTN.reviews} — посмотреть и удалить отзывы.`,
   `${BTN.rate} — задать курс воны для цен в каталоге.`,
+  `${BTN.admins} — добавить или убрать администратора по Telegram ID.`,
   "Курс можно прислать и без кнопки: <code>1000 вон = 64 рубля</code>", "",
   "Отменить любое действие — /cancel"
 ].join("\n");
+
+async function confirmAdmin(chat: number, id: number, name?: string) {
+  await setState(chat, { step: "admin_confirm", adminId: id, draft: name ? { name } : {} });
+  return send(chat, `Добавить администратора <code>${id}</code>${name ? ` (${esc(name)})` : ""}?\nОн будет получать заявки и сможет менять отзывы, курс и список администраторов.`,
+    inline([[{ text: "✅ Добавить", data: "adm:ok" }, { text: "✖️ Отмена", data: "cancel" }]]));
+}
 
 async function handleCallback(q: CallbackQuery) {
   // Только кнопки из личного чата с ботом; в личном чате chat.id совпадает с ID пользователя
@@ -160,6 +186,29 @@ async function handleCallback(q: CallbackQuery) {
     revalidateTag(REVIEWS_TAG, "max");
     return send(chat, ok ? `Отзыв #${id} удалён с сайта.` : `Отзыв #${id} уже удалён.`, MENU);
   }
+  if (data === "adm:add") {
+    await setState(chat, { step: "admin_id" });
+    return send(chat, [
+      "Пришлите <b>Telegram ID</b> нового администратора — только цифры, например <code>123456789</code>.", "",
+      "Узнать свой ID человек может у бота @userinfobot. Затем пусть напишет этому боту /start."
+    ].join("\n"), CANCEL);
+  }
+  if (data === "adm:ok" && state.step === "admin_confirm" && state.adminId) {
+    const added = await rpc<boolean>("bot_add_admin", { p_chat: state.adminId, p_name: state.draft?.name ?? null });
+    await setState(chat, {});
+    await send(chat, added ? `✅ Администратор <code>${state.adminId}</code> добавлен.` : `ℹ️ <code>${state.adminId}</code> уже администратор.`, MENU);
+    if (added) await send(state.adminId, "Вам выдан доступ к служебному боту OnCarClick. Нажмите /start.").catch(() => {});
+    return;
+  }
+  if (data.startsWith("adm:del:")) {
+    const id = parseId(data.slice(8));
+    if (id === null) return;
+    if (id === q.from.id) return send(chat, "Себя убрать нельзя — попросите другого администратора.", MENU);
+    const removed = await rpc<boolean>("bot_remove_admin", { p_chat: id });
+    await send(chat, removed ? `Администратор <code>${id}</code> убран.` : "Не удалось: этого администратора уже нет или он последний.", MENU);
+    return showAdmins(chat);
+  }
+  if (data === "adm:noname" && state.step === "admin_name" && state.adminId) return confirmAdmin(chat, state.adminId);
   if (data === "rate:reset") {
     await rpc("bot_set_setting", { p_key: "krw_rate", p_value: null });
     revalidateTag(SETTINGS_TAG, "max");
@@ -203,6 +252,7 @@ async function handleMessage(m: Message) {
   }
   if (text === BTN.reviews || text === "/reviews") { await setState(chat, {}); return showReviews(chat); }
   if (text === BTN.rate || text === "/rate") return showRate(chat);
+  if (text === BTN.admins || text === "/admins") return showAdmins(chat);
 
   const state = await getState(chat);
   // Курс принимаем после кнопки «Курс воны» или сразу из меню, если сообщение похоже на «1000 вон = 64 рубля»
@@ -216,6 +266,16 @@ async function handleMessage(m: Message) {
     await setState(chat, {});
     return send(chat, `✅ Курс обновлён: <b>1 000 ₩ = ${fmt(value)} ₽</b>.\nЦены в каталоге пересчитаются в течение 5 минут.`, MENU);
   }
+  if (state.step === "admin_id" || state.step === "admin_name") {
+    if (state.step === "admin_id") {
+      const id = parseTelegramId(text);
+      if (id === null) return send(chat, "Это не похоже на Telegram ID. Пришлите только цифры, например <code>123456789</code>, или /cancel.");
+      await setState(chat, { step: "admin_name", adminId: id });
+      return send(chat, `ID <code>${id}</code>. Как подписать администратора? (например: <b>Евгений</b>)`, inline([[{ text: "Без имени →", data: "adm:noname" }]]));
+    }
+    if (!text) return send(chat, "Пришлите имя текстом или нажмите «Без имени».");
+    return confirmAdmin(chat, state.adminId!, text.slice(0, 80));
+  }
   if (state.step === "photo") {
     const photo = m.photo?.length ? m.photo.reduce((a, b) => (b.width > a.width ? b : a)) : null;
     if (!photo) return send(chat, "Пришлите именно фотографию (не файлом) или нажмите «Пропустить».");
@@ -226,7 +286,7 @@ async function handleMessage(m: Message) {
     const limit = state.step === "body" ? 1_500 : 80;
     return nextStep(chat, { ...state, draft: { ...state.draft, [state.step]: text.slice(0, limit) } });
   }
-  if (state.step === "country" || state.step === "rating" || state.step === "confirm") return send(chat, "Выберите вариант кнопкой выше или /cancel.");
+  if (state.step === "country" || state.step === "rating" || state.step === "confirm" || state.step === "admin_confirm") return send(chat, "Выберите вариант кнопкой выше или /cancel.");
   return send(chat, "Выберите действие в меню ниже.", MENU);
 }
 
