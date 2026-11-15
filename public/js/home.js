@@ -12,7 +12,7 @@
     const meta = [r.city, date].filter(Boolean).map(escHtml).join(' · ');
     const rating = Math.max(1, Math.min(5, Number(r.rating) || 5));
     return `<article class="card review">
-        <div class="review__photo">${r.photo ? `<img src="${escHtml(r.photo)}" alt="${escHtml(r.car || 'Автомобиль клиента')}" loading="lazy" decoding="async">` : '<span><svg class="icon" aria-hidden="true"><use href="#i-car"/></svg>OnCarClick</span>'}</div>
+        <div class="review__photo">${r.photo ? `<img class="review__bg" src="${escHtml(r.photo)}" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="review__img" src="${escHtml(r.photo)}" alt="${escHtml(r.car || 'Автомобиль клиента')}" loading="lazy" decoding="async">` : '<span><svg class="icon" aria-hidden="true"><use href="#i-car"/></svg>OnCarClick</span>'}</div>
         <div class="review__head">
           <span class="review__ava review__ava--letter">${escHtml(String(r.name || '?').trim().charAt(0).toUpperCase())}</span>
           <span class="review__who"><b>${escHtml(r.name)}</b><span>${meta}</span></span>
