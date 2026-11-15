@@ -18,6 +18,7 @@ export async function GET() {
     }));
     return NextResponse.json({ reviews }, { headers: { "Cache-Control": "public, max-age=60, stale-while-revalidate=600" } });
   } catch {
-    return NextResponse.json({ reviews: [] });
+    // Сбой базы не кешируем, иначе браузер минуту показывает пустой блок вместо отзывов
+    return NextResponse.json({ reviews: [] }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
 }

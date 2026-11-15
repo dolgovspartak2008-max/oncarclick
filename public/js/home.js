@@ -48,8 +48,10 @@
     paint();
   }
   if (track) {
-    fetch('/api/reviews', { headers: { Accept: 'application/json' } })
-      .then((response) => response.ok ? response.json() : { reviews: [] })
+    const load = (tries) => fetch('/api/reviews', { headers: { Accept: 'application/json' } })
+      .then((response) => { if (!response.ok) throw new Error(String(response.status)); return response.json(); })
+      .catch((error) => tries > 0 ? new Promise((r) => setTimeout(r, 1200)).then(() => load(tries - 1)) : Promise.reject(error));
+    load(2)
       .then((data) => { if (data.reviews && data.reviews.length) { track.innerHTML = data.reviews.map(reviewCard).join(''); addReadMore(); } })
       .catch(() => {})
       .finally(initSlider);
