@@ -1290,3 +1290,10 @@ body:has(.catpage, .favpage, .carpage) .geo__line { stroke: rgba(255,90,90,.28);
 
 /* Фото нельзя открыть, сохранить или перетащить в отдельную вкладку — только смотреть на странице */
 img { -webkit-user-drag: none; user-drag: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+
+/* Длинный отзыв сворачиваем до 5 строк — карточки одной высоты, без пустоты под коротким текстом */
+#revTrack { align-items: start; }
+.review__text { flex: none; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; line-clamp: 5; overflow: hidden; }
+.review__text.is-open { display: block; -webkit-line-clamp: unset; }
+.review__more { align-self: flex-start; margin-top: -6px; padding: 0; border: 0; background: none; color: var(--red-2); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.review__more:hover { text-decoration: underline; }

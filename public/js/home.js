@@ -22,6 +22,19 @@
         ${r.car || r.country ? `<div class="review__car"><svg class="icon" aria-hidden="true"><use href="#i-car"/></svg><span>${escHtml(r.car || '')}</span>${r.country ? `<span class="badge">${escHtml(r.country)}</span>` : ''}</div>` : ''}
       </article>`;
   }
+  // «Читать полностью» — только у отзывов, которые не влезли в 5 строк
+  function addReadMore() {
+    $$('.review__text', track).forEach((p) => {
+      if (p.scrollHeight - p.clientHeight < 4) return;
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'review__more'; btn.textContent = 'Читать полностью';
+      btn.addEventListener('click', () => {
+        const open = p.classList.toggle('is-open');
+        btn.textContent = open ? 'Свернуть' : 'Читать полностью';
+      });
+      p.after(btn);
+    });
+  }
   function initSlider() {
     const cards = $$('.review', track);
     dots.innerHTML = cards.map((_, i) => `<button type="button" aria-label="Отзыв ${i + 1}"></button>`).join('');
@@ -37,7 +50,7 @@
   if (track) {
     fetch('/api/reviews', { headers: { Accept: 'application/json' } })
       .then((response) => response.ok ? response.json() : { reviews: [] })
-      .then((data) => { if (data.reviews && data.reviews.length) track.innerHTML = data.reviews.map(reviewCard).join(''); })
+      .then((data) => { if (data.reviews && data.reviews.length) { track.innerHTML = data.reviews.map(reviewCard).join(''); addReadMore(); } })
       .catch(() => {})
       .finally(initSlider);
   }
