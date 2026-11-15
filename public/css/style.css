@@ -1297,3 +1297,6 @@ img { -webkit-user-drag: none; user-drag: none; -webkit-touch-callout: none; -we
 .review__text.is-open { display: block; -webkit-line-clamp: unset; }
 .review__more { align-self: flex-start; margin-top: -6px; padding: 0; border: 0; background: none; color: var(--red-2); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .review__more:hover { text-decoration: underline; }
+
+/* Фото в отзывах компактнее */
+.review__photo { aspect-ratio: 4 / 3; }

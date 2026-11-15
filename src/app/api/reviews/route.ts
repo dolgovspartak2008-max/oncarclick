@@ -8,7 +8,7 @@ type Row = { id: number; name: string; city: string | null; car: string | null; 
 export async function GET() {
   try {
     const rows = await select<Row[]>(
-      "reviews?select=id,name,city,car,country,rating,body,photo_file_id,photo_url,created_at&published=eq.true&order=created_at.desc&limit=30",
+      "reviews?select=id,name,city,car,country,rating,body,photo_file_id,photo_url,created_at&published=eq.true&order=position.asc.nullsfirst,created_at.desc&limit=30",
       [REVIEWS_TAG], 600
     );
     const reviews = rows.map((row) => ({
