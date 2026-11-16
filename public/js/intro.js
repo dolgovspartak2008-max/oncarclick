@@ -72,9 +72,9 @@
     clearTimeout(timers[0]);
     timers.push(setTimeout(function () { skip.classList.add("is-shown"); }, 900));
   }, { once: true });
-  // переход начинается за 0,9 с до конца ролика — видео ещё играет, а сайт уже проявляется
+  // ролик идёт все 7 секунд целиком; переход к сайту — в самом конце
   video.addEventListener("timeupdate", function () {
-    if (video.duration && video.duration - video.currentTime <= 0.9) finish();
+    if (video.duration && video.duration - video.currentTime <= 0.15) finish();
   });
   video.addEventListener("ended", finish);
   // если выбранный формат всё же не открылся — пробуем запасной H.264, и только потом сдаёмся
@@ -85,7 +85,7 @@
   document.addEventListener("keydown", onKey);
 
   timers.push(setTimeout(function () { if (video.paused) finish(); }, 4000)); // не дождались старта
-  timers.push(setTimeout(finish, 11000)); // страховка
+  timers.push(setTimeout(finish, 10000)); // страховка
 
   pick(0).then(start, function () { start(fallback); });
 })();

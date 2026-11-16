@@ -122,9 +122,6 @@
       el.textContent = values[key] || EMPTY[key];
       el.closest('.ftile').classList.toggle('is-set', Boolean(values[key]));
     });
-    $('[data-sheet="model"]', form).disabled = !draft.brand;
-    $('[data-sheet="generation"]', form).disabled = !draft.model;
-    $('[data-sheet="trim"]', form).disabled = !draft.model;
     resetBtn.hidden = !FIELDS.some(function (key) { return draft[key]; });
     showBtn.classList.toggle('is-dirty', !sameFilters(draft, applied));
   }
@@ -148,15 +145,29 @@
     sheetOk.textContent = result ? 'Применить · ' + countLabel(result) : 'Применить';
   }, function () { return Object.assign({}, draft, sheetState ? sheetState.pending : {}); });
 
-  function openSheet(field) {
-    lastFocus = document.activeElement;
-    sheetState = { field: field, pending: {} };
+  /* Модель зависит от марки, поколение и комплектация — от модели.
+     Если нажали на плитку, а «родитель» ещё не выбран, сначала открываем его,
+     и сразу после выбора шторка сама переходит к нужному списку. */
+  const PARENT = { model: 'brand', generation: 'model', trim: 'model' };
+  function firstMissing(field) {
+    let target = field;
+    while (PARENT[target] && !draft[PARENT[target]]) target = PARENT[target];
+    return target;
+  }
+
+  function openSheet(field, then) {
+    const wasOpen = Boolean(sheetState);
+    if (!wasOpen) lastFocus = document.activeElement;
+    sheetState = { field: field, pending: {}, then: then && then !== field ? then : null };
     sheetTitle.textContent = TITLES[field];
     sheetBody.replaceChildren();
+    sheetBody.scrollTop = 0;
     sheet.dataset.kind = field === 'year' || field === 'mileage' || field === 'price' ? field : 'list';
-    sheet.hidden = false;
-    window.lockPage(true);
-    requestAnimationFrame(function () { sheet.classList.add('is-open'); });
+    if (!wasOpen) {
+      sheet.hidden = false;
+      window.lockPage(true);
+      requestAnimationFrame(function () { sheet.classList.add('is-open'); });
+    }
     if (field === 'year') renderYear();
     else if (field === 'mileage') renderMileage();
     else if (field === 'price') renderPrice();
@@ -213,8 +224,11 @@
     const option = event.target.closest('[data-opt]');
     if (!option || !sheetState) return;
     const change = {}; change[sheetState.field] = option.dataset.opt;
+    const then = sheetState.then;
     setDraft(change);
-    closeSheet();
+    // выбрали марку, а хотели модель — сразу показываем модели этой марки
+    if (option.dataset.opt && then) openSheet(firstMissing(then), then);
+    else closeSheet();
   });
 
   /* Колёсики «от» и «до» для года */
@@ -373,7 +387,9 @@
 
   form.addEventListener('click', function (event) {
     const tile = event.target.closest('[data-sheet]');
-    if (tile && !tile.disabled) openSheet(tile.dataset.sheet);
+    if (!tile || tile.disabled) return;
+    const field = tile.dataset.sheet;
+    openSheet(firstMissing(field), field);
   });
 
   /* ---------- Применение фильтров и загрузка ---------- */
