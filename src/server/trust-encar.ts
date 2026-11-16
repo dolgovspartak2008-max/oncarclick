@@ -123,7 +123,7 @@ async function scanRecords(ctx: Context, filters: CatalogFilters) {
   return { records: first.concat(...rest), complete: pages * pageSize >= total };
 }
 
-type Resolved = { ctx: Context; effective: CatalogFilters; models: string[]; generations: TrustEncarGeneration[]; trimsFacet: string[]; empty: boolean };
+type Resolved = { ctx: Context; effective: CatalogFilters; models: string[]; generations: TrustEncarGeneration[]; trimsFacet: string[]; empty: boolean; facetsLoaded: boolean };
 
 async function resolve(filters: CatalogFilters, fetcher: Fetcher): Promise<Resolved> {
   const ctx = await openContext(filters, fetcher);
@@ -137,7 +137,8 @@ async function resolve(filters: CatalogFilters, fetcher: Fetcher): Promise<Resol
     models: readModels(facets),
     generations,
     trimsFacet: ctx.modelId ? parseTrustEncarTrimsFacet(facets) : [],
-    empty: range === null
+    empty: range === null,
+    facetsLoaded: facets != null
   };
 }
 
@@ -185,11 +186,13 @@ export async function fetchLiveCount(filters: CatalogFilters, fetcher: Fetcher =
 }
 
 export async function fetchLiveOptions(filters: CatalogFilters, fetcher: Fetcher = fetch): Promise<OptionsResult> {
-  const { ctx, effective, models, generations, trimsFacet, empty } = await resolve(filters, fetcher);
-  // Пустой ответ источника — это сбой, а не «нет моделей»: бросаем ошибку, чтобы пустой список
-  // не попал в кеш на сутки (раньше из-за этого у некоторых марок не открывался выбор модели).
+  const { ctx, effective, models, generations, trimsFacet, empty, facetsLoaded } = await resolve(filters, fetcher);
+  // Сбой источника не должен попасть в кеш на сутки — иначе список марки/модели «пропадает».
+  // Важно: когда модель уже выбрана, источник присылает только поколения и комплектации, без списка моделей.
   if (!ctx.bootstrap.makes.length) throw new Error("Trust Encar не отдал список марок");
-  if (filters.make && (!ctx.makeId || !models.length)) throw new Error("Trust Encar не отдал модели марки");
+  if (filters.make && (!ctx.makeId || !facetsLoaded)) throw new Error("Trust Encar не отдал варианты марки");
+  if (filters.make && !filters.model && !models.length) throw new Error("Trust Encar не отдал модели марки");
+  if (filters.model && !ctx.modelId) throw new Error("Trust Encar не распознал модель");
   const result = { makes: ctx.bootstrap.makes.map((item) => item.name), models, generations, trims: trimsFacet };
   if (!ctx.modelId || trimsFacet.length || empty) return result;
   // Комплектации собираем из реальных машин выбранной модели (и поколения).
@@ -264,7 +267,7 @@ const cachedCount = unstable_cache(
 );
 const cachedOptions = unstable_cache(
   async (serialized: string) => fetchLiveOptions(JSON.parse(serialized) as CatalogFilters),
-  ["trust-encar-options-v2"], cacheOptions
+  ["trust-encar-options-v3"], cacheOptions
 );
 
 export function getCatalog(filters: CatalogFilters) {
