@@ -1299,3 +1299,15 @@ img { -webkit-user-drag: none; user-drag: none; -webkit-touch-callout: none; -we
 .review__more { align-self: flex-start; margin-top: -6px; padding: 0; border: 0; background: none; color: var(--red-2); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .review__more:hover { text-decoration: underline; }
 
+
+/* Список в окне выбора: под последним пунктом нет линии — видно, что вариантов больше нет */
+.olist li:last-child .opt { border-bottom: 0; }
+.sheet[data-kind="list"] .sheet__body { padding-bottom: 16px; }
+
+/* Интро на весь экран, включая полосу под нижней панелью браузера (iPhone, Telegram):
+   слой выше видимой области, а сам сайт под видео скрыт, пока оно идёт */
+.has-intro .intro, .intro-reveal .intro { inset: 0 0 auto 0; height: 100vh; height: 100lvh; }
+.has-intro, .has-intro body { background: #000; }
+.has-intro .header, .has-intro main, .has-intro .footer, .has-intro .site-map, .has-intro .totop { visibility: hidden; }
+.intro__skip { bottom: calc(max(20px, env(safe-area-inset-bottom)) + 100lvh - 100dvh); }
+@media (min-width: 900px) { .intro__skip { bottom: calc(32px + 100lvh - 100dvh); } }
