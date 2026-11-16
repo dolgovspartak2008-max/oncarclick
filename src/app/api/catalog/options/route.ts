@@ -10,7 +10,8 @@ export function createOptionsHandler(loadOptions: OptionsLoader = getCatalogOpti
     try {
       const result = await loadOptions(filters);
       return NextResponse.json(result, { headers: { "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400" } });
-    } catch {
+    } catch (error) {
+      console.error("catalog options failed", JSON.stringify({ make: filters.make, model: filters.model, generation: filters.generation }), error);
       return NextResponse.json({ message: "Не удалось загрузить список вариантов." }, { status: 502 });
     }
   };
