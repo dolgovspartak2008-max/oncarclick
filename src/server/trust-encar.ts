@@ -77,7 +77,11 @@ async function openContext(filters: Pick<CatalogFilters, "make" | "model">, fetc
   } as RequestInit);
   if (!pageResponse.ok) throw new Error(`Trust Encar вернул ${pageResponse.status}`);
   const bootstrap = parseTrustEncarBootstrap(await pageResponse.text());
-  const ctx: Context = { fetcher, bootstrap, makeId: bootstrap.makes.find((item) => sameText(item.name, filters.make))?.id };
+  const ctx: Context = { fetcher, bootstrap };
+  // С ноября 2026 источник часто отдаёт страницу каталога без списка марок.
+  // Тогда берём марки тем же запросом, которым их загружает сам сайт источника.
+  if (!bootstrap.makes.length) bootstrap.makes = await loadMakes(ctx);
+  ctx.makeId = bootstrap.makes.find((item) => sameText(item.name, filters.make))?.id;
 
   if (filters.model && filters.make) {
     const lookupResponse = await post(ctx, new URLSearchParams({
@@ -88,6 +92,17 @@ async function openContext(filters: Pick<CatalogFilters, "make" | "model">, fetc
     ctx.modelId = String(lookup.model_id || "") || undefined;
   }
   return ctx;
+}
+
+async function loadMakes(ctx: Context): Promise<TrustEncarBootstrap["makes"]> {
+  const response = await post(ctx, new URLSearchParams({ action: "ajax_facets_state_db", nonce: ctx.bootstrap.nonce }));
+  if (!response.ok) return [];
+  const state = await response.json() as { facets?: { marks?: Array<{ value?: unknown; name?: unknown }> } };
+  return (state.facets?.marks ?? []).flatMap((mark) => {
+    const id = String(mark.value ?? "").trim();
+    const name = String(mark.name ?? "").trim();
+    return id && name ? [{ id, name }] : [];
+  });
 }
 
 async function loadFacets(ctx: Context): Promise<unknown> {
