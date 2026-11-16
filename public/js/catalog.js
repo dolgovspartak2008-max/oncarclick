@@ -261,6 +261,8 @@
       track.scrollTo({ top: index * itemH(), behavior: smooth ? 'smooth' : 'auto' });
     }
     function settle(name) {
+      // колесо может «доехать» уже после закрытия шторки — тогда ничего не трогаем
+      if (!sheetState || sheetState.field !== 'year') return;
       const track = wheels[name];
       const items = $$('.wheel__item', track);
       const index = Math.min(items.length - 1, Math.max(0, Math.round(track.scrollTop / itemH())));
@@ -291,6 +293,7 @@
       });
     });
     requestAnimationFrame(function () {
+      if (!sheetState || sheetState.field !== 'year') return;
       scrollToValue(wheels.from, sheetState.pending.yearFrom, false);
       scrollToValue(wheels.to, sheetState.pending.yearTo, false);
     });
