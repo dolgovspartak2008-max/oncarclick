@@ -13,7 +13,8 @@ export type ExpenseItem = { label: string; rub: number; range?: [number, number]
 export const EXPENSES_UNDER_3: ExpenseItem[] = [
   { label: "Расходы по Корее и доставка до Владивостока", rub: 80_000 },
   { label: "Доставка из Владивостока до Москвы", rub: 230_000 },
-  { label: "Автовоз Москва → Беларусь → Москва", rub: 60_000 }
+  { label: "Автовоз Москва → Беларусь → Москва", rub: 60_000 },
+  { label: "Транзитные расходы", rub: 150_000 }
 ];
 
 /** Памятка для клиента под расходами машин младше 3 лет. */
