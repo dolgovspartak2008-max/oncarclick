@@ -76,12 +76,18 @@
   }, function () { return draft; });
 
   /* ---------- Варианты для списков (модели, поколения, комплектации) ---------- */
+  function fetchOptions(url) {
+    return fetch(url, { headers: { Accept: 'application/json' } }).then(function (response) {
+      if (!response.ok) throw new Error('options');
+      return response.json();
+    });
+  }
   function loadOptions(filters) {
     const url = Model.buildOptionsUrl(filters);
     if (!optionsCache.has(url)) {
-      optionsCache.set(url, fetch(url, { headers: { Accept: 'application/json' } }).then(function (response) {
-        if (!response.ok) throw new Error('options');
-        return response.json();
+      // источник иногда отвечает с ошибкой — пробуем ещё раз через секунду, прежде чем сдаться
+      optionsCache.set(url, fetchOptions(url).catch(function () {
+        return new Promise(function (resolve) { setTimeout(resolve, 1000); }).then(function () { return fetchOptions(url); });
       }).catch(function (error) { optionsCache.delete(url); throw error; }));
     }
     return optionsCache.get(url);

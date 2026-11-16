@@ -186,6 +186,10 @@ export async function fetchLiveCount(filters: CatalogFilters, fetcher: Fetcher =
 
 export async function fetchLiveOptions(filters: CatalogFilters, fetcher: Fetcher = fetch): Promise<OptionsResult> {
   const { ctx, effective, models, generations, trimsFacet, empty } = await resolve(filters, fetcher);
+  // Пустой ответ источника — это сбой, а не «нет моделей»: бросаем ошибку, чтобы пустой список
+  // не попал в кеш на сутки (раньше из-за этого у некоторых марок не открывался выбор модели).
+  if (!ctx.bootstrap.makes.length) throw new Error("Trust Encar не отдал список марок");
+  if (filters.make && (!ctx.makeId || !models.length)) throw new Error("Trust Encar не отдал модели марки");
   const result = { makes: ctx.bootstrap.makes.map((item) => item.name), models, generations, trims: trimsFacet };
   if (!ctx.modelId || trimsFacet.length || empty) return result;
   // Комплектации собираем из реальных машин выбранной модели (и поколения).
@@ -260,7 +264,7 @@ const cachedCount = unstable_cache(
 );
 const cachedOptions = unstable_cache(
   async (serialized: string) => fetchLiveOptions(JSON.parse(serialized) as CatalogFilters),
-  ["trust-encar-options-v1"], cacheOptions
+  ["trust-encar-options-v2"], cacheOptions
 );
 
 export function getCatalog(filters: CatalogFilters) {
