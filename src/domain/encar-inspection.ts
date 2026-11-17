@@ -1,4 +1,4 @@
-import type { Cheerio, CheerioAPI } from "cheerio";
+import type { CheerioAPI } from "cheerio";
 
 /**
  * Технический лист автомобиля — отчёт о техническом осмотре Encar (성능·상태점검기록부).
@@ -183,7 +183,7 @@ const toneOf = (className: string | undefined): Tone => {
   return (tone as Tone | undefined) ?? "neutral";
 };
 
-function readRows<T>($: CheerioAPI, block: Cheerio<T>): InspectionRow[] {
+function readRows($: CheerioAPI, block: NonNullable<ReturnType<typeof sectionByTitle>>): InspectionRow[] {
   const rows: InspectionRow[] = [];
   let section: string | null = null;
   block.find("tr").each((_, element) => {
