@@ -40,6 +40,7 @@ const checks = section("Техническая проверка", `<table class=
 const meta = `<dl class="inspection-body__meta">
   <div><dt>Номер отчёта</dt><dd>2632407538</dd></div><div><dt>Номер предложения</dt><dd>59954</dd></div>
   <div><dt>Дата выдачи</dt><dd>02.11.2026</dd></div><div><dt>Продавец</dt><dd>상사</dd></div>
+  <div><dt>Организация / инспектор</dt><dd>조합 박재웅</dd></div>
 </dl><details class="inspection-body__comment"><summary>Комментарий</summary><p lang="ko">좌)프론트휀더 조정</p></details>`;
 
 const damaged = history + checks + section("Схема состояния кузова", `<div class="inspection-body-accordion"><div class="wrapper"><div class="inspection-body">
@@ -71,12 +72,12 @@ describe("технический лист Encar со страницы Trust Enca
     expect(inspection?.simpleRepair).toBe(true);
   });
 
-  test("сведения отчёта: пробег, дата, номер, комментарий и проверка узлов", () => {
+  test("сведения отчёта: пробег, дата, номер и проверка узлов — без комментария и организации", () => {
     const { inspection } = parseInspectionPage(load(damaged));
     expect(inspection?.mileageKm).toBe(158_463);
     expect(inspection?.issuedAt).toBe("02.11.2026");
     expect(inspection?.meta).toEqual([{ label: "Номер отчёта", value: "2632407538" }, { label: "Дата выдачи", value: "02.11.2026" }]);
-    expect(inspection?.comment).toBe("좌)프론트휀더 조정");
+    expect(JSON.stringify(inspection)).not.toMatch(/조|박재웅/);
     expect(inspection?.checks).toEqual([
       { section: "Двигатель", label: "Утечка масла — клапанная крышка", value: "Отсутствует", tone: "good" },
       { section: "Коробка передач", label: "Утечка масла", value: "Незначительная", tone: "warning" }

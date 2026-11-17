@@ -8,11 +8,14 @@
   const escHtml = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const star = '<svg class="icon icon--fill" aria-hidden="true"><use href="#i-star"/></svg>';
   function reviewCard(r) {
-    const date = r.date ? new Date(r.date).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }) : '';
+    // «2025-10-01» — дата без времени: разбираем как местную, чтобы месяц не съехал из-за часового пояса
+    const ymd = /^(\d{4})-(\d{2})-(\d{2})$/.exec(r.date || '');
+    const when = ymd ? new Date(+ymd[1], +ymd[2] - 1, +ymd[3]) : r.date ? new Date(r.date) : null;
+    const date = when && !isNaN(when) ? when.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }) : '';
     const meta = [r.city, date].filter(Boolean).map(escHtml).join(' · ');
     const rating = Math.max(1, Math.min(5, Number(r.rating) || 5));
     return `<article class="card review">
-        <div class="review__photo">${r.photo ? `<img class="review__bg" src="${escHtml(r.photo)}" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="review__img" src="${escHtml(r.photo)}" alt="${escHtml(r.car || 'Автомобиль клиента')}" loading="lazy" decoding="async">` : '<span><svg class="icon" aria-hidden="true"><use href="#i-car"/></svg>OnCarClick</span>'}</div>
+        <div class="review__photo">${r.video ? `${r.poster || r.photo ? `<img class="review__bg" src="${escHtml(r.poster || r.photo)}" alt="" aria-hidden="true" loading="lazy" decoding="async">` : ''}<video class="review__video" src="${escHtml(r.video)}"${r.poster || r.photo ? ` poster="${escHtml(r.poster || r.photo)}"` : ''} controls playsinline preload="none" controlslist="nodownload noplaybackrate" disablepictureinpicture aria-label="Видеоотзыв: ${escHtml(r.name)}"></video>` : r.photo ? `<img class="review__bg" src="${escHtml(r.photo)}" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="review__img" src="${escHtml(r.photo)}" alt="${escHtml(r.car || 'Автомобиль клиента')}" loading="lazy" decoding="async">` : '<span><svg class="icon" aria-hidden="true"><use href="#i-car"/></svg>OnCarClick</span>'}</div>
         <div class="review__head">
           <span class="review__ava review__ava--letter">${escHtml(String(r.name || '?').trim().charAt(0).toUpperCase())}</span>
           <span class="review__who"><b>${escHtml(r.name)}</b><span>${meta}</span></span>

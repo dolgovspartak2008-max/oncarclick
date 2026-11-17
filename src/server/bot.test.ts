@@ -7,7 +7,7 @@ vi.mock("./db", () => ({ rpc, select: vi.fn().mockResolvedValue([]) }));
 vi.mock("./telegram", () => ({ tg, esc: (v: unknown) => String(v ?? "") }));
 vi.mock("./rate", () => ({ getOurKrwRate: vi.fn(), getSourceKrwRate: vi.fn(), SETTINGS_TAG: "settings" }));
 
-import { handleUpdate, looksLikeRate, parseCountry, parseId, parseRateInput, parseRating } from "./bot";
+import { formatReviewDate, handleUpdate, looksLikeRate, parseCountry, parseId, parseRateInput, parseRating, parseReviewDate } from "./bot";
 
 const ADMIN = 111;
 const STRANGER = 222;
@@ -109,7 +109,52 @@ describe("callback-данные", () => {
     await handleUpdate(callback(ADMIN, privateChat, "r:100"));
     expect(state).toEqual({ step: "rating", draft: { name: "А" } });
     await handleUpdate(callback(ADMIN, privateChat, "r:4"));
-    expect(state).toMatchObject({ step: "body", draft: { rating: 4 } });
+    expect(state).toMatchObject({ step: "date", draft: { rating: 4 } });
+  });
+
+  test("после оценки спрашивает дату, без даты дальше не идёт", async () => {
+    state = { step: "date", draft: { name: "А" } };
+    await handleUpdate(message(ADMIN, privateChat, "вчера вечером"));
+    expect(state).toEqual({ step: "date", draft: { name: "А" } });
+    await handleUpdate(message(ADMIN, privateChat, "октябрь 2025"));
+    expect(state).toMatchObject({ step: "body", draft: { date: "2025-10-01" } });
+  });
+
+  test("📅 у опубликованного отзыва меняет дату", async () => {
+    await handleUpdate(callback(ADMIN, privateChat, "date:5"));
+    expect(state).toEqual({ step: "edit_date", reviewId: 5 });
+    await handleUpdate(message(ADMIN, privateChat, "12.03.2025"));
+    expect(calls("bot_set_review_date")[0][1]).toEqual({ p_id: 5, p_date: "2025-03-12" });
+  });
+
+  test("видео: принимает видео до 20 МБ, большое отклоняет", async () => {
+    state = { step: "video", draft: { name: "А" } };
+    const video = (size: number) => ({ update_id: 1, message: { message_id: 1, chat: privateChat, from: { id: ADMIN },
+      video: { file_id: "VIDEOFILE_1234", file_size: size, thumbnail: { file_id: "THUMBFILE_1234" } } } });
+    await handleUpdate(video(25 * 1024 * 1024));
+    expect(state).toEqual({ step: "video", draft: { name: "А" } });
+    await handleUpdate(video(5 * 1024 * 1024));
+    expect(state).toMatchObject({ step: "confirm", draft: { video: "VIDEOFILE_1234", videoThumb: "THUMBFILE_1234" } });
+  });
+});
+
+describe("дата отзыва", () => {
+  const now = new Date("2026-11-17T12:00:00Z");
+  test("понимает разные записи", () => {
+    expect(parseReviewDate("15.10.2026", now)).toBe("2026-10-15");
+    expect(parseReviewDate("15.10.26", now)).toBe("2026-10-15");
+    expect(parseReviewDate("2026-03-05", now)).toBe("2026-03-05");
+    expect(parseReviewDate("10.2026", now)).toBe("2026-10-01");
+    expect(parseReviewDate("Октябрь 2026", now)).toBe("2026-10-01");
+    expect(parseReviewDate("май 2025 г.", now)).toBe("2025-05-01");
+    expect(parseReviewDate("3 марта 2025", now)).toBe("2025-03-03");
+  });
+  test("отклоняет будущее, несуществующие и старые даты", () => {
+    for (const bad of ["31.02.2026", "декабрь 2026", "01.01.2027", "2010", "13.2025", "март", "01.01.2014"]) expect(parseReviewDate(bad, now)).toBeNull();
+  });
+  test("подпись даты", () => {
+    expect(formatReviewDate("2025-10-01")).toBe("октябрь 2025");
+    expect(formatReviewDate("2025-10-15")).toBe("15.10.2025");
   });
 });
 

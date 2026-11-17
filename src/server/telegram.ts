@@ -19,11 +19,22 @@ export async function tg<T = unknown>(method: string, body: Record<string, unkno
   return data.result as T;
 }
 
+/** Путь и размер файла в Telegram. */
+export async function fileInfo(fileId: string) {
+  const file = await tg<{ file_path?: string; file_size?: number }>("getFile", { file_id: fileId });
+  if (!file.file_path) throw new Error("Файл недоступен");
+  return { path: file.file_path, size: file.file_size ?? 0 };
+}
+
+/** Кусок файла по пути из fileInfo; range — «bytes=0-1048575». */
+export function fetchFilePart(path: string, range: string) {
+  return fetch(`https://api.telegram.org/file/bot${token()}/${path}`, { cache: "no-store", signal: AbortSignal.timeout(25_000), headers: { Range: range } });
+}
+
 /** Скачивает файл из Telegram (фото отзыва) — ссылка с токеном наружу не уходит. */
 export async function downloadFile(fileId: string) {
-  const file = await tg<{ file_path?: string }>("getFile", { file_id: fileId });
-  if (!file.file_path) throw new Error("Файл недоступен");
-  const response = await fetch(`https://api.telegram.org/file/bot${token()}/${file.file_path}`, { cache: "no-store", signal: AbortSignal.timeout(15_000) });
+  const { path } = await fileInfo(fileId);
+  const response = await fetch(`https://api.telegram.org/file/bot${token()}/${path}`, { cache: "no-store", signal: AbortSignal.timeout(15_000) });
   if (!response.ok) throw new Error(`Telegram файл: ${response.status}`);
   return response;
 }
