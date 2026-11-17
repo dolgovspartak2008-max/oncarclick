@@ -300,7 +300,7 @@ export function parseInspectionPage($: CheerioAPI): { inspection: CarInspection 
     const url = safeDocument($(element).attr("href"));
     return url ? [{ url, caption: clean($(element).find("figcaption").text()) || "Страница отчёта" }] : [];
   });
-  const structured = !/summary--document/.test(summary.attr("class") ?? "") && (body.find(".inspection-body__groups, .inspection-body__scheme").length > 0 || parts.length > 0);
+  const structured = !/summary--document/.test(summary.attr("class") ?? "");
   const comment = clean(body.find(".inspection-body__comment p").first().text()) || null;
 
   return {
@@ -311,7 +311,8 @@ export function parseInspectionPage($: CheerioAPI): { inspection: CarInspection 
       parts,
       meta,
       mileageKm: Number.isFinite(mileage) && mileage > 0 ? mileage : null,
-      issuedAt: dateOf(metaValue(/дата выдачи/i)) ?? dateOf(metaValue(/дата регистрации отч/i)),
+      // «Дата регистрации отчёта» — дата публикации в объявлении, а не дата осмотра: её не подставляем.
+      issuedAt: dateOf(metaValue(/дата выдачи/i)),
       comment,
       flags: flags.filter((row) => !/пробег/i.test(row.label)),
       checks: rowsOf(/техническая проверка/i),
