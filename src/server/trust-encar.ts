@@ -217,7 +217,10 @@ export async function fetchLiveOptions(filters: CatalogFilters, fetcher: Fetcher
   return { ...result, trims: uniqueSorted(normalizeTrustEncarRecords(records).map((car) => car.trim)) };
 }
 
-export type CarDetails = CatalogCar & Pick<VehiclePage, "specs" | "optionGroups" | "insurance">;
+export type CarDetails = CatalogCar & Pick<VehiclePage, "specs" | "optionGroups" | "insurance" | "inspection" | "history"> & {
+  /** false — страницу источника получить не удалось: о техлисте ничего не известно (не путать с «отчёта нет»). */
+  inspectionChecked: boolean;
+};
 
 function fromVehiclePage(page: VehiclePage, now: Date): CatalogCar {
   const fee = calculateRecyclingFee({ engineCc: page.engineCc, powerHp: page.powerHp, year: page.year }, now)?.feeRub ?? null;
@@ -267,7 +270,10 @@ export async function fetchCarDetails(id: string, fetcher: Fetcher = fetch, now 
     photos: Array.from(new Set(photos)),
     specs: page?.specs ?? [],
     optionGroups: page?.optionGroups ?? [],
-    insurance: page?.insurance ?? null
+    insurance: page?.insurance ?? null,
+    inspection: page?.inspection ?? null,
+    history: page?.history ?? { rows: [], insuranceCases: [] },
+    inspectionChecked: Boolean(page)
   };
 }
 
@@ -300,7 +306,7 @@ export function getCatalogOptions(filters: Pick<CatalogFilters, "make" | "model"
 
 const cachedCar = unstable_cache(
   async (id: string) => fetchCarDetails(id),
-  ["trust-encar-car-v6"], { revalidate: 6 * 3_600, tags: [CATALOG_CACHE_TAG] }
+  ["trust-encar-car-v7"], { revalidate: 6 * 3_600, tags: [CATALOG_CACHE_TAG] }
 );
 
 export function getCarDetails(id: string) {

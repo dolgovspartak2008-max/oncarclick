@@ -1136,6 +1136,82 @@ body.sheet-open { overflow: hidden; }
   .specs div:nth-last-child(2):nth-child(odd) { border-bottom: 0; }
 }
 
+
+/* технический лист (осмотр Encar) и страховая история */
+.tsheet { --st-x: #ff2b2b; --st-w: #ffb020; --st-t: #ff8a65; --st-u: #ffd166; --st-c: #c98b4a; --st-a: #8fb8ff; --st-p: #6fd0c4; }
+.tsheet h3.tsheet__h { margin: 18px 0 8px; font-size: 15px; font-weight: 700; }
+.tsheet__source { margin: -4px 0 8px; font-size: 12.5px; color: var(--muted-2); }
+.tsheet__summary { margin: 0 0 14px; padding: 10px 12px; border-radius: 12px; background: #191b21; border: 1px solid var(--line); font-size: 14.5px; font-weight: 600; }
+.tsheet__note { margin: 12px 0 0; font-size: 12.5px; color: var(--muted-2); }
+.tone--good { color: #7fd99a; }
+.tone--warning { color: #ffc24d; }
+.tone--bad { color: #ff6b6b; }
+.tsheet__summary.tone--good { border-color: rgba(127,217,154,.3); }
+.tsheet__summary.tone--warning { border-color: rgba(255,194,77,.35); }
+.tsheet__summary.tone--bad { border-color: rgba(255,107,107,.4); }
+.tsheet__schemes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tscheme { margin: 0; padding: 10px 6px 8px; border-radius: 14px; background: #101216; border: 1px solid var(--line); }
+.tscheme svg { width: 100%; max-width: 220px; height: auto; margin: 0 auto; overflow: visible; }
+.tscheme figcaption { margin-top: 6px; text-align: center; font-size: 12.5px; font-weight: 700; color: #d4d6dc; }
+.tscheme figcaption small { display: block; font-weight: 500; color: var(--muted-2); font-size: 11.5px; }
+.tscheme__body { fill: #16181e; stroke: var(--line-2); stroke-width: 1.2; }
+.tz { cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; }
+.tz path, .tz rect { fill: #23262e; stroke: #3a3e48; stroke-width: 1; transition: fill .15s, stroke .15s; }
+.tz--glass { cursor: default; pointer-events: none; }
+.tz--glass path { fill: #0c0d10; stroke: #2b2e36; }
+.tz--off path, .tz--off rect { fill: transparent; stroke: #3a3e48; stroke-dasharray: 3 3; }
+.tz:hover path, .tz:hover rect, .tz:focus-visible path, .tz:focus-visible rect { stroke: #fff; }
+.tz.is-on path, .tz.is-on rect { stroke: #fff; stroke-width: 2; }
+.tz__code { font: 800 11px var(--font); fill: #fff; text-anchor: middle; pointer-events: none; paint-order: stroke; stroke: #08090c; stroke-width: 2.5px; }
+.tz--replacement path, .tz--replacement rect { fill: rgba(255,43,43,.42); stroke: var(--st-x); }
+.tz--repair path, .tz--repair rect, .tz--cut-weld path, .tz--cut-weld rect { fill: rgba(255,176,32,.38); stroke: var(--st-w); }
+.tz--damage path, .tz--damage rect { fill: rgba(255,138,101,.36); stroke: var(--st-t); }
+.tz--dent path, .tz--dent rect { fill: rgba(255,209,102,.32); stroke: var(--st-u); }
+.tz--corrosion path, .tz--corrosion rect { fill: rgba(201,139,74,.4); stroke: var(--st-c); }
+.tz--scratch path, .tz--scratch rect { fill: rgba(143,184,255,.3); stroke: var(--st-a); }
+.tz--paint path, .tz--paint rect { fill: rgba(111,208,196,.3); stroke: var(--st-p); }
+.tz--other path, .tz--other rect { fill: rgba(255,255,255,.18); stroke: #fff; }
+.tsheet__info { margin-top: 10px; padding: 12px 14px; border-radius: 14px; background: #191b21; border: 1px solid var(--line); font-size: 14px; min-height: 52px; }
+.tsheet__info p { margin: 0 0 4px; color: #d4d6dc; }
+.tsheet__info p:last-child { margin-bottom: 0; }
+.tsheet__info-title { font-weight: 700; color: #fff !important; font-size: 15px; }
+.tsheet__info-name { margin-top: 6px !important; font-weight: 600; color: #fff !important; }
+.tsheet__info small, .tsheet__part small { color: var(--muted-2); font-weight: 500; }
+.tsheet__hint { color: var(--muted-2) !important; font-size: 12.5px; }
+.tsheet__legend { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; font-size: 13px; color: #d4d6dc; }
+.tsheet__legend li { display: flex; align-items: center; gap: 8px; }
+.tlegend-off { flex: none; width: 22px; height: 14px; border-radius: 4px; border: 1px dashed #5a5f6b; }
+.tstatus { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px 3px 3px; border-radius: 999px; background: #1d2027; border: 1px solid var(--line); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.tstatus b { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 999px; font-size: 11.5px; color: #08090c; background: #fff; }
+.tsheet__legend .tstatus { padding: 0; border: 0; background: none; }
+.tstatus--replacement b { background: var(--st-x); color: #fff; }
+.tstatus--repair b, .tstatus--cut-weld b { background: var(--st-w); }
+.tstatus--damage b { background: var(--st-t); }
+.tstatus--dent b { background: var(--st-u); }
+.tstatus--corrosion b { background: var(--st-c); }
+.tstatus--scratch b { background: var(--st-a); }
+.tstatus--paint b { background: var(--st-p); }
+.tsheet__group + .tsheet__group { margin-top: 10px; }
+.tsheet__group-title { margin: 0 0 6px; font-size: 12.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
+.tsheet__parts, .tsheet__cases, .tsheet__docs { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.tsheet__parts li, .tsheet__cases li { display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; background: #191b21; border: 1px solid var(--line); }
+.tsheet__part { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 10px; font-size: 14.5px; font-weight: 600; }
+.tsheet__statuses { display: flex; flex-wrap: wrap; gap: 6px; }
+.tsheet__rows { margin: 0; display: grid; }
+.tsheet__rows div { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.tsheet__rows div:last-child { border-bottom: 0; }
+.tsheet__rows dt { color: var(--muted); }
+.tsheet__rows dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+.tsheet__check .tsheet__rows, .tsheet__comment p { padding: 0 14px 10px; margin: 0; }
+.tsheet__comment { margin-top: 12px; }
+.tsheet__comment p { color: #d4d6dc; font-size: 14px; }
+.tsheet__case-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-size: 14px; }
+.tsheet__case-head span { color: var(--muted); }
+.tsheet__cases .tsheet__rows div { padding: 5px 0; font-size: 13.5px; }
+.tsheet__docs a { display: block; padding: 10px 12px; border-radius: 12px; background: #191b21; border: 1px solid var(--line); font-weight: 600; color: #fff; }
+.tsheet__docs a:hover { border-color: var(--red-2); }
+@media (max-width: 380px) { .tsheet__legend { grid-template-columns: 1fr; } .tsheet__schemes { gap: 6px; } }
+
 /* полноэкранные фото */
 .lightbox {
   position: fixed; inset: 0 0 auto 0; z-index: 120; height: 100vh; height: 100lvh; background: #000;
