@@ -55,8 +55,6 @@ export type CarInspection = {
   /** Пробег на момент осмотра, км. */
   mileageKm: number | null;
   issuedAt: string | null;
-  /** Комментарий инспектора — как в оригинале, на корейском. */
-  comment: string | null;
   /** Отметки отчёта: VIN, тюнинг, отзывные кампании, затопление… */
   flags: InspectionRow[];
   /** Техническая проверка узлов: двигатель, коробка, утечки жидкостей, тормоза, электрика… */
@@ -283,8 +281,8 @@ export function parseInspectionPage($: CheerioAPI): { inspection: CarInspection 
   const meta = body.find(".inspection-body__meta > div").toArray().flatMap((element) => {
     const label = clean($(element).find("dt").first().text());
     const value = clean($(element).find("dd").first().text());
-    // «Номер предложения» и продавец — служебные данные объявления, покупателю не нужны.
-    return label && value && !/предложени|продав/i.test(label) ? [{ label, value }] : [];
+    // Номер предложения, продавец и организация-инспектор покупателю не нужны.
+    return label && value && !/предложени|продав|организаци|инспектор/i.test(label) ? [{ label, value }] : [];
   });
   const metaValue = (pattern: RegExp) => meta.find((item) => pattern.test(item.label))?.value;
 
@@ -301,7 +299,6 @@ export function parseInspectionPage($: CheerioAPI): { inspection: CarInspection 
     return url ? [{ url, caption: clean($(element).find("figcaption").text()) || "Страница отчёта" }] : [];
   });
   const structured = !/summary--document/.test(summary.attr("class") ?? "");
-  const comment = clean(body.find(".inspection-body__comment p").first().text()) || null;
 
   return {
     inspection: {
@@ -313,7 +310,6 @@ export function parseInspectionPage($: CheerioAPI): { inspection: CarInspection 
       mileageKm: Number.isFinite(mileage) && mileage > 0 ? mileage : null,
       // «Дата регистрации отчёта» — дата публикации в объявлении, а не дата осмотра: её не подставляем.
       issuedAt: dateOf(metaValue(/дата выдачи/i)),
-      comment,
       flags: flags.filter((row) => !/пробег/i.test(row.label)),
       checks: rowsOf(/техническая проверка/i),
       documents

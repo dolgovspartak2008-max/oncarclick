@@ -1198,15 +1198,15 @@ body.sheet-open { overflow: hidden; }
 .tsheet__part { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 10px; font-size: 14.5px; font-weight: 600; }
 .tsheet__statuses { display: flex; flex-wrap: wrap; gap: 6px; }
 .tsheet__rows { margin: 0; display: grid; }
-.tsheet__rows div { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.tsheet__rows div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
 .tsheet__rows div:last-child { border-bottom: 0; }
-.tsheet__rows dt { color: var(--muted); }
-.tsheet__rows dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
-.tsheet__check .tsheet__rows, .tsheet__comment p { padding: 0 14px 10px; margin: 0; }
-.tsheet__comment { margin-top: 12px; }
-.tsheet__comment p { color: #d4d6dc; font-size: 14px; }
+.tsheet__rows dt { color: var(--muted); min-width: 0; }
+/* значение всегда целиком в одну строку; переносится только подпись слева */
+.tsheet__rows dd { margin: 0; flex: none; font-weight: 600; text-align: right; white-space: nowrap; }
+.tsheet__rows dt { overflow-wrap: normal; }
+.tsheet__check .tsheet__rows { padding: 0 14px 10px; margin: 0; }
 .tsheet__case-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-size: 14px; }
-.tsheet__case-head span { color: var(--muted); }
+.tsheet__case-head span { color: var(--muted); white-space: nowrap; }
 .tsheet__cases .tsheet__rows div { padding: 5px 0; font-size: 13.5px; }
 .tsheet__docs a { display: block; padding: 10px 12px; border-radius: 12px; background: #191b21; border: 1px solid var(--line); font-weight: 600; color: #fff; }
 .tsheet__docs a:hover { border-color: var(--red-2); }
@@ -1362,6 +1362,7 @@ body:has(.catpage, .favpage, .carpage) .geo__line { stroke: rgba(255,90,90,.28);
 .review__photo { position: relative; aspect-ratio: 4 / 3; }
 .review__photo .review__bg, .review__photo .review__img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .review__photo .review__bg { object-fit: cover; transform: scale(1.2); filter: blur(22px) brightness(.55); }
+.review__photo .review__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: transparent; }
 .review__photo .review__img { object-fit: contain; }
 .review__text { white-space: pre-line; }
 

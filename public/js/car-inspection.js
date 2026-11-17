@@ -197,9 +197,6 @@
     }
     if (ins.flags && ins.flags.length) html += '<h3 class="tsheet__h">Отметки отчёта</h3>' + rowsHtml(ins.flags);
     if (ins.checks && ins.checks.length) html += '<h3 class="tsheet__h">Двигатель, коробка и другие узлы</h3><div class="optgroups">' + checksHtml(ins.checks) + '</div>';
-    if (ins.comment) {
-      html += '<details class="optgroup tsheet__comment"><summary>Комментарий инспектора (оригинал на корейском)<svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary><p lang="ko">' + esc(ins.comment) + '</p></details>';
-    }
     root.innerHTML = html;
 
     const info = root.querySelector('#tsheetInfo');
@@ -231,17 +228,22 @@
   function renderHistory(root, data) {
     const history = (data && data.history) || { rows: [], insuranceCases: [] };
     const none = /^0\s*\/\s*0\b/.test(data.insurance || '');
+    // «3 / 19 671 623 ₩ (1 237 345 ₽)» → число случаев и сумма отдельными строками
+    const summary = (data.insurance || '').match(/^\s*(\d+)\s*\/\s*([\d\s]+₩)(?:\s*\(([\d\s]+₽)\))?/);
     const cases = history.insuranceCases || [];
     const krw = function (n) { return n == null ? '—' : fmt(n) + ' ₩'; };
+    const row = function (label, value) { return '<div><dt>' + esc(label) + '</dt><dd>' + esc(value) + '</dd></div>'; };
     let html = '';
     if (none) html += '<p class="dcard__text">Страховых случаев по этому автомобилю не зафиксировано.</p>';
-    else if (data.insurance) html += '<p class="dcard__text">Повреждения этого автомобиля (случаев / сумма): ' + esc(data.insurance) + '</p>';
+    else if (summary) {
+      html += '<dl class="tsheet__rows">' + row('Повреждения этого автомобиля', summary[1] + ' случ.') +
+        row('Сумма ремонтов', summary[2].replace(/\s+/g, ' ').trim()) + (summary[3] ? row('В рублях (по курсу источника)', summary[3].replace(/\s+/g, ' ').trim()) : '') + '</dl>';
+    } else if (data.insurance) html += '<p class="dcard__text">' + esc(data.insurance) + '</p>';
     if (cases.length) {
       html += '<ul class="tsheet__cases">' + cases.map(function (c) {
         return '<li><div class="tsheet__case-head"><b>' + esc(c.date) + '</b><span>' + esc(c.type) + '</span></div>' +
-          '<dl class="tsheet__rows"><div><dt>Ремонт всего</dt><dd>' + krw(c.totalKrw) + '</dd></div>' +
-          '<div><dt>Запчасти / работы / окрас</dt><dd>' + [c.partsKrw, c.laborKrw, c.paintKrw].map(krw).join(' / ') + '</dd></div>' +
-          '<div><dt>Страховая выплата</dt><dd>' + krw(c.payoutKrw) + '</dd></div></dl></li>';
+          '<dl class="tsheet__rows">' + row('Ремонт всего', krw(c.totalKrw)) + row('Запчасти', krw(c.partsKrw)) +
+          row('Работы', krw(c.laborKrw)) + row('Окрас', krw(c.paintKrw)) + row('Страховая выплата', krw(c.payoutKrw)) + '</dl></li>';
       }).join('') + '</ul>';
     }
     if (history.rows && history.rows.length) html += '<h3 class="tsheet__h">Записи об автомобиле</h3>' + rowsHtml(history.rows);

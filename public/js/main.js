@@ -246,6 +246,6 @@
 
   // Фото автомобилей и отзывов видны только на странице: без меню «Открыть/сохранить изображение» и перетаскивания
   const isImg = (t) => t instanceof Element && (t.tagName === 'IMG' || t.tagName === 'PICTURE' || t.closest('picture, figure, .review__photo'));
-  document.addEventListener('contextmenu', (e) => { if (isImg(e.target)) e.preventDefault(); });
+  document.addEventListener('contextmenu', (e) => { if (isImg(e.target) || (e.target instanceof Element && e.target.tagName === 'VIDEO')) e.preventDefault(); });
   document.addEventListener('dragstart', (e) => { if (e.target instanceof Element && e.target.tagName === 'IMG') e.preventDefault(); });
 })();
