@@ -179,9 +179,10 @@
     $('specsCard').hidden = !main.length;
     $('specs').innerHTML = main.map(function (row) { return '<div><dt>' + esc(row[0]) + '</dt><dd>' + esc(row[1]) + '</dd></div>'; }).join('');
 
-    const insurance = /^0\s*\/\s*0\b/.test(data.insurance || '') ? 'Страховых случаев и выплат не зафиксировано.' : data.insurance;
-    $('insuranceCard').hidden = !insurance;
-    $('insurance').textContent = insurance || '';
+    // Технический лист (осмотр Encar) и страховая история — разные источники, разные карточки
+    $('inspectionCard').hidden = false;
+    window.CarInspection.render($('inspection'), data);
+    $('insuranceCard').hidden = !window.CarInspection.renderHistory($('insurance'), data);
 
     const groups = data.optionGroups || [];
     $('optionsCard').hidden = !groups.length;

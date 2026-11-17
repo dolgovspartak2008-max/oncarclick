@@ -1,4 +1,5 @@
 import { load } from "cheerio";
+import { parseInspectionPage, type CarHistory, type CarInspection } from "./encar-inspection";
 
 /** Подробности автомобиля со страницы trust-encar.ru/auto/{id}/ */
 export type VehiclePage = {
@@ -26,6 +27,10 @@ export type VehiclePage = {
   specs: Array<{ label: string; value: string }>;
   optionGroups: Array<{ title: string; items: string[] }>;
   insurance: string | null;
+  /** Технический лист: отчёт осмотра Encar; null — отчёта нет. */
+  inspection: CarInspection | null;
+  /** История автомобиля (база Encar и страховые случаи) — отдельный от осмотра источник. */
+  history: CarHistory;
 };
 
 const clean = (value: unknown) => String(value ?? "").replace(/\s+/g, " ").trim();
@@ -70,6 +75,7 @@ export function parseTrustEncarVehiclePage(html: string): VehiclePage | null {
   const engine = obj(data.vehicleEngine);
 
   $(".auto-item").remove(); // блоки «похожие автомобили»
+  const { inspection, history } = parseInspectionPage($);
   const specs: Array<{ label: string; value: string }> = [];
   const seen = new Set<string>();
   $(".product-option").each((_, element) => {
@@ -129,6 +135,8 @@ export function parseTrustEncarVehiclePage(html: string): VehiclePage | null {
     photos: Array.from(new Set(images)),
     specs,
     optionGroups,
-    insurance
+    insurance,
+    inspection,
+    history
   };
 }

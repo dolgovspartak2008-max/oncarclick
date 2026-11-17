@@ -17,6 +17,7 @@
 <script src="js/main.js" defer></script>
 <script src="js/favorites.js" defer></script>
 <script src="js/catalog-model.js" defer></script>
+<script src="js/car-inspection.js" defer></script>
 <script src="js/car.js" defer></script>
 </head>
 <body id="top">
@@ -134,9 +135,13 @@
         <h2 class="dcard__title">Характеристики</h2>
         <dl class="specs" id="specs"></dl>
       </section>
-      <section class="dcard" id="insuranceCard" hidden>
+      <section class="dcard tsheet" id="inspectionCard" hidden>
+        <h2 class="dcard__title">Технический лист</h2>
+        <div id="inspection"></div>
+      </section>
+      <section class="dcard tsheet" id="insuranceCard" hidden>
         <h2 class="dcard__title">Страховая история</h2>
-        <p class="dcard__text" id="insurance"></p>
+        <div id="insurance"></div>
       </section>
       <section class="dcard" id="optionsCard" hidden>
         <h2 class="dcard__title">Комплектация и опции</h2>
