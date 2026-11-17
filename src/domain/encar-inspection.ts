@@ -143,7 +143,7 @@ const FAMILY_NAME: Record<string, RegExp> = {
   "wheel-house": /арк|колёс|колес/i,
   pillar: /стойк/i,
   dash: /щит|перегородк/i,
-  floor: /пол\b|пола\b|днищ/i,
+  floor: /(?:^|[^а-яё])пола?(?![а-яё])|днищ/i,
   "trunk-floor": /пол\S* багаж|багажн\S* пол/i,
   "rear-panel": /задн\S* панел|панель задн/i,
   "package-tray": /полк/i
@@ -293,7 +293,7 @@ export function parseInspectionPage($: CheerioAPI): { inspection: CarInspection 
   const flagValue = (pattern: RegExp) => {
     const row = flags.find((item) => pattern.test(item.label));
     if (!row) return null;
-    return /^(есть|да)\b/i.test(row.value) ? true : /^(нет|отсутств)/i.test(row.value) ? false : null;
+    return /^(есть|да)(?![а-яё])/i.test(row.value) ? true : /^(нет|отсутств)/i.test(row.value) ? false : null;
   };
 
   const documents = body.find(".inspection-body__documents a").toArray().flatMap((element) => {
