@@ -214,7 +214,8 @@
       if (zone.off) body = '<p class="tsheet__hint">По правилам осмотра Encar неметаллические и съёмные детали не проверяются — сведений о бампере в отчёте нет.</p>';
       else if (!marked.length) body = '<p>Состояние: <b>отметок нет</b></p><p class="tsheet__hint">Источник: ' + SOURCE + '</p>';
       else body = marked.map(function (p) {
-        return '<p class="tsheet__info-name">' + esc(p.name) + (p.code ? ' <small>' + esc(p.code) + '</small>' : '') + '</p>' +
+        const name = marked.length > 1 ? '<p class="tsheet__info-name">' + esc(p.name) + '</p>' : '';
+        return name + (p.code ? '<p class="tsheet__hint">Код детали Encar: ' + esc(p.code) + '</p>' : '') +
           p.statuses.map(function (s) { return '<p>Состояние: <b>' + esc(s.label) + '</b> · обозначение <b>' + esc(s.code) + '</b></p>'; }).join('');
       }).join('') + '<p class="tsheet__hint">Источник: ' + SOURCE + '</p>';
       info.innerHTML = '<p class="tsheet__info-title">' + esc(marked.length === 1 ? marked[0].name : zone.name) + '</p>' + body;
