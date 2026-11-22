@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DbError, dbSecret, rpc } from "@/server/db";
 import { notifyLead } from "@/server/bot";
+import { gateEnabled, notifyGate } from "@/server/gate";
 import { clientIp, hashIp } from "@/server/secure";
 
 const clean = (value: unknown, max: number) => String(value ?? "").replace(/\s+/g, " ").trim().slice(0, max);
@@ -8,7 +9,7 @@ const clean = (value: unknown, max: number) => String(value ?? "").replace(/\s+/
 /** Код, которым site_add_lead сообщает о превышении лимита заявок с одного IP. */
 const TOO_MANY_LEADS = "P0429";
 
-/** Заявка с сайта: сохраняем в базу и сразу отправляем администраторам в Telegram. */
+/** Заявка с сайта: сохраняем в базу и отправляем в Telegram (через бот-фильтр, если он подключён). */
 export async function POST(request: NextRequest) {
   let body: Record<string, unknown>;
   try { body = await request.json(); } catch { return NextResponse.json({ message: "Некорректная заявка" }, { status: 400 }); }
@@ -25,7 +26,13 @@ export async function POST(request: NextRequest) {
     // Отрицательный id — тот же телефон уже присылал заявку за 10 минут: сохранили, но в Telegram не шлём
     const result = await rpc<number>("site_add_lead", { p_lead: { name, phone, comment, page, ip_hash } });
     const id = Math.abs(result);
-    const delivered = result > 0 ? await notifyLead({ id, name, phone, comment, page }).catch(() => 0) : 0;
+    const lead = { id, name, phone, comment, page };
+    let delivered = 0;
+    if (result > 0) {
+      // Есть бот-фильтр — заявка сначала идёт туда; если он не доставил (нет владельца, сбой), шлём сразу в основной бот
+      if (gateEnabled()) delivered = await notifyGate(lead).catch(() => 0);
+      if (delivered === 0) delivered = await notifyLead(lead).catch(() => 0);
+    }
     return NextResponse.json({ ok: true, id, delivered: delivered > 0 });
   } catch (error) {
     if (error instanceof DbError && error.code === TOO_MANY_LEADS) {

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const { tg } = vi.hoisted(() => ({ tg: vi.fn() }));
-vi.mock("./telegram", () => ({ tg }));
+vi.mock("./telegram", () => ({ tg, gateTg: vi.fn() }));
 
 import { ensureWebhook, needsReset } from "./webhook";
 

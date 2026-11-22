@@ -395,7 +395,8 @@ export async function handleUpdate(update: Update) {
 }
 
 /** Заявка с сайта → всем администраторам бота. */
-export async function notifyLead(lead: { id: number; name: string; phone: string; comment?: string; page?: string }) {
+export type Lead = { id: number; name: string; phone: string; comment?: string | null; page?: string | null };
+export async function notifyLead(lead: Lead) {
   const admins = await rpc<number[]>("bot_admin_ids");
   const text = [
     `🚗 <b>Новая заявка #${lead.id}</b>`, "",

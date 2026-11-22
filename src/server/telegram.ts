@@ -7,7 +7,21 @@ function token() {
 }
 
 export async function tg<T = unknown>(method: string, body: Record<string, unknown> = {}): Promise<T> {
-  const response = await fetch(`https://api.telegram.org/bot${token()}/${method}`, {
+  return callBot<T>(token(), method, body);
+}
+
+/** Токен бота-фильтра заявок (второй бот). Если не задан — заявки идут сразу в основной бот. */
+export const gateToken = () => process.env.TELEGRAM_GATE_BOT_TOKEN || null;
+
+/** Вызов метода бота-фильтра заявок. */
+export async function gateTg<T = unknown>(method: string, body: Record<string, unknown> = {}): Promise<T> {
+  const value = gateToken();
+  if (!value) throw new Error("Токен бота-фильтра не задан");
+  return callBot<T>(value, method, body);
+}
+
+async function callBot<T>(botToken: string, method: string, body: Record<string, unknown>): Promise<T> {
+  const response = await fetch(`https://api.telegram.org/bot${botToken}/${method}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

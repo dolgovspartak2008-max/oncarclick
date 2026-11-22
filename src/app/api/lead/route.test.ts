@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { NextRequest } from "next/server";
 
-const { rpc, notifyLead } = vi.hoisted(() => ({ rpc: vi.fn(), notifyLead: vi.fn() }));
+const { rpc, notifyLead, notifyGate, gateEnabled } = vi.hoisted(() => ({ rpc: vi.fn(), notifyLead: vi.fn(), notifyGate: vi.fn(), gateEnabled: vi.fn() }));
 
 vi.mock("@/server/db", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/server/db")>();
   return { ...original, rpc, dbSecret: () => "test-secret" };
 });
 vi.mock("@/server/bot", () => ({ notifyLead }));
+vi.mock("@/server/gate", () => ({ notifyGate, gateEnabled }));
 
 import { DbError } from "@/server/db";
 import { POST } from "./route";
@@ -22,6 +23,8 @@ const lead = (headers: Record<string, string> = {}, body: Record<string, unknown
 beforeEach(() => {
   rpc.mockReset();
   notifyLead.mockReset().mockResolvedValue(1);
+  notifyGate.mockReset().mockResolvedValue(1);
+  gateEnabled.mockReset().mockReturnValue(false);
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
@@ -43,6 +46,23 @@ describe("POST /api/lead", () => {
     expect(response.status).toBe(200);
     expect(notifyLead).not.toHaveBeenCalled();
     expect(await response.json()).toMatchObject({ ok: true, id: 13, delivered: false });
+  });
+
+  test("с ботом-фильтром заявка идёт только в него, основной бот её не получает", async () => {
+    rpc.mockResolvedValue(20);
+    gateEnabled.mockReturnValue(true);
+    const response = await POST(lead());
+    expect(notifyGate).toHaveBeenCalledOnce();
+    expect(notifyLead).not.toHaveBeenCalled();
+    expect(await response.json()).toMatchObject({ ok: true, id: 20, delivered: true });
+  });
+
+  test("бот-фильтр не доставил (нет владельца) — заявка уходит сразу в основной бот", async () => {
+    rpc.mockResolvedValue(21);
+    gateEnabled.mockReturnValue(true);
+    notifyGate.mockResolvedValue(0);
+    await POST(lead());
+    expect(notifyLead).toHaveBeenCalledOnce();
   });
 
   test("лимит базы P0429 → 429 с понятным текстом", async () => {
