@@ -232,9 +232,12 @@ async function handleClientCallback(q: CallbackQuery, answer: (text?: string) =>
   const action = /^client:(confirm|edit|cancel):([0-9a-f-]{36})$/.exec(q.data ?? "");
   if (chat !== q.from.id || !action) return answer();
 
-  const state = await getClientState(chat);
-  if (state?.step !== "confirm" || state.token !== action[2]) return answer("Эта кнопка устарела");
+  const beforeAnswer = await getClientState(chat);
+  if (beforeAnswer?.step !== "confirm" || beforeAnswer.token !== action[2]) return answer("Эта кнопка устарела");
   await answer();
+
+  const state = await getClientState(chat);
+  if (state?.step !== "confirm" || state.token !== action[2]) return;
   if (action[1] === "cancel") return cancelClientForm(chat);
   if (action[1] === "edit") return startClientForm(chat);
   return submitClientForm(chat, state);

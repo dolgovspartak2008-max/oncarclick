@@ -150,6 +150,25 @@ async function fillForm(fields = CLIENT_FIELDS) {
   for (const field of fields) await message(field);
 }
 
+async function pressWhileAnswerPending(data: string, interrupt: () => Promise<unknown>) {
+  const started = Promise.withResolvers<void>();
+  const answer = Promise.withResolvers<void>();
+  gateTg.mockImplementation(async (method) => {
+    if (method === "answerCallbackQuery") {
+      started.resolve();
+      await answer.promise;
+    }
+  });
+  const handling = press(data, CLIENT_CHAT);
+  await started.promise;
+  try {
+    await interrupt();
+  } finally {
+    answer.resolve();
+    await handling;
+  }
+}
+
 describe("публичная форма второго бота", () => {
   test("владелец по-прежнему получает служебную справку", async () => {
     db({ gate_is_owner: true });
@@ -192,11 +211,11 @@ describe("публичная форма второго бота", () => {
     await message(CLIENT_FIELDS[2]);
     expect(lastClientMessage()?.text).toMatch(/телефон/i);
     expect(lastClientMessage()?.reply_markup.keyboard.flat()).toContainEqual(expect.objectContaining({ request_contact: true }));
-    await message(CLIENT_FIELDS[3]);
+    await message("+7 <900> 123&45-67");
     expect(lastClientMessage()?.text).toContain("Иван &lt;b&gt;");
     expect(lastClientMessage()?.text).toContain("Kia &amp; Hyundai");
     expect(lastClientMessage()?.text).toContain("до &lt;3 млн");
-    expect(lastClientMessage()?.text).toContain(CLIENT_FIELDS[3]);
+    expect(lastClientMessage()?.text).toContain("+7 &lt;900&gt; 123&amp;45-67");
     expect(rpc).not.toHaveBeenCalledWith("site_add_lead", expect.anything());
   });
 
@@ -285,6 +304,21 @@ describe("публичная форма второго бота", () => {
       delivery.resolve();
       await saving;
     }
+    await message("Мария");
+    expect(lastClientMessage()?.text).toMatch(/^Какой автомобиль/i);
+  });
+
+  test("ожидающее подтверждение не сохраняет отменённый черновик", async () => {
+    clientDb();
+    await fillForm();
+    await pressWhileAnswerPending(clientAction("Подтвердить"), () => message("/cancel"));
+    expect(rpc).not.toHaveBeenCalledWith("site_add_lead", expect.anything());
+  });
+
+  test("ожидающая отмена не стирает новый черновик", async () => {
+    clientDb();
+    await fillForm();
+    await pressWhileAnswerPending(clientAction("Отменить"), () => message("/request"));
     await message("Мария");
     expect(lastClientMessage()?.text).toMatch(/^Какой автомобиль/i);
   });
