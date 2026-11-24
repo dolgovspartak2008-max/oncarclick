@@ -2,12 +2,14 @@
    Если в Vercel поменяли TELEGRAM_WEBHOOK_SECRET или адрес сайта, Telegram продолжает слать старый секрет,
    сайт отвечает 401, и кнопки бота «молча» перестают работать. Здесь мы сверяем вебхук и при расхождении
    переустанавливаем его с текущим секретом. Вызывается при старте сервера (instrumentation) и ежедневным кроном. */
+import { rpc } from "./db";
 import { gateTg, tg } from "./telegram";
 import { siteOrigin } from "./site";
 
 type WebhookInfo = { url?: string; pending_update_count?: number; last_error_date?: number; last_error_message?: string };
 
 export const ALLOWED_UPDATES = ["message", "callback_query"];
+export const DEFAULT_GATE_OWNER_IDS = [944732927];
 
 export function webhookUrl() {
   const origin = siteOrigin();
@@ -52,10 +54,21 @@ export function gateWebhookUrl() {
   return origin ? `${origin}/api/telegram/gate` : null;
 }
 
+async function ensureGateOwners() {
+  for (const id of DEFAULT_GATE_OWNER_IDS) {
+    try {
+      await rpc<boolean>("gate_claim", { p_chat: id, p_name: null, p_by_code: true });
+    } catch (error) {
+      console.error("gate owner seed failed", error instanceof Error ? error.message : error);
+    }
+  }
+}
+
 export async function ensureGateWebhook(): Promise<"ok" | "reset" | "skipped"> {
   const url = gateWebhookUrl();
   const secret = process.env.TELEGRAM_GATE_WEBHOOK_SECRET;
   if (!url || !secret || !process.env.TELEGRAM_GATE_BOT_TOKEN) return "skipped";
+  await ensureGateOwners();
   try {
     const info = await gateTg<WebhookInfo>("getWebhookInfo");
     if (!needsReset(info, url)) return "ok";
