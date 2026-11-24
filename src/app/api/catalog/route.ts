@@ -28,7 +28,8 @@ export function createCatalogHandler(loadCatalog: CatalogLoader = getCatalog, lo
         page: filters.page,
         hasMore: filters.page * filters.limit < result.total && result.items.length > 0
       }, { headers: CACHE_HEADERS });
-    } catch {
+    } catch (error) {
+      console.error("catalog request failed", JSON.stringify(filters), error instanceof Error ? error.message : "upstream error");
       return NextResponse.json(FAILURE, { status: 502 });
     }
   };

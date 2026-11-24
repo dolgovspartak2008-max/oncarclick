@@ -9,12 +9,16 @@ export async function POST(request: NextRequest) {
   if (!secret || !safeEqual(request.headers.get("x-telegram-bot-api-secret-token"), secret)) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
+  let update: Update;
+  try { update = await request.json() as Update; }
+  catch { return NextResponse.json({ ok: false }, { status: 400 }); }
   try {
-    await handleGateUpdate(await request.json() as Update);
+    await handleGateUpdate(update);
   } catch (error) {
     console.error("gate bot update failed", error instanceof Error ? error.message : error);
+    return NextResponse.json({ ok: false }, { status: 503 });
   }
   return NextResponse.json({ ok: true });
 }
 
-export const maxDuration = 30;
+export const maxDuration = 90;

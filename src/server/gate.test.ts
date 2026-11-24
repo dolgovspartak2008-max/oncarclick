@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const { rpc, gateTg, notifyLead } = vi.hoisted(() => ({ rpc: vi.fn(), gateTg: vi.fn(), notifyLead: vi.fn() }));
 vi.mock("./db", () => ({ rpc }));
@@ -8,7 +8,7 @@ vi.mock("./telegram", () => ({
 }));
 vi.mock("./bot", () => ({ notifyLead }));
 
-import { handleGateUpdate, leadText, notifyGate, parseGateAction } from "./gate";
+import { gateEnabled, handleGateUpdate, leadText, notifyGate, parseGateAction } from "./gate";
 
 const LEAD = { id: 7, name: "Иван <script>", phone: "+79001234567", comment: "Kia", page: "/car/1", gate_status: null };
 const press = (data: string, from = 100) => handleGateUpdate({
@@ -24,6 +24,7 @@ function db(map: Record<string, unknown>) {
 beforeEach(() => {
   rpc.mockReset(); gateTg.mockReset().mockResolvedValue({}); notifyLead.mockReset().mockResolvedValue(1);
 });
+afterEach(() => vi.unstubAllEnvs());
 
 describe("parseGateAction", () => {
   test("принимает только fwd/rej с числом", () => {
@@ -36,6 +37,12 @@ describe("parseGateAction", () => {
 });
 
 describe("бот-фильтр", () => {
+  test("не перехватывает заявки, пока не настроен секрет вебхука", () => {
+    vi.stubEnv("TELEGRAM_GATE_WEBHOOK_SECRET", "");
+    expect(gateEnabled()).toBe(false);
+    vi.stubEnv("TELEGRAM_GATE_WEBHOOK_SECRET", "gate-secret");
+    expect(gateEnabled()).toBe(true);
+  });
   test("заявка уходит владельцам с кнопками и экранированием", async () => {
     db({ gate_owner_ids: [100, 200] });
     expect(await notifyGate(LEAD)).toBe(2);
@@ -61,6 +68,9 @@ describe("бот-фильтр", () => {
     db({ gate_is_owner: true, gate_get_lead: { ...LEAD, gate_status: "forwarded" }, gate_decide: false });
     await press("fwd:7");
     expect(notifyLead).not.toHaveBeenCalled();
+    const edited = gateTg.mock.calls.find(([method]) => method === "editMessageText")?.[1];
+    expect(edited.text).not.toContain("✅ <b>Переслано");
+    expect(edited.text).toContain("Проверьте основной бот");
   });
 
   test("если основной бот не доставил — решение откатывается", async () => {
@@ -68,6 +78,12 @@ describe("бот-фильтр", () => {
     notifyLead.mockResolvedValue(0);
     await press("fwd:7");
     expect(rpc).toHaveBeenCalledWith("gate_undo", { p_id: 7 });
+  });
+
+  test("не скрывает ошибку отката после неудачной отправки", async () => {
+    db({ gate_is_owner: true, gate_get_lead: LEAD, gate_decide: true, gate_undo: () => { throw new Error("database unavailable"); } });
+    notifyLead.mockResolvedValue(0);
+    await expect(press("fwd:7")).rejects.toThrow("database unavailable");
   });
 
   test("«Не пересылать» не трогает основной бот", async () => {

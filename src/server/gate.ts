@@ -19,8 +19,8 @@ const send = (chat: number, text: string, markup?: unknown) =>
 
 const isOwner = (user: number) => rpc<boolean>("gate_is_owner", { p_chat: user });
 
-/** Включён ли фильтр: задан токен второго бота. */
-export const gateEnabled = () => Boolean(gateToken());
+/** Не перехватываем заявки, если кнопки бота не смогут пройти проверку вебхука. */
+export const gateEnabled = () => Boolean(gateToken() && process.env.TELEGRAM_GATE_WEBHOOK_SECRET);
 
 /** Значение из кнопки: «fwd:123» / «rej:123». Данные кнопок можно подделать — принимаем только такой вид. */
 export function parseGateAction(data: string): { action: "fwd" | "rej"; id: number } | null {
@@ -43,6 +43,7 @@ export function leadText(lead: Lead) {
 const STATUS = {
   wait: "⏳ <i>Ждёт решения: переслать в основной бот?</i>",
   forwarded: "✅ <b>Переслано в основной бот</b>",
+  check: "⚠️ <b>Отправка уже запускалась. Проверьте основной бот.</b>\nПовторная отправка заблокирована, чтобы не создать дубль. Если заявки нет, обратитесь к администратору сайта.",
   rejected: "🚫 <b>Не переслано</b>"
 };
 
@@ -85,15 +86,17 @@ async function handleCallback(q: CallbackQuery) {
   if (parsed.action === "rej") {
     const ok = await rpc<boolean>("gate_decide", { p_id: lead.id, p_status: "rejected" });
     await answer(ok ? "Не пересылаем" : "Решение по заявке уже принято");
-    return finish(q, lead, ok ? "rejected" : (lead.gate_status ?? "wait"));
+    return finish(q, lead, ok ? "rejected" : lead.gate_status === "forwarded" ? "check" : (lead.gate_status ?? "wait"));
   }
 
   // Сначала атомарно помечаем заявку пересланной — второе нажатие (с любого устройства) уже ничего не отправит
   const ok = await rpc<boolean>("gate_decide", { p_id: lead.id, p_status: "forwarded" });
-  if (!ok) { await answer("Заявка уже переслана"); return finish(q, lead, "forwarded"); }
+  // The DB flag is also a concurrent-send lock, not proof of Telegram delivery.
+  // A stopped process can leave it set before sending. Never claim success or resend automatically.
+  if (!ok) { await answer("Отправка уже запускалась — проверьте основной бот"); return finish(q, lead, "check"); }
   const delivered = await notifyLead(lead).catch(() => 0);
   if (delivered > 0) { await answer("Переслано"); return finish(q, lead, "forwarded"); }
-  await rpc("gate_undo", { p_id: lead.id }).catch(() => {});
+  await rpc("gate_undo", { p_id: lead.id });
   await answer("Не удалось переслать — попробуйте ещё раз");
   return finish(q, lead, "wait", "⚠️ Основной бот не ответил, заявка не переслана. Нажмите «Переслать» ещё раз.");
 }

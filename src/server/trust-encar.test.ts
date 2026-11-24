@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import type { CatalogFilters } from "@/domain/catalog";
 import type { CatalogCar } from "@/domain/trust-encar";
-import { CATALOG_REVALIDATE_SECONDS, fetchLiveCatalog } from "./trust-encar";
+import { CATALOG_REVALIDATE_SECONDS, fetchLiveCatalog, fetchLiveCount, fetchLiveOptions } from "./trust-encar";
 
 const filters: CatalogFilters = { page: 1, limit: 24, sort: "newest" };
 const bootstrap = `
@@ -36,6 +36,71 @@ describe("Trust Encar server client", () => {
     await expect(fetchLiveCatalog(filters, fetcher)).rejects.toThrow("503");
   });
 
+  test("does not cache the expiring upstream nonce for a day", async () => {
+    const fetcher = vi.fn(async (_input: unknown, init?: RequestInit) => {
+      if (!init?.body) return new Response(bootstrap);
+      return (init.body as URLSearchParams).get("action") === "search_db"
+        ? Response.json([]) : Response.json({ status: "success", total: 0 });
+    });
+    await fetchLiveCatalog(filters, fetcher);
+    expect(fetcher.mock.calls[0][1]).toMatchObject({ cache: "no-store" });
+  });
+
+  test("renews an expired nonce once for concurrent search and count without losing filters", async () => {
+    const bodies: URLSearchParams[] = [];
+    let pages = 0;
+    const fetcher = vi.fn(async (_input: unknown, init?: RequestInit) => {
+      if (!init?.body) return new Response(bootstrap.replace('"key"', `"key${++pages}"`));
+      const body = new URLSearchParams(init.body as URLSearchParams);
+      bodies.push(body);
+      if (body.get("nonce") === "key1") return new Response("-1", { status: 403 });
+      if (body.get("action") === "search_db") return Response.json([]);
+      return Response.json({ status: "success", total: 0 });
+    });
+    const result = await fetchLiveCatalog({ ...filters, yearFrom: 2026, mileageTo: 10000 }, fetcher);
+    expect(result.total).toBe(0);
+    expect(pages).toBe(2);
+    const searches = bodies.filter((body) => body.get("action") === "search_db");
+    expect(searches).toHaveLength(2);
+    const before = new URLSearchParams(searches[0]);
+    before.set("nonce", "key2");
+    expect(searches[1].toString()).toBe(before.toString());
+  });
+
+  test("stops retrying if a fresh nonce is also rejected", async () => {
+    let pages = 0;
+    const fetcher = vi.fn(async (_input: unknown, init?: RequestInit) => {
+      if (!init?.body) { pages++; return new Response(bootstrap); }
+      return new Response("-1", { status: 403 });
+    });
+    await expect(fetchLiveCount(filters, fetcher)).rejects.toThrow();
+    expect(pages).toBe(2);
+  });
+
+  test("does not substitute the entire inventory count for an upstream error", async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(new Response(bootstrap))
+      .mockResolvedValueOnce(Response.json({ status: "error" }));
+    await expect(fetchLiveCount({ ...filters, yearFrom: 2026 }, fetcher)).rejects.toThrow();
+  });
+
+  test("does not silently drop a make that could not be resolved", async () => {
+    const fetcher = vi.fn(async (_input: unknown, init?: RequestInit) => {
+      if (!init?.body) return new Response(bootstrap);
+      return (init.body as URLSearchParams).get("action") === "search_db"
+        ? Response.json([]) : Response.json({ status: "success", total: 149585 });
+    });
+    await expect(fetchLiveCatalog({ ...filters, make: "BMW" }, fetcher)).rejects.toThrow();
+  });
+
+  test("renews the nonce when loading the models list", async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(new Response(bootstrap))
+      .mockResolvedValueOnce(new Response("-1", { status: 403 }))
+      .mockResolvedValueOnce(new Response(bootstrap.replace('"key"', '"fresh"')))
+      .mockResolvedValueOnce(Response.json({ facets: { models: [{ name: "Casper" }] } }));
+    const result = await fetchLiveOptions({ ...filters, make: "Hyundai" }, fetcher);
+    expect(result.models).toEqual(["Casper"]);
+  });
+
   test("honors the requested API page size when Trust Encar returns its default batch", async () => {
     const records = ["1", "2"].map((id) => ({
       ID: id, MARKA_NAME: "KIA", MODEL_NAME: "K5", YEAR: 2023,
@@ -66,7 +131,7 @@ describe("Trust Encar server client", () => {
     expect(result.items.map((car) => car.id)).toEqual(["2", "1"]); // 3 150 000 и 1 800 000; 5 400 000 — мимо
     expect(result.total).toBe(2);
     const body = fetcher.mock.calls[1][1].body as URLSearchParams;
-    expect(body.get("priceRubFrom")).toBe("1650000");
+    expect(body.get("priceRubFrom")).toBe("1500000");
     expect(Number(body.get("priceRubTo"))).toBeGreaterThan(3_200_000);
     expect(body.get("field_sort")).toBe("CREATED_DATE"); // по цене сортируем сами
   });

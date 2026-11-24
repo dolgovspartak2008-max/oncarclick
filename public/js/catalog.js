@@ -17,6 +17,7 @@
   const CHILDREN = { brand: ['model', 'generation', 'trim'], model: ['generation', 'trim'], generation: ['trim'] };
 
   let cars = [], page = 1, total = 0, hasMore = false, loading = false;
+  let loadController = null;
   let applied = Object.assign(emptyFilters(), Model.filtersFromQuery(location.search));
   let draft = Object.assign({}, applied);
   let makes = [];
@@ -482,7 +483,11 @@
   }
 
   async function load(append) {
-    if (loading) return;
+    if (loading && append) return;
+    if (loadController) loadController.abort();
+    const controller = new AbortController();
+    loadController = controller;
+    const timeout = setTimeout(function () { controller.abort(); }, 55000);
     loading = true;
     const targetPage = append ? page + 1 : 1;
     const url = Model.buildCatalogUrl(withSort(applied), targetPage);
@@ -490,14 +495,16 @@
     loadMore.disabled = true;
     if (!append) grid.classList.add('is-loading');
     try {
-      const response = await fetch(url, { headers: { Accept: 'application/json' } });
+      const response = await fetch(url, { headers: { Accept: 'application/json' }, signal: controller.signal });
       if (!response.ok) throw new Error('Источник временно недоступен');
       const data = await response.json();
+      if (loadController !== controller) return;
       safeSet(CACHE_KEY, JSON.stringify({ url: url, data: data, savedAt: Date.now() }));
       page = targetPage;
       accept(data, append);
       status.textContent = 'Каталог обновляется автоматически один раз в сутки. Цены — с пошлиной и утильсбором.';
     } catch (error) {
+      if (loadController !== controller) return;
       const cached = !append && readCache(url);
       if (cached) {
         page = 1;
@@ -505,12 +512,23 @@
         status.textContent = 'Источник временно недоступен — показана последняя сохранённая версия.';
       } else {
         status.textContent = 'Не удалось загрузить каталог. Попробуйте обновить страницу чуть позже.';
-        if (!append) grid.innerHTML = '<p class="empty">Каталог временно недоступен.</p>';
+        if (!append) {
+          cars = []; rawList = []; total = 0; hasMore = false;
+          count.textContent = '';
+          loadMore.hidden = true;
+          showText.textContent = 'Показать автомобили';
+          showBtn.disabled = false;
+          grid.innerHTML = '<p class="empty">Каталог временно недоступен.</p>';
+        }
       }
     } finally {
-      loading = false;
-      loadMore.disabled = false;
-      grid.classList.remove('is-loading');
+      clearTimeout(timeout);
+      if (loadController === controller) {
+        loadController = null;
+        loading = false;
+        loadMore.disabled = false;
+        grid.classList.remove('is-loading');
+      }
     }
   }
 

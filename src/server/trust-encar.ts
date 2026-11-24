@@ -50,6 +50,7 @@ type Context = {
   bootstrap: TrustEncarBootstrap;
   makeId?: string;
   modelId?: string;
+  nonceRefresh?: Promise<void>;
 };
 
 const JSON_POST = { Accept: "application/json", "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" };
@@ -66,22 +67,42 @@ function readModels(value: unknown) {
   });
 }
 
-function post(ctx: Context, body: URLSearchParams) {
-  return ctx.fetcher(ctx.bootstrap.ajaxUrl, { method: "POST", headers: JSON_POST, body, signal: AbortSignal.timeout(10_000) });
+async function post(ctx: Context, body: URLSearchParams) {
+  const send = () => {
+    body.set("nonce", ctx.bootstrap.nonce);
+    return ctx.fetcher(ctx.bootstrap.ajaxUrl, { method: "POST", headers: JSON_POST, body: new URLSearchParams(body), cache: "no-store", signal: AbortSignal.timeout(10_000) });
+  };
+  const response = await send();
+  if (response.status !== 403) return response;
+  // WordPress rejects expired nonces with 403. Search/count share one renewal;
+  // retry only once and keep the selected filters intact.
+  ctx.nonceRefresh ??= readBootstrap(ctx.fetcher, true).then((fresh) => {
+    ctx.bootstrap.nonce = fresh.nonce;
+    ctx.bootstrap.ajaxUrl = fresh.ajaxUrl;
+  });
+  await ctx.nonceRefresh;
+  return send();
+}
+
+async function readBootstrap(fetcher: Fetcher, refresh = false) {
+  const url = new URL("https://trust-encar.ru/catalog/");
+  if (refresh) url.searchParams.set("_nonce_refresh", String(Date.now()));
+  const pageResponse = await fetcher(url.toString(), {
+    cache: "no-store",
+    signal: AbortSignal.timeout(10_000)
+  });
+  if (!pageResponse.ok) throw new Error(`Trust Encar вернул ${pageResponse.status}`);
+  return parseTrustEncarBootstrap(await pageResponse.text());
 }
 
 async function openContext(filters: Pick<CatalogFilters, "make" | "model">, fetcher: Fetcher): Promise<Context> {
-  const pageResponse = await fetcher("https://trust-encar.ru/catalog/", {
-    next: { revalidate: CATALOG_REVALIDATE_SECONDS, tags: [CATALOG_CACHE_TAG] },
-    signal: AbortSignal.timeout(10_000)
-  } as RequestInit);
-  if (!pageResponse.ok) throw new Error(`Trust Encar вернул ${pageResponse.status}`);
-  const bootstrap = parseTrustEncarBootstrap(await pageResponse.text());
+  const bootstrap = await readBootstrap(fetcher);
   const ctx: Context = { fetcher, bootstrap };
   // С ноября 2026 источник часто отдаёт страницу каталога без списка марок.
   // Тогда берём марки тем же запросом, которым их загружает сам сайт источника.
   if (!bootstrap.makes.length) bootstrap.makes = await loadMakes(ctx);
   ctx.makeId = bootstrap.makes.find((item) => sameText(item.name, filters.make))?.id;
+  if (filters.make && !ctx.makeId) throw new Error("Trust Encar не распознал марку");
 
   if (filters.model && filters.make) {
     const lookupResponse = await post(ctx, new URLSearchParams({
@@ -91,6 +112,7 @@ async function openContext(filters: Pick<CatalogFilters, "make" | "model">, fetc
     const lookup = await lookupResponse.json() as { model_id?: unknown };
     ctx.modelId = String(lookup.model_id || "") || undefined;
   }
+  if (filters.model && !ctx.modelId) throw new Error("Trust Encar не распознал модель");
   return ctx;
 }
 
@@ -124,8 +146,11 @@ async function searchPage(ctx: Context, filters: CatalogFilters, upstreamPage: n
 async function countMatches(ctx: Context, filters: CatalogFilters): Promise<number> {
   const response = await post(ctx, buildTrustEncarSearchBody("ajax_catalog_count_db", filters, ctx.bootstrap, ctx.modelId));
   if (!response.ok) throw new Error("Trust Encar временно не отдаёт каталог");
-  const count = await response.json() as { status?: unknown; total?: unknown };
-  return count.status === "success" && Number.isFinite(Number(count.total)) ? Number(count.total) : ctx.bootstrap.total;
+  const count = await response.json() as { status?: unknown; total?: unknown } | null;
+  if (count?.status !== "success" || count.total == null || count.total === "" || !Number.isSafeInteger(Number(count.total)) || Number(count.total) < 0) {
+    throw new Error("Trust Encar не отдал число машин по фильтрам");
+  }
+  return Number(count.total);
 }
 
 /** Просматривает выдачу постранично — нужно для фильтра по комплектации, которого нет у источника. */
@@ -280,15 +305,15 @@ export async function fetchCarDetails(id: string, fetcher: Fetcher = fetch, now 
 const cacheOptions = { revalidate: CATALOG_REVALIDATE_SECONDS, tags: [CATALOG_CACHE_TAG] };
 const cachedCatalog = unstable_cache(
   async (serialized: string) => fetchLiveCatalog(JSON.parse(serialized) as CatalogFilters),
-  ["trust-encar-catalog-v9"], cacheOptions
+  ["trust-encar-catalog-v10"], cacheOptions
 );
 const cachedCount = unstable_cache(
   async (serialized: string) => fetchLiveCount(JSON.parse(serialized) as CatalogFilters),
-  ["trust-encar-count-v4"], cacheOptions
+  ["trust-encar-count-v5"], cacheOptions
 );
 const cachedOptions = unstable_cache(
   async (serialized: string) => fetchLiveOptions(JSON.parse(serialized) as CatalogFilters),
-  ["trust-encar-options-v3"], cacheOptions
+  ["trust-encar-options-v4"], cacheOptions
 );
 
 export function getCatalog(filters: CatalogFilters) {

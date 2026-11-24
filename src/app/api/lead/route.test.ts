@@ -11,7 +11,7 @@ vi.mock("@/server/bot", () => ({ notifyLead }));
 vi.mock("@/server/gate", () => ({ notifyGate, gateEnabled }));
 
 import { DbError } from "@/server/db";
-import { POST } from "./route";
+import { maxDuration, POST } from "./route";
 
 const lead = (headers: Record<string, string> = {}, body: Record<string, unknown> = {}) =>
   new NextRequest("https://example.com/api/lead", {
@@ -63,6 +63,17 @@ describe("POST /api/lead", () => {
     notifyGate.mockResolvedValue(0);
     await POST(lead());
     expect(notifyLead).toHaveBeenCalledOnce();
+  });
+
+  test("ошибка второго бота не мешает доставке в основной, включая бюджет таймаутов", async () => {
+    rpc.mockResolvedValue(22);
+    gateEnabled.mockReturnValue(true);
+    notifyGate.mockRejectedValue(new Error("Telegram timeout"));
+    const response = await POST(lead());
+    expect(await response.json()).toMatchObject({ ok: true, delivered: true });
+    expect(notifyLead).toHaveBeenCalledOnce();
+    // save (8s) + gate lookup/send (18s) + main lookup/send (18s)
+    expect(maxDuration).toBeGreaterThanOrEqual(44);
   });
 
   test("лимит базы P0429 → 429 с понятным текстом", async () => {
